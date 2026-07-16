@@ -153,7 +153,7 @@ export default function SearchPage({ currentGender }) {
         </div>
       </div>
 
-      <div className="grid gap-20 lg:grid-cols-[320px_minmax(0,1fr)]">
+      <div className="grid gap-6 lg:grid-cols-[320px_minmax(0,1fr)]">
         <SearchFilterSidebar
           gender={currentGender}
           categories={categories}

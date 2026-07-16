@@ -49,7 +49,7 @@ function ProductsGrid({ clothingItems }) {
 function getGridClasses(viewMode) {
   if (viewMode === 1) return "grid-cols-2 place-items-center gap-y-20";
   if (viewMode === 2) return "grid-cols-2 place-items-center px-52 gap-y-16";
-  if (viewMode === 3) return "grid-cols-4 place-items-center px-1 gap-y-10";
+  if (viewMode === 3) return "grid-cols-4 place-items-center px-1 gap-x-4 gap-y-10";
   if (viewMode === 4) return "grid-cols-8 place-items-center";
   return "place-items-center";
 }

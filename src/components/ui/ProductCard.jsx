@@ -28,36 +28,34 @@ function ProductCard({ item, isMini }) {
       </div>
       <Link
         href={`${localePrefix}/product/${item.id}`}
-        className="relative h-full overflow-hidden w-full"
+        className="relative overflow-hidden w-full"
       >
-        <div className="relative h-full  w-full overflow-hidden flex items-center">
+        <div
+          className={`relative w-full overflow-hidden ${isMini ? "aspect-1" : "aspect-3/4"}`}
+        >
+          {/* loader overlay */}
           <div
-            className={`relative h-full ${isMini ? "md:h-64" : "md:h-125  "} aspect-3/4 w-full overflow-hidden`}
+            className={`absolute size-full inset-0 flex items-center justify-center bg-gray-200 transition-opacity duration-300 ${
+              isLoading ? "opacity-100" : "opacity-0 pointer-events-none"
+            }`}
           >
-            {/* loader overlay */}
-            <div
-              className={`absolute size-full inset-0 flex items-center justify-center bg-gray-200 transition-opacity duration-300 ${
-                isLoading ? "opacity-100" : "opacity-0 pointer-events-none"
-              }`}
-            >
-              <LottieAnimationPlayer />
-            </div>
-
-            {isBundle && (
-              <div className="absolute top-2 left-2 z-10 bg-blue-600 text-white text-[10px] font-bold px-2 py-1 rounded shadow">
-                {t("bundle")}
-              </div>
-            )}
-            <NextImage
-              fill
-              src={item.images?.[0] || "/images/600x800.png"}
-              className=" object-cover transition-transform duration-300 group-hover:scale-110"
-              alt={item.name || "product"}
-              onLoad={() => {
-                setIsLoading(false);
-              }}
-            />
+            <LottieAnimationPlayer />
           </div>
+
+          {isBundle && (
+            <div className="absolute top-2 left-2 z-10 bg-blue-600 text-white text-[10px] font-bold px-2 py-1 rounded shadow">
+              {t("bundle")}
+            </div>
+          )}
+          <NextImage
+            fill
+            src={item.images?.[0] || "/images/600x800.png"}
+            className=" object-cover transition-transform duration-300 group-hover:scale-110"
+            alt={item.name || "product"}
+            onLoad={() => {
+              setIsLoading(false);
+            }}
+          />
           <div
             className={`${isMini ? "px-4 text-xs" : "px-10 text-sm"} absolute flex flex-col gap-y-3 items-center justify-center translate-y-full group-hover:translate-y-0 transition-all duration-200 bg-white/50 backdrop-blur-xs w-full h-20 bottom-0`}
           >
