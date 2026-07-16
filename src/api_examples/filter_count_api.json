@@ -1,0 +1,23 @@
+{
+    "success": true,
+    "result": {
+        "count": 0,
+        "filters_applied": {
+            "gender": "female",
+            "categories": [
+                "2"
+            ],
+            "colors": [
+                "2"
+            ],
+            "price_range_min": "100",
+            "price_range_max": "500",
+            "in_stock": "1",
+            "search_query": "dress",
+            "sort_by": "price_low"
+        }
+    },
+    "statusCode": 200,
+    "message": "Product count retrieved successfully",
+    "error": null
+}

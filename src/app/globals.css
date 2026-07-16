@@ -1,0 +1,218 @@
+@import "tailwindcss";
+:root {
+  /* --background: #ffffff;
+  --foreground: #171717; */
+}
+
+html::-webkit-scrollbar {
+  display: none;
+}
+
+.navbar-container {
+  max-width: 96%;
+}
+
+.container1 {
+  max-width: 93%;
+}
+
+.container2 {
+  max-width: 91%;
+}
+
+.container3 {
+  max-width: 96%;
+}
+
+.container4 {
+  max-width: 95%;
+}
+
+.container5 {
+  max-width: 98%;
+}
+
+.container6 {
+  max-width: 80%;
+}
+
+@media only screen and (max-width: 400px) {
+  html {
+    font-size: 14px;
+  }
+}
+
+@media only screen and (min-width: 401px) and (max-width: 769px) {
+  html {
+    font-size: 16px;
+  }
+}
+
+@media only screen and (min-width: 770px) and (max-width: 863px) {
+  html {
+    font-size: 8px;
+  }
+}
+
+@media only screen and (min-width: 864px) and (max-width: 910px) {
+  html {
+    font-size: 8.5px;
+  }
+}
+
+@media only screen and (min-width: 910px) and (max-width: 976px) {
+  html {
+    font-size: 10px;
+  }
+}
+
+@media only screen and (min-width: 977px) and (max-width: 993px) {
+  html {
+    font-size: 10px;
+  }
+}
+
+@media only screen and (min-width: 994px) and (max-width: 1023px) {
+  html {
+    font-size: 10px;
+  }
+}
+
+@media only screen and (min-width: 1024px) and (max-width: 1099px) {
+  html {
+    font-size: 10.7px;
+  }
+}
+
+@media only screen and (min-width: 1100px) and (max-width: 1250px) {
+  html {
+    font-size: 12px;
+  }
+}
+
+@media only screen and (min-width: 1251px) and (max-width: 1281px) {
+  html {
+    font-size: 12.5px;
+  }
+}
+
+@media only screen and (min-width: 1282px) and (max-width: 1365px) {
+  html {
+    font-size: 13px;
+  }
+}
+
+@media only screen and (min-width: 1366px) and (max-width: 1400px) {
+  html {
+    font-size: 13.5px;
+  }
+}
+
+@media only screen and (min-width: 1401px) and (max-width: 1534px) {
+  html {
+    font-size: 15px;
+  }
+}
+
+@media only screen and (min-width: 1535px) and (max-width: 1600px) {
+  html {
+    font-size: 16px;
+  }
+}
+
+@media only screen and (min-width: 1601px) and (max-width: 1800px) {
+  html {
+    font-size: 16.5px;
+  }
+}
+
+@media only screen and (min-width: 1801px) and (max-width: 2000px) {
+  html {
+    font-size: 18.7px;
+  }
+}
+
+@media only screen and (min-width: 2001px) and (max-width: 2200px) {
+  html {
+    font-size: 20px;
+  }
+}
+
+@media only screen and (min-width: 2201px) and (max-width: 2500px) {
+  html {
+    font-size: 22px;
+  }
+}
+
+@media only screen and (min-width: 2501px) and (max-width: 2800px) {
+  html {
+    font-size: 26px;
+  }
+}
+
+@media only screen and (min-width: 2801px) and (max-width: 3000px) {
+  html {
+    font-size: 30px;
+  }
+}
+
+@media only screen and (min-width: 3001px) and (max-width: 3200px) {
+  html {
+    font-size: 30px;
+  }
+}
+
+@media only screen and (min-width: 3201px) and (max-width: 35000px) {
+  html {
+    font-size: 33px;
+  }
+}
+
+@media only screen and (min-width: 3501px) {
+  html {
+    font-size: 45px;
+  }
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #ffffff;
+    --foreground: #ededed;
+  }
+}
+
+body {
+  font-family:
+    var(--font-lufga),
+    var(--font-ping-ar) Arial,
+    Helvetica,
+    sans-serif;
+}
+
+.filter-red {
+  filter: invert(21%) sepia(86%) saturate(7483%) hue-rotate(357deg)
+    brightness(94%) contrast(118%);
+}
+
+.rtl-date-input {
+  text-align: right;
+  padding-right: 12px;
+  padding-left: 12px;
+}
+
+.rtl-date-input::-webkit-datetime-edit {
+  direction: rtl;
+  text-align: right;
+}
+
+.rtl-date-input::-webkit-calendar-picker-indicator {
+  margin-left: 0;
+  margin-right: auto;
+}

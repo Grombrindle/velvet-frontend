@@ -1,0 +1,114 @@
+{
+    "success": true,
+    "result": {
+        "gender": {
+            "id": 1,
+            "name": "Female"
+        },
+        "categories": [
+            {
+                "id": 26,
+                "name": "trousers",
+                "products": [
+                    {
+                        "id": 112,
+                        "name": "Wide-leg trousers"
+                    }
+                ],
+                "latest_product": {
+                    "id": 112,
+                    "name": "Wide-leg trousers",
+                    "image": "https://velvet.e-solutionsgroup.org/storage/products/01KPR0KT7289FJE4080GZ0KHCK.jpg"
+                },
+                "trending_product": null
+            },
+            {
+                "id": 11,
+                "name": "Jeans",
+                "products": [
+                    {
+                        "id": 1,
+                        "name": "Women High Waist Jeans"
+                    },
+                    {
+                        "id": 2,
+                        "name": "Women Skinny Jeans"
+                    }
+                ],
+                "latest_product": {
+                    "id": 1,
+                    "name": "Women High Waist Jeans",
+                    "image": "https://velvet.e-solutionsgroup.org/storage/products/01KP8J2CA2J7YP0TE3MD13X84B.jpg"
+                },
+                "trending_product": {
+                    "id": 1,
+                    "name": "Women High Waist Jeans",
+                    "image": "https://velvet.e-solutionsgroup.org/storage/products/01KP8J2CA2J7YP0TE3MD13X84B.jpg"
+                }
+            },
+            {
+                "id": 3,
+                "name": "Jackets",
+                "products": [
+                    {
+                        "id": 109,
+                        "name": "Short jacket"
+                    },
+                    {
+                        "id": 107,
+                        "name": "long jacket"
+                    },
+                    {
+                        "id": 106,
+                        "name": "long jacket"
+                    },
+                    {
+                        "id": 96,
+                        "name": "Women Trench Coat"
+                    },
+                    {
+                        "id": 95,
+                        "name": "Women Leather Jacket"
+                    },
+                    {
+                        "id": 4,
+                        "name": "Women Jacket"
+                    }
+                ],
+                "latest_product": {
+                    "id": 109,
+                    "name": "Short jacket",
+                    "image": "https://velvet.e-solutionsgroup.org/storage/products/01KPQZ7S9WJXNBQAGC445MA4W7.png"
+                },
+                "trending_product": {
+                    "id": 96,
+                    "name": "Women Trench Coat",
+                    "image": "https://velvet.e-solutionsgroup.org/storage/products/01KPB3MSV8H84C16HGC2TKCCPR.jpg"
+                }
+            },
+            {
+                "id": 22,
+                "name": "Dresses",
+                "products": [
+                    {
+                        "id": 110,
+                        "name": "long dress"
+                    },
+                    {
+                        "id": 98,
+                        "name": "Elegant Flow"
+                    }
+                ],
+                "latest_product": {
+                    "id": 110,
+                    "name": "long dress",
+                    "image": "https://velvet.e-solutionsgroup.org/storage/products/01KPQZR7CJ5NN8JQEQB1XDQJ7W.jpg"
+                },
+                "trending_product": null
+            }
+        ]
+    },
+    "statusCode": 200,
+    "message": "Categories and products retrieved successfully",
+    "error": null
+}

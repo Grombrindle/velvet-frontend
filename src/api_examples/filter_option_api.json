@@ -1,0 +1,183 @@
+{
+    "success": true,
+    "result": [
+        {
+            "id": "gender",
+            "name": "الجنس",
+            "view_type": "radio",
+            "options": [
+                {
+                    "id": 1,
+                    "label": "نسواني",
+                    "product_count": 5
+                },
+                {
+                    "id": 2,
+                    "label": "ولادي",
+                    "product_count": 4
+                }
+            ]
+        },
+        {
+            "id": "categories",
+            "name": "الفئة",
+            "view_type": "checkbox",
+            "depends_on": "gender",
+            "options": {
+                "1": [
+                    {
+                        "id": 4,
+                        "label": "جاكيت",
+                        "image": "https://velvet.e-solutionsgroup.org/storage/categories/01KNPAQQHZ3Q5KV28X8PS0FNC3.jpg",
+                        "product_count": 3
+                    },
+                    {
+                        "id": 11,
+                        "label": "جينز",
+                        "image": "https://velvet.e-solutionsgroup.org/storage/categories/01KNPAVDG0S0SVT9GWEQWV6NJD.jpg",
+                        "product_count": 1
+                    },
+                    {
+                        "id": 10,
+                        "label": "أحذية",
+                        "image": "https://velvet.e-solutionsgroup.org/storage/categories/01KNPAWPQXFYKHSHQCJJ46R7A2.jpg",
+                        "product_count": 1
+                    }
+                ],
+                "2": [
+                    {
+                        "id": 4,
+                        "label": "جاكيت",
+                        "image": "https://velvet.e-solutionsgroup.org/storage/categories/01KNPAQQJ1J8WWS14RWXFY3EXZ.jpg",
+                        "product_count": 2
+                    },
+                    {
+                        "id": 11,
+                        "label": "جينز",
+                        "image": "https://velvet.e-solutionsgroup.org/storage/categories/01KNPAVDG1KDYJY1YVCE5G471Y.jpg",
+                        "product_count": 1
+                    },
+                    {
+                        "id": 10,
+                        "label": "أحذية",
+                        "image": "https://velvet.e-solutionsgroup.org/storage/categories/01KNPAWPQZ5VXVKXPSPH66YBFK.jpg",
+                        "product_count": 1
+                    }
+                ]
+            }
+        },
+        {
+            "id": "colors",
+            "name": "اللون",
+            "view_type": "color",
+            "options": [
+                {
+                    "id": "2",
+                    "label": "أزرق",
+                    "hex": "#0000FF",
+                    "product_count": 3
+                },
+                {
+                    "id": "4",
+                    "label": "أسود",
+                    "hex": "#000000",
+                    "product_count": 1
+                },
+                {
+                    "id": "5",
+                    "label": "أبيض",
+                    "hex": "#FFFFFF",
+                    "product_count": 3
+                },
+                {
+                    "id": "11",
+                    "label": "رمادي",
+                    "hex": "#808080",
+                    "product_count": 1
+                },
+                {
+                    "id": "17",
+                    "label": "لون واحد",
+                    "hex": "#CCCCCC",
+                    "product_count": 1
+                }
+            ]
+        },
+        {
+            "id": "sizes",
+            "name": "المقاس",
+            "view_type": "checkbox",
+            "options": [
+                {
+                    "id": "1",
+                    "label": "صغير",
+                    "product_count": 7
+                },
+                {
+                    "id": "2",
+                    "label": "متوسط",
+                    "product_count": 6
+                },
+                {
+                    "id": "3",
+                    "label": "كبير",
+                    "product_count": 8
+                },
+                {
+                    "id": "4",
+                    "label": "كبير جداً",
+                    "product_count": 8
+                },
+                {
+                    "id": "5",
+                    "label": "صغير جداً",
+                    "product_count": 6
+                },
+                {
+                    "id": "6",
+                    "label": "صغير جداً",
+                    "product_count": 8
+                },
+                {
+                    "id": "17",
+                    "label": "مقاس واحد",
+                    "product_count": 1
+                }
+            ]
+        },
+        {
+            "id": "price_range",
+            "name": "نطاق السعر",
+            "view_type": "slider",
+            "range": {
+                "min": 20.32000000000000028421709430404007434844970703125,
+                "max": 402
+            }
+        },
+        {
+            "id": "spec_1",
+            "name": "المادة",
+            "view_type": "checkbox",
+            "options": [
+                {
+                    "id": "7",
+                    "label": "جلد",
+                    "product_count": 3
+                },
+                {
+                    "id": "3",
+                    "label": "صوف",
+                    "product_count": 3
+                },
+                {
+                    "id": "1",
+                    "label": "قطن",
+                    "product_count": 1
+                }
+            ]
+        }
+    ],
+    "statusCode": 200,
+    "message": "Filter options retrieved successfully",
+    "error": null
+}
