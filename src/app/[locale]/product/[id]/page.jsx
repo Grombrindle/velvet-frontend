@@ -5,6 +5,8 @@ import { notFound } from "next/navigation";
 import { supportedLocales, defaultLocale } from "@/lib/locale";
 import {setRequestLocale } from "next-intl/server";
 
+export const dynamic = 'force-dynamic';
+
 async function ProductPage({ params }) {
   // Get locale from params (same as your Home page)
   const { id, locale: paramLocale } = await params;

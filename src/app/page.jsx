@@ -2,6 +2,8 @@ import { redirect } from "next/navigation";
 import { apiGet } from "@/lib/api";
 import { defaultLocale } from "@/lib/locale";
 
+export const dynamic = 'force-dynamic';
+
 export default async function Home({ searchParams }) {
   const genderQuery = (await searchParams)?.gender;
 

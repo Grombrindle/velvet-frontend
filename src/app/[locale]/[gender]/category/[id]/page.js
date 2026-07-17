@@ -4,6 +4,8 @@ import CategoryContent from "@/components/categoriesPage/CategoryContent";
 import { apiGet } from "@/lib/api";
 import FilterToggleAndResults from "@/components/categoriesPage/FilterToggleAndResults";
 
+export const dynamic = 'force-dynamic';
+
 export async function generateMetadata({ params }) {
   const { id, gender, locale } = await params;
 

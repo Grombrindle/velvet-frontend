@@ -3,6 +3,8 @@ import { apiGet } from "@/lib/api";
 import { supportedLocales, defaultLocale } from "@/lib/locale";
 import { getLocale, setRequestLocale } from "next-intl/server";
 
+export const dynamic = 'force-dynamic';
+
 export default async function LocaleHome({ params }) {
   const loc = (await params).locale;
   const locale = supportedLocales.includes(loc) ? loc : defaultLocale;

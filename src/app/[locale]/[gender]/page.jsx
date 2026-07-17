@@ -4,6 +4,8 @@ import HeroSection from "@/components/home/HeroSection";
 import { apiGet } from "@/lib/api";
 import { setRequestLocale } from "next-intl/server";
 
+export const dynamic = 'force-dynamic';
+
 export default async function GenderHome({ params }) {
   const { gender, locale } = await params;
 
