@@ -16,6 +16,7 @@ function appendLangQuery(endpoint, lang) {
  */
 async function apiFetch(
   endpoint,
+  
   {
     method = "GET",
     data = null,
@@ -23,7 +24,7 @@ async function apiFetch(
     lang: langOption,
     ...options
   } = {},
-) {
+) { 
   const token = getToken();
   // Debug: Log token status
   // console.log("Token present:", token);
