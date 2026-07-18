@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useChangeCurrency, useCurrencies } from "./hooks/useCurrencies";
-import toast, { Toaster } from "react-hot-toast";
+import { toast } from "react-hot-toast";
 import Loader from "../ui/loader";
 import ErrorState from "../ui/errorMessage";
 import { useTranslations } from "next-intl";
@@ -66,7 +66,6 @@ const AllCurrencies = () => {
   const currencies = data?.currencies || [];
   return (
     <>
-      <Toaster />
       <form
         onSubmit={handleSubmit(onSubmit)}
         className="flex flex-col space-y-[1rem]"

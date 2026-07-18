@@ -24,6 +24,14 @@ function NextStepHandler({ nextStep, orderId, onComplete }) {
 
   useEffect(() => cleanup, [cleanup]);
 
+  // Auto-open payment URL on mount
+  useEffect(() => {
+    if (nextStep?.type === "webview" && nextStep.url) {
+      window.open(nextStep.url, "_blank", "noopener,noreferrer");
+      startPolling();
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   const startPolling = useCallback(() => {
     cleanup();
     setStepState("polling");
@@ -86,15 +94,12 @@ function NextStepHandler({ nextStep, orderId, onComplete }) {
         <h2 className="text-xl font-bold">{nextStep.title || t("payment_required")}</h2>
 
         {stepState === "idle" && (
-          <button
-            className="bg-black text-white px-6 py-3 rounded font-bold"
-            onClick={() => {
-              window.open(nextStep.url, "_blank", "noopener,noreferrer");
-              startPolling();
-            }}
-          >
-            {t("complete_payment")}
-          </button>
+          <div className="space-y-3">
+            <div className="flex justify-center">
+              <div className="w-8 h-8 border-2 border-black border-t-transparent rounded-full animate-spin" />
+            </div>
+            <p className="text-sm text-gray-600">{t("redirecting_payment")}</p>
+          </div>
         )}
 
         {stepState === "polling" && (

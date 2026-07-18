@@ -1,7 +1,7 @@
 "use client";
 import Image from "next/image";
 import { useState } from "react";
-import toast, { Toaster } from "react-hot-toast";
+import { toast } from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import { CancellSuccess } from "./cancellSuccess";
 import { useRejectionReasons, useCancelOrder } from "./hooks/useGetOrders";
@@ -71,8 +71,6 @@ const OrderCancell = ({ orderData, orderId }) => {
 
   return (
     <>
-      <Toaster />
-
       <div className="w-full h-auto border border-[#959595] px-4 py-5 lg:mt-0 mt-[7rem]">
         <div className="flex gap-x-2">
           <h1 className="font-bold text-[#000000] text-md">{t("order_no")}:</h1>

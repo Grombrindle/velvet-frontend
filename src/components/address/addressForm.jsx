@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Toaster, toast } from "react-hot-toast";
+import { toast } from "react-hot-toast";
 import { useCities, useCountries } from "./hooks/useLocations";
 import AddressFormFields from "../ui/formStyle";
 import { useAddressUIStore } from "@/lib/store";
@@ -130,7 +130,6 @@ const AddressForm = ({t, onSubmit: externalOnSubmit, onClose, isLoading = false 
 
   return (
     <>
-      <Toaster />
       <form onSubmit={handleSubmit(onSubmit)}>
         <AddressFormFields
         t={t}

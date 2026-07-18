@@ -11,7 +11,7 @@ import { useAuthStore } from "@/lib/store";
 import { getLocalePrefix } from "@/lib/locale";
 import CartItem from "@/components/cart/CartItem";
 import BundleCartItem from "@/components/cart/BundleCartItem";
-import { Toaster, toast } from "react-hot-toast";
+import { toast } from "react-hot-toast";
 
 function CheckoutPage() {
   const t = useTranslations("checkout");
@@ -122,11 +122,13 @@ function CheckoutPage() {
 
   useEffect(() => {
     if (!isAuthenticated) return;
+    // Don't redirect if already processing payment or showing Stripe
+    if (checkoutState === "next_step" || checkoutState === "submitting") return;
     if (!isCartLoading && items.length === 0) {
       toast.error("Your cart is empty");
       router.replace(`${localePrefix}/cart`);
     }
-  }, [isCartLoading, items, router, localePrefix, isAuthenticated]);
+  }, [isCartLoading, items, router, localePrefix, isAuthenticated, checkoutState]);
 
   if (!isAuthenticated || (!isCartLoading && items.length === 0)) {
     return null;
@@ -135,7 +137,6 @@ function CheckoutPage() {
   if (checkoutState === "submitting") {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <Toaster position="top-right" />
         <div className="text-center space-y-3">
           <div className="w-8 h-8 border-2 border-black border-t-transparent rounded-full animate-spin mx-auto" />
           <p className="text-sm text-gray-600">{t("processing")}</p>
@@ -147,7 +148,6 @@ function CheckoutPage() {
   if (checkoutState === "next_step" && orderResult) {
     return (
       <div className="min-h-screen pt-8 pb-16">
-        <Toaster position="top-right" />
         <div className="container1 mx-auto px-2 max-w-lg">
           <NextStepHandler
             nextStep={nextStep}
@@ -161,7 +161,6 @@ function CheckoutPage() {
 
   return (
     <div className="min-h-screen pt-8 pb-16">
-      <Toaster position="top-right" />
       <div className="container1 mx-auto px-2">
         <h1 className="text-2xl font-bold mb-6">{t("title")}</h1>
 

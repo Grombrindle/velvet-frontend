@@ -4,9 +4,9 @@ import { notFound } from "next/navigation";
 import { getMessages, setRequestLocale } from "next-intl/server";
 import { hasLocale, NextIntlClientProvider } from "next-intl";
 import { routing } from "@/i18n/routing";
-import { Geist, Geist_Mono } from "next/font/google"; // أضفنا الخطوط
+import { Geist, Geist_Mono } from "next/font/google";
 import localFont from "next/font/local";
-import "../globals.css"; // تأكد من المسار (نقطتين للرجوع)
+import "../globals.css";
 
 import NavBar from "@/components/layout/NavBar";
 import NavbarMobile from "@/components/layout/NavbarMobile";
@@ -16,6 +16,7 @@ import LocaleQueryInvalidator from "@/components/layout/LocaleQueryInvalidator";
 import { Suspense } from "react";
 import SplashScreen from "@/components/splashScreen/SplashScreen";
 import AuthModals from "@/components/auth/AuthModals";
+import { Toaster } from "react-hot-toast";
 
 // --- إعداد الخطوط (Fonts) ---
 const lufga = localFont({
@@ -120,6 +121,14 @@ export default async function RootLayout({ children, params }) {
                 <NavbarMobile />
               </Suspense>
             </div>
+
+            <Toaster
+              position="top-center"
+              toastOptions={{
+                style: { marginTop: "5rem" },
+                duration: 3000,
+              }}
+            />
 
             <main>{children}</main>
 

@@ -107,12 +107,14 @@ const ProductItem = ({ item, t }) => {
 const DeliveryAddress = ({ address, t }) => (
   <div className="w-full h-auto border border-[#D4D4D4] rounded-md mt-5 p-4">
     <h1 className="font-bold text-md text-[#000000]">{t("ORDER_DETAILS")}</h1>
-    
+
     <h1 className="font-bold text-md text-[#000000] mt-4">
       {t("delivery_address")}
     </h1>
     <p className="text-[#000000] text-md mt-2">
-      {address.name} {address.sur_name}, {address.country?.name}, {address.city?.name}, {address.address}
+      {address
+        ? `${address.name || ""} ${address.sur_name || ""}, ${address.country?.name || ""}, ${address.city?.name || ""}, ${address.address || ""}`
+        : t("no_delivery_address") || "Pickup — no delivery address"}
     </p>
   </div>
 );

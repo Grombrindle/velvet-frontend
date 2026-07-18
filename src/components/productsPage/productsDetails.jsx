@@ -6,7 +6,7 @@ import { MdKeyboardArrowRight } from "react-icons/md";
 import Sidebar from "./sidebar";
 import Line from "../ui/line";
 import { useAddToCart, useToggleFavorite } from "./hook/favourite";
-import { Toaster, toast } from "react-hot-toast";
+import { toast } from "react-hot-toast";
 import { FaHeart } from "react-icons/fa6";
 import { useFavoriteStore } from "@/lib/store";
 import { useTranslations } from "next-intl";
@@ -422,8 +422,6 @@ const ProductsDetails = ({ productData: initialProductData }) => {
   
   return (
     <div className="lg:pl-[2.3rem] relative">
-      <Toaster position="top-right" />
-
       {/* Sidebar Component */}
       <Sidebar
         isOpen={!!openSidebar}

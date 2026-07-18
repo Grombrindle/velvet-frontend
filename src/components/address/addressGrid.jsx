@@ -4,7 +4,7 @@ import { useState } from "react";
 import AddressForm from "./addressForm";
 import AddressFormEdit from "./addressFormEdit";
 import AddressSuccess from "./addressSuccess"; // Import this
-import toast, { Toaster } from "react-hot-toast";
+import { toast } from "react-hot-toast";
 import DeleteConfirmationPopup from "../ui/deletePopup";
 import {
   useAddresses,
@@ -211,8 +211,6 @@ const AddressGrid = () => {
   // Show addresses grid
   return (
     <div>
-      <Toaster />
-
       <div className="lg:px-[7rem] lg:mt-[1rem] mt-[8rem]">
         <DeleteConfirmationPopup
         t = {t}

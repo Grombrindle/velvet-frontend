@@ -1,7 +1,7 @@
 "use client";
 import Image from "next/image";
 import { useFavorites, useDeleteFavorite } from "./hooks/favorite";
-import { toast, Toaster } from "react-hot-toast";
+import { toast } from "react-hot-toast";
 import { useState } from "react";
 import Pagination from "../ui/pagination";
 import Loader from "../ui/loader";
@@ -83,7 +83,6 @@ const FavoriteCard = () => {
 
   return (
     <div>
-      <Toaster />
       <div className="grid lg:grid-cols-3 md:grid-cols-2 grid-cols-1 gap-[1rem] lg:mt-0 mt-[7rem]">
         {items.map((item) => (
           <div key={item.favorite_id} className="block">

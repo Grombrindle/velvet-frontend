@@ -2,7 +2,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
-import toast, { Toaster } from "react-hot-toast";
+import { toast } from "react-hot-toast";
 import { useResetPassword } from "./hooks/useChnagePassword";
 import { usePasswordSchema } from "./passwordSchema";
 import ProfileButton from "../ui/buttonProfile";
@@ -70,7 +70,6 @@ const onSubmit = async (data) => {
 
   return (
     <>
-      <Toaster position="top-right" />
       <div
         style={{ boxShadow: "0px 0px 4px 0px #00000040" }}
         className="w-full h-auto relative min-h-[25rem] bg-white mt-[2.5rem] p-6"

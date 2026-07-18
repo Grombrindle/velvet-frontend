@@ -14,7 +14,7 @@ import {
   useRemoveCartItem,
   useUpdateCartItemQuantity,
 } from "@/components/cart/hooks/useCart";
-import { Toaster, toast } from "react-hot-toast";
+import { toast } from "react-hot-toast";
 
 function CartPage() {
   const t = useTranslations("cart");
@@ -43,7 +43,6 @@ function CartPage() {
 
   return (
     <div className=" min-h-screen pt-8 pb-16">
-      <Toaster position="top-right" />
       <div className="container1 mx-auto px-2">
         <div className="bg-[#F6F6F6] text-center py-4 text-black/70 text-sm rounded mb-8">
           {t("deliveryNotice")}

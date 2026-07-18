@@ -2,7 +2,7 @@
 import { useProfile, useUpdateProfile } from "./hooks/useProfile";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import toast, { Toaster } from "react-hot-toast";
+import { toast } from "react-hot-toast";
 import { useProfileSchema } from "./profileSchema";
 import ProfileButton from "../ui/buttonProfile";
 import Loader from "../ui/loader";
@@ -126,7 +126,6 @@ const onSubmit = async (data) => {
 };
   return (
     <div>
-      <Toaster position="top-right" />
       <div
         style={{ boxShadow: "0px 0px 4px 0px #00000040" }}
         className="w-full relative h-auto p-6 bg-white lg:mt-0 mt-[7rem]"

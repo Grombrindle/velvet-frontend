@@ -5,7 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useCities, useCountries } from "./hooks/useLocations";
 import { useAddressUIStore } from "@/lib/store";
 import AddressFormFields from "../ui/formStyle";
-import toast, { Toaster } from "react-hot-toast";
+import { toast } from "react-hot-toast";
 import { useAddressSchema } from "./addressSchema";
 
 const AddressFormEdit = ({t, address, onSubmit, onClose, isLoading }) => {
@@ -203,7 +203,6 @@ const AddressFormEdit = ({t, address, onSubmit, onClose, isLoading }) => {
 
   return (
     <>
-      <Toaster />
       <form onSubmit={handleSubmit(onFormSubmit)}>
         <AddressFormFields
         t={t}
