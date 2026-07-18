@@ -56,24 +56,26 @@ function ProductCard({ item, isMini }) {
               setIsLoading(false);
             }}
           />
-          <div
-            className={`${isMini ? "px-4 text-xs" : "px-10 text-sm"} absolute flex flex-col gap-y-3 items-center justify-center translate-y-full group-hover:translate-y-0 transition-all duration-200 bg-white/50 backdrop-blur-xs w-full h-20 bottom-0`}
-          >
-            <h6 className="text-sm">Size</h6>
+          {!isBundle && (
             <div
-              onClick={(e) => e.stopPropagation()}
-              className="flex items-center justify-around w-full font-medium"
+              className={`${isMini ? "px-4 text-xs" : "px-10 text-sm"} absolute flex flex-col gap-y-3 items-center justify-center translate-y-full group-hover:translate-y-0 transition-all duration-200 bg-white/50 backdrop-blur-xs w-full h-20 bottom-0`}
             >
-              {item?.available_colors[0]?.available_sizes?.map((size) => (
-                <span
-                  className="transition-colors duration-150 py-1 px-2 hover:backdropblur-2xl hover:bg-white/50"
-                  key={size.id}
-                >
-                  {size.name}
-                </span>
-              ))}
+              <h6 className="text-sm">Size</h6>
+              <div
+                onClick={(e) => e.stopPropagation()}
+                className="flex items-center justify-around w-full font-medium"
+              >
+                {item?.available_colors[0]?.available_sizes?.map((size) => (
+                  <span
+                    className="transition-colors duration-150 py-1 px-2 hover:backdropblur-2xl hover:bg-white/50"
+                    key={size.id}
+                  >
+                    {size.name}
+                  </span>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </Link>
       {!isMini && (

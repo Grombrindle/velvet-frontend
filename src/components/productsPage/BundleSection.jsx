@@ -10,9 +10,6 @@ const BundleSection = ({
   activeColor,
   selectedColor,
   setSelectedColor,
-  selectedSize,
-  setSelectedSize,
-  availableSizes,
   bundleSelections,
   updateBundleSelection,
   getChildSizesForColor,
@@ -21,7 +18,6 @@ const BundleSection = ({
   handleToggleFavorite,
   isPending,
   getColorBtnClass,
-  getSizeBtnClass,
   getAddBtnClass,
   getChildColorBtnClass,
   getChildSizeBtnClass,
@@ -77,23 +73,6 @@ const BundleSection = ({
         </div>
       )}
 
-      {/* Bundle's own size selector */}
-      <div>
-        <h1 className="font-bold text-[#000000] text-[0.9rem]">{t("bundle_size")}</h1>
-        <Line mt="mt-2" />
-        <div className="grid grid-cols-5 gap-x-[0.9rem] gap-y-[1.2rem] mt-3">
-          {availableSizes.map((size) => (
-            <button
-              key={size.id}
-              onClick={() => setSelectedSize(size)}
-              disabled={!size.in_stock}
-              className={getSizeBtnClass(size)}
-            >
-              <p className="text-sm font-normal">{size.name}</p>
-            </button>
-          ))}
-        </div>
-      </div>
 
       {/* Child Items — Color & Size Selection Per Item */}
       <div className="mt-4">

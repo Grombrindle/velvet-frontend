@@ -330,10 +330,9 @@ const ProductsDetails = ({ productData: initialProductData }) => {
         return;
       }
 
-      // Resolve bundle size: use selected, or fallback to first in-stock, or first available
-      const bundleSize = selectedSize
-        || availableSizes.find(s => s.in_stock)
-        || availableSizes[0]
+      // Bundle auto-resolves its first available size (bundle size picker removed)
+      const bundleSize = activeColor?.available_sizes?.find(s => s.in_stock)
+        || activeColor?.available_sizes?.[0]
         || null;
 
       if (!bundleSize) {
@@ -446,9 +445,6 @@ const ProductsDetails = ({ productData: initialProductData }) => {
             activeColor={activeColor}
             selectedColor={selectedColor}
             setSelectedColor={setSelectedColor}
-            selectedSize={selectedSize}
-            setSelectedSize={setSelectedSize}
-            availableSizes={availableSizes}
             bundleSelections={bundleSelections}
             updateBundleSelection={updateBundleSelection}
             getChildSizesForColor={getChildSizesForColor}
@@ -457,7 +453,6 @@ const ProductsDetails = ({ productData: initialProductData }) => {
             handleToggleFavorite={handleToggleFavorite}
             isPending={isPending}
             getColorBtnClass={getColorBtnClass}
-            getSizeBtnClass={getSizeBtnClass}
             getAddBtnClass={getAddBtnClass}
             getChildColorBtnClass={getChildColorBtnClass}
             getChildSizeBtnClass={getChildSizeBtnClass}
