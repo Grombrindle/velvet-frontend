@@ -11,7 +11,7 @@ export const config = {
   // 1. المسار الرئيسي /
   // 2. المسارات التي تبدأ باللغات /ar أو /en
   // 3. يستثني بوضوح ملفات الصور والـ API والـ Static
-  	matcher: ["/", "/(ar|en)/:path*", "/payment/callback"]
+  	matcher: ["/", "/(ar|en)/:path*"]
   // matcher: [
   //   // السماح للمسار الرئيسي
   //   "/",
