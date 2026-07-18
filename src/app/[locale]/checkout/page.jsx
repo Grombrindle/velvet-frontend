@@ -12,15 +12,17 @@ import { getLocalePrefix } from "@/lib/locale";
 import CartItem from "@/components/cart/CartItem";
 import BundleCartItem from "@/components/cart/BundleCartItem";
 import { toast } from "react-hot-toast";
+import { useHydrated } from "@/lib/hooks/useHydration";
 
 function CheckoutPage() {
   const t = useTranslations("checkout");
   const router = useRouter();
   const pathname = usePathname();
   const localePrefix = getLocalePrefix(pathname);
+  const hydrated = useHydrated();
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
 
-  const { data: cart, isLoading: isCartLoading } = useCart({ enabled: isAuthenticated });
+  const { data: cart, isLoading: isCartLoading } = useCart({ enabled: isAuthenticated && hydrated });
   const { data: options, isLoading: isOptionsLoading } = useCheckoutOptions();
 
   const items = cart?.items || [];
@@ -114,11 +116,12 @@ function CheckoutPage() {
   }, [paymentMethods, selectedPaymentMethod]);
 
   useEffect(() => {
+    if (!hydrated) return;
     if (!isAuthenticated) {
-      toast.error("Please login to checkout");
+      toast.error(t("login_required"));
       router.replace(`${localePrefix}/login`);
     }
-  }, [isAuthenticated, router, localePrefix]);
+  }, [isAuthenticated, router, localePrefix, hydrated, t]);
 
   useEffect(() => {
     if (!isAuthenticated) return;
@@ -130,6 +133,7 @@ function CheckoutPage() {
     }
   }, [isCartLoading, items, router, localePrefix, isAuthenticated, checkoutState]);
 
+  if (!hydrated) return null;
   if (!isAuthenticated || (!isCartLoading && items.length === 0)) {
     return null;
   }

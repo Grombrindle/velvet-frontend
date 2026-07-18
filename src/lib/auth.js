@@ -1,4 +1,5 @@
 import Cookies from "js-cookie";
+import { useAuthStore } from "./store";
 
 export function saveAuth(result) {
   try {
@@ -12,10 +13,17 @@ export function saveAuth(result) {
 }
 
 export function getToken() {
+  // Prefer in-memory Zustand state (always correct after hydration)
+  try {
+    const token = useAuthStore.getState().token;
+    if (token) return token;
+  } catch (e) {
+    // ignore — fall through to cookie
+  }
+  // Fallback to cookie for pre-hydration reads (first page load)
   try {
     const authStorage = Cookies.get("auth-storage");
     if (!authStorage) return null;
-
     const parsed = JSON.parse(authStorage);
     return parsed.state?.token || null;
   } catch (e) {

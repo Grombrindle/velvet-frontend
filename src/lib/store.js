@@ -81,6 +81,7 @@ export const useAuthStore = create(
             token: null,
             user: null,
             isAuthenticated: false,
+            _hasHydrated: false,
 
             setAuth: (data) => {
                 set({
@@ -93,9 +94,18 @@ export const useAuthStore = create(
             clear: () => {
                 set({ token: null, user: null, isAuthenticated: false });
             },
+
+            setHasHydrated: (value) => {
+                set({ _hasHydrated: value });
+            },
         }), {
             name: "auth-storage",
             storage: createJSONStorage(() => cookieStorage),
+            onRehydrateStorage: () => {
+                return (state) => {
+                    if (state) state.setHasHydrated(true);
+                };
+            },
         },
     ),
 );
