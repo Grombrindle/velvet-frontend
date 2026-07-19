@@ -7,6 +7,7 @@ import ErrorState from "../ui/errorMessage";
 import { usePathname } from "next/navigation";
 import { getLocalePrefix } from "@/lib/locale";
 import { useTranslations } from "next-intl";
+import { useState } from "react";
 
 const OrderField = ({ label, value }) => (
   <div className="flex justify-between">
@@ -14,6 +15,90 @@ const OrderField = ({ label, value }) => (
     <p className="text-[#000000] text-sm">{value}</p>
   </div>
 );
+
+// Image Slider Component
+const ImageSlider = ({ images, orderCode }) => {
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  if (!images || images.length === 0) {
+    return (
+      <div className="relative w-full h-34 bg-gray-200 flex items-center justify-center text-xs text-gray-500">
+        No image
+      </div>
+    );
+  }
+
+  const goToPrevious = (e) => {
+    e.stopPropagation();
+    setCurrentIndex((prevIndex) =>
+      prevIndex === 0 ? images.length - 1 : prevIndex - 1
+    );
+  };
+
+  const goToNext = (e) => {
+    e.stopPropagation();
+    setCurrentIndex((prevIndex) =>
+      prevIndex === images.length - 1 ? 0 : prevIndex + 1
+    );
+  };
+
+  const goToSlide = (index, e) => {
+    e.stopPropagation();
+    setCurrentIndex(index);
+  };
+
+  return (
+    <div className="relative w-full h-34">
+      <Image
+        src={images[currentIndex]}
+        alt={`Order ${orderCode} - Image ${currentIndex + 1}`}
+        fill
+        className="object-contain"
+      />
+
+      {/* Navigation Arrows - Only show if more than 1 image */}
+      {images.length > 1 && (
+        <>
+          <button
+            onClick={goToPrevious}
+            className="absolute left-1 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm transition-all duration-200"
+            aria-label="Previous image"
+          >
+            ‹
+          </button>
+          <button
+            onClick={goToNext}
+            className="absolute right-1 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm transition-all duration-200"
+            aria-label="Next image"
+          >
+            ›
+          </button>
+
+          {/* Dots Indicator */}
+          <div className="absolute bottom-1 left-1/2 -translate-x-1/2 flex gap-1">
+            {images.map((_, index) => (
+              <button
+                key={index}
+                onClick={(e) => goToSlide(index, e)}
+                className={`w-1.5 h-1.5 rounded-full transition-all duration-200 ${
+                  index === currentIndex
+                    ? "bg-white w-3"
+                    : "bg-white/50 hover:bg-white/70"
+                }`}
+                aria-label={`Go to image ${index + 1}`}
+              />
+            ))}
+          </div>
+
+          {/* Image counter */}
+          <div className="absolute top-1 right-1 bg-black/50 text-white text-xs px-1.5 py-0.5 rounded">
+            {currentIndex + 1}/{images.length}
+          </div>
+        </>
+      )}
+    </div>
+  );
+};
 
 const OrdersGrid = () => {
   const t = useTranslations("order");
@@ -79,7 +164,7 @@ const OrdersGrid = () => {
             style={{ boxShadow: "0px 0px 28px 0px #00000040" }}
             className="w-full h-[26rem] border border-[#959595] shadow-lg p-4 flex flex-col bg-white"
           >
-            <div className="space-y-4 flex-1">
+            <div className="space-y-4 flex-1 flex flex-col">
               <OrderField label={t("order_no")} value={order.order_code} />
               <OrderField
                 label={t("order_date")}
@@ -100,20 +185,10 @@ const OrdersGrid = () => {
                   {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
                 </p>
               </div>
-              <div className="relative w-24 h-34">
-                {order.images && order.images.length > 0 ? (
-                  <Image
-                    src={order.images[0]}
-                    alt={`Order ${order.order_code}`}
-                    fill
-                    className="object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full bg-gray-200 flex items-center justify-center text-xs text-gray-500">
-                    {t("no_image")}
-                  </div>
-                )}
-              </div>
+              
+              {/* Image Slider */}
+              <ImageSlider images={order.images} orderCode={order.order_code} />
+              
               <Link href={`${localePrefix}/dashboard/orders/${order.id}`}>
                 <button className="w-full h-[3rem] cursor-pointer bg-black text-white text-sm font-bold">
                   {t("ORDER_DETAILS")}

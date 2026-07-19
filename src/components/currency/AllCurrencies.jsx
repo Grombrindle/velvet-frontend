@@ -45,7 +45,7 @@ const AllCurrencies = () => {
 
     try {
       await changeCurrencyMutation.mutateAsync(formData.currencyId);
-      toast.success(t("currency_changed_successfully"));
+      toast.success(t("currency_changed_successfully!"));
     } catch (error) {
       toast.error(error?.message || t("Failed_to_change_currency"));
     } finally {

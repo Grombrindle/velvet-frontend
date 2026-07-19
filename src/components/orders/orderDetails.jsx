@@ -25,99 +25,64 @@ const ProductAttribute = ({ label, value }) => (
   )
 );
 
-// Reusable Product Item component (handles both simple and bundle items)
-const ProductItem = ({ item, t }) => {
-  const isBundle = item?.type === 'bundle';
-  const image = item?.image || item?.images?.[0];
-  const itemName = item?.product_name || item?.name;
-
-  return (
-    <div className={isBundle ? "border-2 border-blue-100 rounded-lg p-3 mb-3" : ""}>
-      {/* Bundle header with children indicator */}
-      {isBundle && (
-        <div className="flex items-center gap-2 mb-3">
-          <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded font-semibold">
-            {t("bundle")}
-          </span>
-          <span className="text-sm text-gray-500">
-            {item.bundle_name || itemName}
-          </span>
-        </div>
-      )}
-
-      {/* Main item display (works for both bundle and simple) */}
-      <div className="flex gap-x-4 pb-4">
-        <div className="relative w-24 h-32">
-          {image ? (
-            <Image
-              src={image}
-              alt={itemName}
-              fill
-              className="object-cover"
-            />
-          ) : (
-            <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-              No image
-            </div>
-          )}
-        </div>
-
-        <div className="flex flex-col justify-between">
-          <h1 className="font-bold text-[#000000] text-lg">
-            {itemName}
-          </h1>
-
-          <ProductAttribute label={t("Color")} value={item.color} />
-          <ProductAttribute label={t("Size")} value={item.size} />
-          <ProductAttribute label={t("Quantity")} value={item.quantity} />
-
-          <p className="font-bold text-md text-[#333]">
-            {item.total?.formatted || `${item.unit_price?.amount} ${item.unit_price?.currency_code}`}
-          </p>
-        </div>
-      </div>
-
-      {/* Nested children (for bundles only) */}
-      {isBundle && item.bundles?.length > 0 && (
-        <div className="ml-8 border-t pt-3 space-y-3">
-          <p className="text-sm font-semibold text-gray-500">{t("bundle_items")}:</p>
-          {item.bundles.map((child, idx) => (
-            <div key={idx} className="flex gap-x-3">
-              <div className="relative w-16 h-20 shrink-0">
-                {child.image ? (
-                  <Image src={child.image} alt={child.product_name || child.name} fill className="object-cover" />
-                ) : (
-                  <div className="w-full h-full bg-gray-100" />
-                )}
-              </div>
-              <div>
-                <p className="font-medium text-sm">{child.product_name || child.name}</p>
-                <p className="text-xs text-gray-500">{child.color}, {child.size}</p>
-                <p className="text-xs text-gray-500">{t("Quantity")}: {child.quantity}</p>
-              </div>
-            </div>
-          ))}
+// Reusable Product Item component (Handles both Standard & Bundled sub-items)
+const ProductItem = ({ item, t, isSubItem = false }) => (
+  <div className={`flex gap-x-4 pb-4`}>
+    {/* Image - Same size for all items */}
+    <div className="relative w-[6rem] h-[9rem] flex-shrink-0">
+      {item.image ? (
+        <Image
+          src={item.image}
+          alt={item.product_name}
+          fill
+          className="object-cover rounded"
+        />
+      ) : (
+        <div className="w-full h-full bg-gray-200 flex items-center justify-center text-xs rounded">
+          No image
         </div>
       )}
     </div>
-  );
-};
 
-// Reusable Address component
-const DeliveryAddress = ({ address, t }) => (
-  <div className="w-full h-auto border border-[#D4D4D4] rounded-md mt-5 p-4">
-    <h1 className="font-bold text-md text-[#000000]">{t("ORDER_DETAILS")}</h1>
+    {/* Info */}
+    <div className="flex flex-col justify-between flex-1">
+      <div>
+        <h1 className={`font-bold text-[#000000] ${isSubItem ? "text-md" : "text-lg"}`}>
+          {item.product_name}
+        </h1>
+        {isSubItem && <span className="text-xs text-gray-500 font-medium">{t("Bundle Item")}</span>}
+      </div>
 
-    <h1 className="font-bold text-md text-[#000000] mt-4">
-      {t("delivery_address")}
-    </h1>
-    <p className="text-[#000000] text-md mt-2">
-      {address
-        ? `${address.name || ""} ${address.sur_name || ""}, ${address.country?.name || ""}, ${address.city?.name || ""}, ${address.address || ""}`
-        : t("no_delivery_address") || "Pickup — no delivery address"}
-    </p>
+      <div className="space-y-0.5">
+        <ProductAttribute label={t("Color")} value={item.color} />
+        <ProductAttribute label={t("Size")} value={item.size} />
+        <ProductAttribute label={t("Quantity")} value={item.quantity} />
+      </div>
+
+      <p className="font-bold text-md text-[#333]">
+        {item.total?.formatted || `${item.unit_price?.amount} ${item.unit_price?.currency_code}`}
+      </p>
+    </div>
   </div>
 );
+
+// Reusable Address component
+const DeliveryAddress = ({ address, t }) => {
+  if (!address) return null;
+
+  return (
+    <div className="w-full h-auto border border-[#D4D4D4] rounded-md mt-5 p-4">
+      <h1 className="font-bold text-md text-[#000000]">{t("ORDER_DETAILS")}</h1>
+      
+      <h1 className="font-bold text-md text-[#000000] mt-4">
+        {t("delivery_address")}
+      </h1>
+      <p className="text-[#000000] text-md mt-2">
+        {address.name} {address.sur_name}, {address.country?.name}, {address.city?.name}, {address.address}
+      </p>
+    </div>
+  );
+};
 
 // CancelButton component with status check
 const CancelButton = ({ t, onClick, status }) => {
@@ -171,6 +136,7 @@ const NonCancelableMessage = ({ t, status, statusMessage }) => {
 const StatusBadge = ({ status }) => {
   const statusColors = {
     'pending': 'bg-yellow-100 text-yellow-800',
+    'paid': 'bg-green-100 text-green-800', // added from payload
     'approved': 'bg-green-100 text-green-800',
     'shipping': 'bg-blue-100 text-blue-800',
     'delivered': 'bg-purple-100 text-purple-800',
@@ -194,17 +160,17 @@ const OrderDetailsClient = ({ orderId }) => {
   const [showCancelPage, setShowCancelPage] = useState(false);
   const { data: response, isLoading, error } = useOrder(orderId);
 
-  // Extract the actual order data from response
-  const orderData = response?.result || response;
+  // Extract nested 'order' from 'result' based on new API structure
+  const orderData = response?.result?.order || response?.order || response?.result || response;
 
   // Loading state
   if (isLoading) {
     return <Loader text={t("Loading_order_details")} />;
   }
 
-  // Error state
-  if (error) {
-    return <ErrorState message={error.message} />;
+  // Error state or missing order
+  if (error || !orderData) {
+    return <ErrorState message={error?.message || "Order data not found"} />;
   }
 
   // Show cancel page
@@ -218,10 +184,10 @@ const OrderDetailsClient = ({ orderId }) => {
     );
   }
 
-  // Map API data from new structure
+  // Map API data from the correct JSON path structure
   const mappedOrderData = {
     orderNo: orderData.order_code,
-    orderDate: new Date(orderData.created_at).toLocaleDateString(),
+    orderDate: orderData.created_at ? new Date(orderData.created_at).toLocaleDateString() : "",
     subtotal: orderData.pricing?.subtotal?.formatted,
     shipping: orderData.pricing?.shipping?.formatted,
     discount: orderData.pricing?.discount?.formatted,
@@ -232,8 +198,8 @@ const OrderDetailsClient = ({ orderId }) => {
     statusMessage: orderData.status_message,
     items: orderData.items || [],
     shippingAddress: orderData.address,
-    paymentMethod: orderData.payment_method,
-    deliveryMethod: orderData.delivery_method,
+    paymentMethod: orderData.payment_method?.name,
+    deliveryMethod: orderData.delivery_method?.name,
     userEmail: orderData.user_email
   };
 
@@ -275,10 +241,10 @@ const OrderDetailsClient = ({ orderId }) => {
           <h1 className="text-[#000000] font-bold text-md">{t("shipping")}:</h1>
           <p className="text-[#000000]">{mappedOrderData.shipping}</p>
         </div>
-        {mappedOrderData.discount !== "0 SYP" && mappedOrderData.discount !== "0" && (
+        {mappedOrderData.discount && parseFloat(mappedOrderData.discount.replace(/[^0-9.]/g, '')) > 0 && (
           <div className="flex gap-x-2">
             <h1 className="text-[#000000] font-bold text-md">{t("Discount")}:</h1>
-            <p className="text-[#000000] text-green-600">-{mappedOrderData.discount}</p>
+            <p className="text-green-600">-{mappedOrderData.discount}</p>
           </div>
         )}
         <div className="flex gap-x-2 border-t pt-2">
@@ -299,12 +265,28 @@ const OrderDetailsClient = ({ orderId }) => {
 
         <div className="w-full h-[0.1rem] border border-[#D4D4D4] bg-[#D4D4D4] mt-3" />
 
-        <OrderProgress locale = {locale} t={t} status={mappedOrderData.status} />
+        <OrderProgress locale={locale} t={t} status={mappedOrderData.status} />
 
-        {/* Products List */}
+        {/* Products List (With Bundle Child Items Render Support) */}
         <div className="mt-6 space-y-4">
           {mappedOrderData.items.map((item, index) => (
-            <ProductItem t={t} key={index} item={item} />
+            <div key={item.id || index} className="border-b pb-4 last:border-0">
+              <ProductItem t={t} item={item} />
+              
+              {/* Nested Bundle Items display */}
+              {item.bundles && item.bundles.length > 0 && (
+                <div className="mt-2 space-y-2">
+                  {item.bundles.map((bundleSubItem, subIdx) => (
+                    <ProductItem 
+                      key={bundleSubItem.id || subIdx} 
+                      t={t} 
+                      item={bundleSubItem} 
+                      isSubItem={true} 
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
           ))}
         </div>
 
