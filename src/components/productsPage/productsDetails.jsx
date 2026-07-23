@@ -3,7 +3,6 @@ import Image from "next/image";
 import { CiHeart } from "react-icons/ci";
 import { useEffect, useState } from "react";
 import { MdKeyboardArrowRight } from "react-icons/md";
-import Sidebar from "./sidebar";
 import Line from "../ui/line";
 import { useAddToCart, useToggleFavorite } from "./hook/favourite";
 import { toast } from "react-hot-toast";
@@ -11,6 +10,8 @@ import { FaHeart } from "react-icons/fa6";
 import { useFavoriteStore } from "@/lib/store";
 import { useTranslations } from "next-intl";
 import BundleSection from "./BundleSection";
+import { usePaymentMethods } from "./hook/usePaymentMethod";
+import { useDeliveryMethods } from "./hook/useDeliveryOption";
 
 const ProductsDetails = ({ productData: initialProductData }) => {
   const t = useTranslations("product");
@@ -24,6 +25,12 @@ const ProductsDetails = ({ productData: initialProductData }) => {
   const { mutate: toggleFavoriteApi, isPending } = useToggleFavorite();
   const { mutate: addToCart } = useAddToCart();
 
+  // Fetch payment methods
+  const { data: paymentMethods = [], isLoading: isPaymentMethodsLoading } = usePaymentMethods();
+  
+  // Fetch delivery methods
+  const { data: deliveryMethods = [], isLoading: isDeliveryMethodsLoading } = useDeliveryMethods();
+
   const [favoriteOverride, setFavoriteOverride] = useState(null);
   const [selectedColor, setSelectedColor] = useState(() => {
     const baseIsBundle = baseProduct?.type === 'bundle' || baseProduct?.is_bundle === true;
@@ -33,7 +40,8 @@ const ProductsDetails = ({ productData: initialProductData }) => {
   const [addedSelectionKey, setAddedSelectionKey] = useState(null);
   const [isProductDetailsOpen, setIsProductDetailsOpen] = useState(false);
   const [isPaymentMethodsOpen, setIsPaymentMethodsOpen] = useState(false);
-  const [openSidebar, setOpenSidebar] = useState(null);
+  const [isDeliveryOpen, setIsDeliveryOpen] = useState(false);
+  
   const product = {
     ...baseProduct,
     is_favorite: favoriteOverride ?? isFavorite(productId),
@@ -92,7 +100,7 @@ const ProductsDetails = ({ productData: initialProductData }) => {
     return color?.available_sizes || [];
   };
 
-  // === Computed ClassNames (avoids complex template literals that confuse Turbopack) ===
+  // === Computed ClassNames ===
   const getSizeBtnClass = (size) => {
     const isSelected = selectedSize?.id === size.id;
     let cls = "w-full h-[3.8rem] border flex justify-center items-center transition-all duration-200";
@@ -146,8 +154,6 @@ const ProductsDetails = ({ productData: initialProductData }) => {
     return cls;
   };
 
-
-
   // Dispatch color change event when selectedColor changes
   useEffect(() => {
     if (activeColor) {
@@ -166,73 +172,6 @@ const ProductsDetails = ({ productData: initialProductData }) => {
   
   // Get available sizes from selected color
   const availableSizes = activeColor?.available_sizes || [];
-
-  // Payment methods data with images
-  const paymentMethods = [
-    { id: 1, name: "syriatel", image: "/images/syriatel.png" },
-    { id: 2, name: "mtn", image: "/images/mtn.png" },
-    { id: 3, name: "sham cash", image: "/images/sham.png" },
-  ];
-
-  // Sidebar data with arrays
-  const sidebarContent = {
-    delivery: {
-      title: "Delivery Options",
-      items: [
-        "Standard Delivery: 3-5 business days",
-        "Express Delivery: 1-2 business days",
-        "Free shipping on orders above 2500 SP",
-        "Tracking number will be provided via email",
-      ],
-    },
-    returns: {
-      title: "Returns and Exchanges",
-      items: [
-        "30-day return policy",
-        "Items must be unworn with tags attached",
-        "Free returns for store credit",
-        "Exchange within 14 days of purchase",
-      ],
-    },
-    care: {
-      title: "Clothing Care Guide",
-      items: [
-        "Machine wash cold with like colors",
-        "Do not bleach",
-        "Tumble dry low",
-        "Cool iron if needed",
-        "Do not dry clean",
-      ],
-    },
-  };
-
-  // Menu items array
-  const menuItems = [
-    { id: "delivery", label: "Delivery Options" },
-    { id: "returns", label: "Returns and Exchanges" },
-    { id: "care", label: "Clothing Care Guide" },
-  ];
-
-  const closeSidebar = () => {
-    setOpenSidebar(null);
-  };
-
-  const currentContent = openSidebar ? sidebarContent[openSidebar] : null;
-
-  // Prepare sidebar content as JSX
-  const getSidebarContent = () => {
-    if (!currentContent) return null;
-
-    return (
-      <div className="space-y-4 mt-6">
-        {currentContent.items.map((item, index) => (
-          <p key={index} className="text-sm">
-            {item}
-          </p>
-        ))}
-      </div>
-    );
-  };
 
   const handleToggleFavorite = () => {
     // Get current favorite state from store
@@ -422,14 +361,6 @@ const ProductsDetails = ({ productData: initialProductData }) => {
   
   return (
     <div className="lg:pl-[2.3rem] relative">
-      {/* Sidebar Component */}
-      <Sidebar
-        isOpen={!!openSidebar}
-        onClose={closeSidebar}
-        title={currentContent?.title || ""}
-        content={getSidebarContent()}
-      />
-
       <div className="flex flex-col lg:space-y-6 space-y-4 lg:mt-0 mt-[1rem]">
         <h1 className="font-bold text-[0.95rem] text-[#000000]">
           {product.name}
@@ -565,118 +496,180 @@ const ProductsDetails = ({ productData: initialProductData }) => {
           </div>
         )}
 
-          {/* Product Details Dropdown */}
-          <div className="space-y-1">
-            <div
-              className="flex justify-between items-center cursor-pointer"
-              onClick={() => setIsProductDetailsOpen(!isProductDetailsOpen)}
-            >
-              <h1 className="font-bold text-[#000000] text-[0.95rem] mt-3">
-                Product Detail
-              </h1>
-              <div
-                className={getDropdownChevronClass(isProductDetailsOpen)}
-              >
-                <MdKeyboardArrowRight />
-              </div>
+        {/* Product Details Dropdown */}
+        <div className="space-y-1">
+          <div
+            className="flex justify-between items-center cursor-pointer"
+            onClick={() => setIsProductDetailsOpen(!isProductDetailsOpen)}
+          >
+            <h1 className="font-bold text-[#000000] text-[0.95rem] mt-3">
+              Product Detail
+            </h1>
+            <div className={getDropdownChevronClass(isProductDetailsOpen)}>
+              <MdKeyboardArrowRight />
             </div>
-
-            {/* Dropdown Content */}
-            <div
-              className={getDropdownContentClass(isProductDetailsOpen)}
-            >
-              <p className="text-[#000000] font-light text-[0.8rem] mt-2">
-                {product.description || "Product description goes here"}
-              </p>
-
-              {/* Specifications from API */}
-              {product.specifications?.map((spec, index) => (
-                <div key={index}>
-                  <h1 className="text-[0.9rem] font-bold text-[#000000] mt-2">
-                    {spec.name}:
-                    <span className="text-[0.8rem] font-light ml-1">
-                      {Array.isArray(spec.values)
-                        ? spec.values.join(", ")
-                        : spec.values}
-                    </span>
-                  </h1>
-                </div>
-              ))}
-
-              {product.gender && (
-                <h1 className="text-[0.9rem] font-bold text-[#000000] mt-2">
-                  Gender:
-                  <span className="text-[0.8rem] font-light ml-1 capitalize">
-                    {product.gender}
-                  </span>
-                </h1>
-              )}
-            </div>
-            <Line mt="mt-4" />
           </div>
 
-          {/* Payment Methods Dropdown */}
-          <div className="space-y-1">
-            <div
-              className="flex justify-between items-center cursor-pointer"
-              onClick={() => setIsPaymentMethodsOpen(!isPaymentMethodsOpen)}
-            >
-              <h1 className="font-bold text-[#000000] text-[0.95rem] mt-3">
-                Payment Methods
-              </h1>
-              <div
-                className={getDropdownChevronClass(isPaymentMethodsOpen)}
-              >
-                <MdKeyboardArrowRight />
-              </div>
-            </div>
+          {/* Dropdown Content */}
+          <div className={getDropdownContentClass(isProductDetailsOpen)}>
+            <p className="text-[#000000] font-light text-[0.8rem] mt-2">
+              {product.description || "Product description goes here"}
+            </p>
 
-            {/* Dropdown Content - Three Images in Flex */}
-            <div
-              className={getDropdownContentClass(isPaymentMethodsOpen)}
-            >
-              <p className="text-[0.9rem] text-[#333333] mt-2">
-                You can make your payments with digital options:
-              </p>
-              <div className="flex gap-4 mt-3 mb-2">
-                {paymentMethods.map((method) => (
-                  <div
-                    key={method.id}
-                    className="flex-1 h-16 bg-gray-100 rounded-lg flex items-center justify-center p-2 border border-gray-200 hover:border-gray-400 transition-colors"
-                  >
-                    <div className="relative w-full h-full">
-                      <Image
-                        src={method.image}
-                        alt={method.name}
-                        fill
-                        className="object-contain"
-                        sizes="(max-width: 768px) 100vw, 33vw"
-                      />
+            {/* Specifications from API */}
+            {product.specifications?.map((spec, index) => (
+              <div key={index}>
+                <h1 className="text-[0.9rem] font-bold text-[#000000] mt-2">
+                  {spec.name}:
+                  <span className="text-[0.8rem] font-light ml-1">
+                    {Array.isArray(spec.values)
+                      ? spec.values.join(", ")
+                      : spec.values}
+                  </span>
+                </h1>
+              </div>
+            ))}
+
+            {product.gender && (
+              <h1 className="text-[0.9rem] font-bold text-[#000000] mt-2">
+                Gender:
+                <span className="text-[0.8rem] font-light ml-1 capitalize">
+                  {product.gender}
+                </span>
+              </h1>
+            )}
+          </div>
+          <Line mt="mt-4" />
+        </div>
+
+        {/* Delivery Options Dropdown - Dynamic from API */}
+        <div className="space-y-1">
+          <div
+            className="flex justify-between items-center cursor-pointer"
+            onClick={() => setIsDeliveryOpen(!isDeliveryOpen)}
+          >
+            <h1 className="font-bold text-[#000000] text-[0.95rem] mt-3">
+              Delivery Options
+            </h1>
+            <div className={getDropdownChevronClass(isDeliveryOpen)}>
+              <MdKeyboardArrowRight />
+            </div>
+          </div>
+
+          {/* Dropdown Content - Dynamic from API */}
+          <div className={getDropdownContentClass(isDeliveryOpen)}>
+            {isDeliveryMethodsLoading ? (
+              <div className="flex justify-center items-center py-4">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+              </div>
+            ) : deliveryMethods.length > 0 ? (
+              <div className="mt-2 space-y-2">
+                {deliveryMethods.map((method) => (
+                  <div key={method.id || method.name} className="border-b border-gray-100 pb-2 last:border-0">
+                    <div className="flex items-start gap-2">
+                      {method.image && (
+                        <div className="relative w-8 h-8 flex-shrink-0 mt-1">
+                          <Image
+                            src={method.image}
+                            alt={method.name || method.method_name || "Delivery method"}
+                            fill
+                            className="object-contain"
+                            sizes="32px"
+                          />
+                        </div>
+                      )}
+                      <div>
+                        <p className="font-medium text-[0.85rem] text-[#000000]">
+                          {method.name || method.method_name || "Delivery Method"}
+                        </p>
+                        {method.description && (
+                          <p className="text-[0.8rem] text-[#666666]">
+                            {method.description}
+                          </p>
+                        )}
+                        {method.estimated_time && (
+                          <p className="text-[0.75rem] text-[#888888] mt-0.5">
+                            Estimated: {method.estimated_time}
+                          </p>
+                        )}
+                        {method.price && (
+                          <p className="text-[0.8rem] font-medium text-[#000000] mt-0.5">
+                            {typeof method.price === 'object' 
+                              ? method.price.formatted || `${method.price.amount} ${method.price.currency_code}`
+                              : method.price}
+                          </p>
+                        )}
+                      </div>
                     </div>
                   </div>
                 ))}
               </div>
+            ) : (
+              <p className="text-sm text-gray-500 mt-2">
+                No delivery methods available
+              </p>
+            )}
+          </div>
+          <Line mt="mt-4" />
+        </div>
+
+        {/* Payment Methods Dropdown - Using API Data */}
+        <div className="space-y-1">
+          <div
+            className="flex justify-between items-center cursor-pointer"
+            onClick={() => setIsPaymentMethodsOpen(!isPaymentMethodsOpen)}
+          >
+            <h1 className="font-bold text-[#000000] text-[0.95rem] mt-3">
+              Payment Methods
+            </h1>
+            <div className={getDropdownChevronClass(isPaymentMethodsOpen)}>
+              <MdKeyboardArrowRight />
             </div>
-            <Line mt="mt-4" />
           </div>
 
-          {/* Map through menu items to avoid repetition */}
-          {menuItems.map((item) => (
-            <div key={item.id}>
-              <div
-                className="flex justify-between items-center cursor-pointer mt-4"
-                onClick={() => setOpenSidebar(item.id)}
-              >
-                <h1 className="font-bold text-[#000000] text-[0.95rem]">
-                  {item.label}
-                </h1>
-                <div className="text-[1.4rem]">
-                  <MdKeyboardArrowRight />
-                </div>
+          {/* Dropdown Content - Dynamic from API */}
+          <div className={getDropdownContentClass(isPaymentMethodsOpen)}>
+            <p className="text-[0.9rem] text-[#333333] mt-2">
+              You can make your payments with digital options:
+            </p>
+            
+            {isPaymentMethodsLoading ? (
+              <div className="flex justify-center items-center py-4">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
               </div>
-              <Line mt="mt-4" />
-            </div>
-          ))}
+            ) : paymentMethods.length > 0 ? (
+              <div className="flex flex-wrap gap-4 mt-3 mb-2">
+                {paymentMethods.map((method) => (
+                  <div
+                    key={method.id || method.name}
+                    className="flex-1 min-w-[80px] h-16 bg-gray-100 rounded-lg flex items-center justify-center p-2 border border-gray-200 hover:border-gray-400 transition-colors"
+                  >
+                    {method.image ? (
+                      <div className="relative w-full h-full">
+                        <Image
+                          src={method.image}
+                          alt={method.name || method.method_name || "Payment method"}
+                          fill
+                          className="object-contain"
+                          sizes="(max-width: 768px) 100vw, 33vw"
+                        />
+                      </div>
+                    ) : (
+                      <span className="text-sm font-medium text-gray-700">
+                        {method.name || method.method_name || "Payment Method"}
+                      </span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-gray-500 mt-2">
+                No payment methods available
+              </p>
+            )}
+          </div>
+          <Line mt="mt-4" />
+        </div>
       </div>
     </div>
   );

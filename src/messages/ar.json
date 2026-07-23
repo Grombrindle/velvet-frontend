@@ -244,9 +244,9 @@
         "Loading_questions": "تحميل الأسئلة..."
 
     },
-    "navbar":{
+    "navbar": {
         "login": "تسجيل الدخول",
-        "welcome":"مرحبًا "
+        "welcome": "مرحبًا "
     },
     "cart": {
         "myBag": "حقيبتي",
@@ -318,7 +318,7 @@
         "section_loading": "جاري التحميل...",
         "section_error": "فشل التحميل. الرجاء المحاولة مرة أخرى."
     },
-    "auth":{
+    "auth": {
         "email": "البريد الإلكتروني",
         "password": "كلمة المرور",
         "remember_me": "تذكرني",
@@ -327,40 +327,77 @@
         "logging_in": "جاري تسجيل الدخول...",
         "invalid_credentials": "بيانات اعتماد غير صالحة. يرجى المحاولة مرة أخرى.",
         "login": "تسجيل الدخول",
-        "enter_credentials":"أدخل بيانات الاعتماد الخاصة بك أدناه لتسجيل الدخول إلى حسابك.",
+        "enter_credentials": "أدخل بيانات الاعتماد الخاصة بك أدناه لتسجيل الدخول إلى حسابك.",
         "no_account": "ليس لديك حساب؟",
         "register_here": "سجل هنا",
         "first_name": "الاسم الأول",
-        "surname":"الأسم الاخير",
-        "phone_number":"رقم الهاتف",
-        "birth_date":"تاريخ الميلاد",
-        "gender":"الجنس",
+        "surname": "الأسم الاخير",
+        "phone_number": "رقم الهاتف",
+        "birth_date": "تاريخ الميلاد",
+        "gender": "الجنس",
 
-         "create_account":"انشئ حساب",
-        "fill_in_details":"املأ التفاصيل الخاصة بك لإنشاء حسابك.",
+        "create_account": "انشئ حساب",
+        "fill_in_details": "املأ التفاصيل الخاصة بك لإنشاء حسابك.",
 
-        "register_account":" تسجيل",
-        "setting_things_up":"جاري إعداد الأمور...",
+        "register_account": " تسجيل",
+        "setting_things_up": "جاري إعداد الأمور...",
 
-        "have_account":" لديك حساب؟",
-        "login_here":"سجل دخول هنا",
+        "have_account": " لديك حساب؟",
+        "login_here": "سجل دخول هنا",
 
-        "required_name":"الأسم مطلوب",
-        "required_surname":"الأسم الأخير مطلوب",
-        "invalid_email":"البريد الالكتروني غير صالح",
-        "password_length":"كلمة السر يجب ان تكون 8 محارف على الاقل",
-        "confirm_password":"تأكيد كلمة السر",
-        "passwords_must_match":"كلمات السر يجب ان تتطابق",
-        "required_phone":"رقم الهاتف مطلوب",
-        "invaid_date":"تاريخ الميلاد غير صالح"
+        "required_name": "الأسم مطلوب",
+        "required_surname": "الأسم الأخير مطلوب",
+        "invalid_email": "البريد الالكتروني غير صالح",
+        "password_length": "كلمة السر يجب ان تكون 8 محارف على الاقل",
+        "confirm_password": "تأكيد كلمة السر",
+        "passwords_must_match": "كلمات السر يجب ان تتطابق",
+        "required_phone": "رقم الهاتف مطلوب",
+        "invaid_date": "تاريخ الميلاد غير صالح",
+
+        "email_required": "البريد الإلكتروني مطلوب",
+        "forgot_password_title": "نسيت كلمة المرور",
+        "forgot_password_subtitle": "أدخل بريدك الإلكتروني لتلقي رمز إعادة تعيين كلمة المرور",
+        "email_label": "عنوان البريد الإلكتروني",
+        "email_placeholder": "name@example.com",
+        "send_otp": "إرسال رمز التحقق",
+        "sending_otp": "جاري إرسال الرمز...",
+        "back_to_login": "العودة إلى تسجيل الدخول",
+        "otp_sent_success": "تم إرسال رمز التحقق إلى بريدك الإلكتروني بنجاح!",
+        "failed_send_otp": "فشل إرسال رمز التحقق. يرجى المحاولة مرة أخرى.",
+        "generic_error": "حدث خطأ ما. يرجى المحاولة لاحقاً.",
+
+        "verify_otp_title": "التحقق من الرمز",
+        "verify_otp_subtitle": "أدخل الرمز المكون من 6 أرقام المرسل إلى بريدك الإلكتروني",
+        "otp_label": "رمز التحقق",
+        "otp_placeholder": "أدخل الرمز المكون من 6 أرقام",
+        "otp_required": "رمز التحقق مطلوب",
+        "otp_length": "يجب أن يتكون رمز التحقق من 6 أرقام بالضبط",
+        "verify_otp": "التحقق من الرمز",
+        "verifying": "جاري التحقق...",
+        "resend_otp": "إعادة إرسال الرمز",
+        "otp_verified_success": "تم التحقق من الرمز بنجاح!",
+        "invalid_otp_error": "رمز التحقق غير صالح. يرجى المحاولة مرة أخرى.",
+
+        "reset_password_title": "إعادة تعيين كلمة المرور",
+        "reset_password_subtitle": "أدخل كلمة المرور الجديدة أدناه لاستعادة إمكانية الوصول إلى حسابك",
+        "new_password_label": "كلمة المرور الجديدة",
+        "confirm_password_label": "تأكيد كلمة المرور الجديدة",
+        "password_required": "كلمة المرور مطلوبة",
+        "password_min_length": "يجب أن تكون كلمة المرور 6 أحرف على الأقل",
+        "confirm_password_required": "يرجى تأكيد كلمة المرور",
+        "passwords_dont_match": "كلمتا المرور غير متطابقتين",
+        "reset_password_button": "إعادة تعيين كلمة المرور",
+        "resetting_password": "جاري إعادة تعيين كلمة المرور...",
+        "reset_password_success": "تم إعادة تعيين كلمة المرور بنجاح!",
+        "failed_reset_password": "فشلت إعادة تعيين كلمة المرور. يرجى المحاولة مرة أخرى."
     },
-    "categoriesPage":{
-        "show_filters":"عرض الفلاتر",
-        "sort":"ترتيب",
-        "view":"عرض",
-        "per_page":"لكل صفحة",
-        "products":"المنتجات",
-        "show_more":"عرض المزيد من المنتجات"
+    "categoriesPage": {
+        "show_filters": "عرض الفلاتر",
+        "sort": "ترتيب",
+        "view": "عرض",
+        "per_page": "لكل صفحة",
+        "products": "المنتجات",
+        "show_more": "عرض المزيد من المنتجات"
     },
     "product": {
         "bundle_deal": "عرض الحزمة",

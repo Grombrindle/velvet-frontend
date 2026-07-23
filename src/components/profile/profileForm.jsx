@@ -8,6 +8,7 @@ import ProfileButton from "../ui/buttonProfile";
 import Loader from "../ui/loader";
 import ErrorState from "../ui/errorMessage";
 import { useLocale, useTranslations } from "next-intl";
+
 const ProfileForm = () => {
   const profileSchema = useProfileSchema();
   const t = useTranslations("profile");
@@ -33,9 +34,10 @@ const ProfileForm = () => {
     register,
     handleSubmit,
     reset,
+    watch,
     formState: { isDirty, isSubmitting, errors },
   } = useForm({
-    resolver: zodResolver(profileSchema), // Use the imported schema
+    resolver: zodResolver(profileSchema),
     values: profile
       ? {
           name: profile?.name || "",
@@ -67,58 +69,60 @@ const ProfileForm = () => {
   if (isLoading) return <Loader text={t('Loading_profile')}/>;
   // Handle error state
   if (error) return <ErrorState message={error.message} />;
-const onSubmit = async (data) => {
+
+  const onSubmit = async (data) => {
   if (!isDirty) {
     toast.error(t("nothing_to_edit"));
     return;
   }
 
   try {
+    const originalEmail = profile?.email || "";
+    
     const formattedData = {
       name: data.name,
       sur_name: data.surname,
-      email: data.email,
       phone_number: data.phone,
       birth_day: data.birthdate,
       gender: data.gender,
     };
 
+    if (data.email !== originalEmail) {
+      formattedData.email = data.email;
+    }
+
     await updateProfile.mutateAsync(formattedData);
     toast.success("Profile updated successfully");
     reset(data);
   } catch (err) {
-    // Fix: Parse the error response correctly
-    let errorMessage = "";
+    // Improved error handling
+    let errorMessage = "Failed to update profile";
     
-    // Check if error has response data
-    if (err?.response?.data) {
-      const errorData = err.response.data;
-      
-      // Check if there are field-specific errors
-      if (errorData.error && typeof errorData.error === "object") {
+    // Try to get the error response
+    const errorResponse = err?.response?.data || err?.data || err;
+    
+    if (errorResponse) {
+      // Check for field-specific errors first
+      if (errorResponse.error && typeof errorResponse.error === "object") {
         // Get the first field error
-        const firstField = Object.keys(errorData.error)[0];
-        const firstError = errorData.error[firstField][0];
-        errorMessage = firstError;
+        const fieldErrors = errorResponse.error;
+        const firstFieldKey = Object.keys(fieldErrors)[0];
+        const firstFieldErrors = fieldErrors[firstFieldKey];
+        
+        if (Array.isArray(firstFieldErrors) && firstFieldErrors.length > 0) {
+          errorMessage = firstFieldErrors[0]; // Get the first error message
+        } else if (typeof firstFieldErrors === 'string') {
+          errorMessage = firstFieldErrors;
+        }
       } 
-      // Check if there's a general message
-      else if (errorData.message) {
-        errorMessage = errorData.message;
+      // Check for message field
+      else if (errorResponse.message && typeof errorResponse.message === 'string') {
+        errorMessage = errorResponse.message;
       }
-    } 
-    // Check if error has error object directly
-    else if (err?.error && typeof err.error === "object") {
-      const firstField = Object.keys(err.error)[0];
-      const firstError = err.error[firstField][0];
-      errorMessage = firstError;
-    }
-    // Check if it's a string error
-    else if (typeof err === "string") {
-      errorMessage = err;
-    }
-    // Default error message
-    else {
-      errorMessage = "Failed to update profile";
+      // Check for direct error string
+      else if (typeof errorResponse === 'string') {
+        errorMessage = errorResponse;
+      }
     }
     
     toast.error(errorMessage);
