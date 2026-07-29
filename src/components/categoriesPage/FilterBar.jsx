@@ -1,6 +1,6 @@
 "use client";
-import React, { useMemo } from "react";
-import { motion } from "motion/react";
+import React, { useMemo, useState, useEffect, useRef } from "react";
+import { motion, AnimatePresence } from "motion/react";
 import { useCategoryPageStore } from "@/lib/store";
 import { useQuery } from "@tanstack/react-query";
 import { apiGet } from "@/lib/api";
@@ -8,15 +8,78 @@ import RadioFilter from "./filters/RadioFilter";
 import CheckboxFilter from "./filters/CheckboxFilter";
 import ColorFilter from "./filters/ColorFilter";
 import SliderFilter from "./filters/SliderFilter";
+import CategoryFilter from "./filters/categoriesFilter";
+import { FaTimes } from "react-icons/fa";
 
 export default function FilterBar({
   totalProducts,
   gender,
   selectedFilters,
   onFilterChange,
+  genderOptions,
 }) {
   const { toggleFilter, viewMode, setViewMode, isFilterOpen } =
     useCategoryPageStore();
+
+  const [selectedGender, setSelectedGender] = useState(gender || "");
+  const [isMobile, setIsMobile] = useState(false);
+  const [hasAppliedFilters, setHasAppliedFilters] = useState(false);
+  const prevFiltersRef = useRef(selectedFilters);
+  const initialLoadRef = useRef(true);
+
+  // Check for mobile on mount and resize
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
+  // Track when filters change
+  useEffect(() => {
+    if (initialLoadRef.current) {
+      initialLoadRef.current = false;
+      prevFiltersRef.current = selectedFilters;
+      return;
+    }
+
+    const filtersChanged =
+      JSON.stringify(prevFiltersRef.current) !==
+      JSON.stringify(selectedFilters);
+
+    if (filtersChanged) {
+      setHasAppliedFilters(true);
+
+      const hasFilters = Object.values(selectedFilters).some((value) => {
+        if (Array.isArray(value)) return value.length > 0;
+        if (value && typeof value === "object") {
+          return value.min != null || value.max != null;
+        }
+        return Boolean(value);
+      });
+
+      if (isMobile && isFilterOpen && hasFilters) {
+        const timer = setTimeout(() => {
+          toggleFilter();
+          setTimeout(() => setHasAppliedFilters(false), 300);
+        }, 150);
+
+        return () => clearTimeout(timer);
+      }
+    }
+
+    prevFiltersRef.current = selectedFilters;
+  }, [selectedFilters, isMobile, isFilterOpen, toggleFilter]);
+
+  useEffect(() => {
+    if (!isFilterOpen) {
+      setHasAppliedFilters(false);
+    }
+  }, [isFilterOpen]);
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["filter-options", gender],
@@ -26,10 +89,7 @@ export default function FilterBar({
 
   const normalizedFilters = useMemo(() => {
     const filterOptions = data?.result || [];
-
-    return filterOptions
-      .filter((filter) => filter.id !== "gender" && filter.id !== "categories")
-      .map((filter) => filter);
+    return filterOptions.filter((filter) => filter.id !== "gender");
   }, [data?.result]);
 
   const toggleCheckboxValue = (filterId, value) => {
@@ -50,8 +110,34 @@ export default function FilterBar({
     });
   };
 
+  const handleGenderChange = (e) => {
+    const newGender = e.target.value;
+    setSelectedGender(newGender);
+
+    const genderValue = newGender ? [newGender] : [];
+
+    const { gender: _, ...restFilters } = selectedFilters || {};
+
+    onFilterChange({
+      ...restFilters,
+      gender: genderValue,
+    });
+  };
+
   const renderFilterComponent = (filter) => {
-    const selectedValue = selectedFilters[filter.id];
+    const selectedValue = selectedFilters?.[filter.id];
+
+    if (filter.id === "categories") {
+      return (
+        <CategoryFilter
+          key={filter.id}
+          filter={filter}
+          selectedValues={selectedValue ?? []}
+          onToggle={(value) => toggleCheckboxValue(filter.id, value)}
+          gender={gender}
+        />
+      );
+    }
 
     switch (filter.view_type) {
       case "radio":
@@ -102,87 +188,168 @@ export default function FilterBar({
     }
   };
 
+  const genderOptionsList = useMemo(() => {
+    if (!genderOptions || !Array.isArray(genderOptions)) {
+      return [];
+    }
+    return genderOptions;
+  }, [genderOptions]);
+
+  const displayGender = useMemo(() => {
+    if (!selectedGender) return "";
+    if (Array.isArray(selectedGender)) {
+      return selectedGender.length > 0 ? selectedGender[0] : "";
+    }
+    return selectedGender;
+  }, [selectedGender]);
+
+  const hasActiveFilters = useMemo(() => {
+    return Object.values(selectedFilters).some((value) => {
+      if (Array.isArray(value)) return value.length > 0;
+      if (value && typeof value === "object") {
+        return value.min != null || value.max != null;
+      }
+      return Boolean(value);
+    });
+  }, [selectedFilters]);
+
+  const clearAllFilters = () => {
+    onFilterChange({});
+    setSelectedGender("");
+  };
+
+  // Filter content
+  const filterContent = (
+    <div className="h-full overflow-y-auto">
+      <div className="p-4 space-y-4">
+        {/* Header with close button - Mobile only */}
+        <div className="flex justify-between items-center mb-4 md:hidden">
+          <h3 className="text-lg font-bold">Filters</h3>
+          <button
+            onClick={toggleFilter}
+            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+          >
+            <FaTimes size={20} />
+          </button>
+        </div>
+
+        <div className="flex justify-between items-center mb-4">
+          <div className="text-sm text-gray-600">{totalProducts} products</div>
+          {hasActiveFilters && (
+            <button
+              onClick={clearAllFilters}
+              className="text-xs text-red-500 hover:text-red-700 font-medium"
+            >
+              Clear All
+            </button>
+          )}
+        </div>
+
+        {genderOptionsList.length > 0 && (
+          <div className="rounded-3xl border border-slate-200 bg-white p-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Gender
+            </label>
+            <select
+              value={displayGender}
+              onChange={handleGenderChange}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+            >
+              <option value="">All Genders</option>
+              {genderOptionsList.map((option) => {
+                const genderName = option?.name?.en || option?.name || "";
+                const genderValue = genderName.toLowerCase();
+                return (
+                  <option key={option.id} value={genderValue}>
+                    {genderName}
+                  </option>
+                );
+              })}
+            </select>
+          </div>
+        )}
+
+        {isLoading ? (
+          <div className="rounded-3xl border border-slate-200 bg-white p-6 text-center text-slate-500">
+            Loading filter options...
+          </div>
+        ) : error ? (
+          <div className="rounded-3xl border border-red-200 bg-red-50 p-6 text-center text-red-700">
+            Failed to load filters.
+          </div>
+        ) : normalizedFilters.length === 0 ? (
+          <div className="rounded-3xl border border-slate-200 bg-white p-6 text-center text-slate-500">
+            No filter options available.
+          </div>
+        ) : (
+          normalizedFilters.map(renderFilterComponent)
+        )}
+
+        {isMobile && (
+          <button
+            onClick={() => {
+              toggleFilter();
+              setHasAppliedFilters(false);
+            }}
+            className="w-full bg-black text-white py-4 rounded-xl font-semibold text-center hover:bg-gray-800 transition-colors sticky bottom-0"
+          >
+            {hasActiveFilters ? "Apply Filters" : "Close Filters"}
+          </button>
+        )}
+      </div>
+    </div>
+  );
+
+  // Mobile: Render as overlay drawer (no layout shift)
+  if (isMobile) {
+    return (
+      <AnimatePresence>
+        {isFilterOpen && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="fixed inset-0 bg-black/50 z-50"
+              onClick={toggleFilter}
+            />
+
+            <motion.div
+              initial={{ x: "-100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "-100%" }}
+              transition={{ type: "spring", damping: 25, stiffness: 200 }}
+              className="fixed top-0 left-0 h-full w-[85%] max-w-[320px] bg-white z-50 shadow-2xl overflow-hidden"
+            >
+              {filterContent}
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+    );
+  }
+
+  // Desktop: Render as sidebar with proper sizing
   return (
     <motion.aside
-      className="overflow-hidden flex-shrink-0"
+      className="flex-shrink-0 relative hidden md:block"
       initial={false}
       animate={{
         width: isFilterOpen ? 320 : 0,
         opacity: isFilterOpen ? 1 : 0,
       }}
       transition={{ type: "spring", stiffness: 280, damping: 30 }}
-      style={{ minWidth: 0 }}
+      style={{
+        minWidth: 0,
+        overflow: "hidden",
+        height: "100%",
+      }}
     >
-      <div className="">
-        {/* <div className="container1 mx-auto flex justify-between  text-sm items-center max-w-1/4">
-        <button
-          onClick={toggleFilter}
-          className={`flex items-center transition-all duration-200 py-1 rounded ${
-            isFilterOpen ? "bg-black text-white px-5 " : "text-black"
-          } gap-2 uppercase tracking-wide cursor-pointer`}
-        >
-          Show Filters
-          <span>
-            <FaPlus
-              className={`transition-all duration-200 ${
-                isFilterOpen ? "rotate-45" : ""
-              }`}
-              size={12}
-            />
-          </span>
-        </button>
-
-        <div className="flex items-center gap-6">
-          <div className="flex items-center gap-4">
-            <span className="text-xs font-bold tracking-widest uppercase">
-              View + {viewMode}
-            </span>
-
-            <div className="relative flex items-center w-32 group">
-              <div className="absolute w-full h-px bg-gray-300 group-hover:bg-gray-400 transition-colors" />
-
-              <input
-                type="range"
-                min="1"
-                max="4"
-                step="1"
-                value={viewMode}
-                onChange={(e) => setViewMode(parseInt(e.target.value, 10))}
-                className="relative z-10 w-full h-2 bg-transparent appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:border [&::-webkit-slider-thumb]:border-gray-400 [&::-webkit-slider-thumb]:shadow-sm [&::-webkit-slider-thumb]:hover:scale-110 [&::-webkit-slider-thumb]:transition-transform [&::-moz-range-thumb]:w-3 [&::-moz-range-thumb]:h-3 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-white [&::-moz-range-thumb]:border [&::-moz-range-thumb]:border-gray-400 [&::-moz-range-thumb]:transition-transform"
-              />
-            </div>
-          </div>
-          <span>{totalProducts} Products</span>
-          <button className="uppercase tracking-wide inline-flex items-center ">
-            Sort <IoIosArrowForward size={16} />
-          </button>
-        </div>
-      </div> */}
-
-        {isFilterOpen && (
-          <div className="container1 mx-auto mt-6 space-y-4">
-            <div className="text-sm text-gray-600 mb-4">
-              {totalProducts} products
-            </div>
-            {isLoading ? (
-              <div className="rounded-3xl border border-slate-200 bg-white p-6 text-center text-slate-500">
-                Loading filter options...
-              </div>
-            ) : error ? (
-              <div className="rounded-3xl border border-red-200 bg-red-50 p-6 text-center text-red-700">
-                Failed to load filters.
-              </div>
-            ) : normalizedFilters.length === 0 ? (
-              <div className="rounded-3xl border border-slate-200 bg-white p-6 text-center text-slate-500">
-                No filter options available.
-              </div>
-            ) : (
-              normalizedFilters.map(renderFilterComponent)
-            )}
-          </div>
-        )}
-
-        <hr className="my-4 text-gray-300" />
+      <div
+        className={`w-[320px] h-full overflow-y-auto ${!isFilterOpen ? "hidden" : ""}`}
+      >
+        {filterContent}
       </div>
     </motion.aside>
   );

@@ -49,7 +49,7 @@ function OrderConfirmation({ orderId }) {
   const total = order.pricing?.total?.formatted;
 
   return (
-    <div className="min-h-screen pt-8 pb-16">
+    <div className="min-h-screen lg:pt-8 pt-[6rem] pb-16">
       <div className="container1 mx-auto px-2 max-w-2xl">
         <div className="text-center mb-8">
           <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">

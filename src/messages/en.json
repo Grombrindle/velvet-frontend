@@ -141,9 +141,12 @@
         "Loading_order_details": "Loading order details...",
         "order_not_found": "Order not found",
         "subtotal": "Subtotal",
-        "shipping": "Shipping",
         "delivery": "Delivery",
-        "cancel_messgae": "The products for your order number are listed below. Please select a reason for returning the products you wish to return."
+        "cancel_messgae": "The products for your order number are listed below. Please select a reason for returning the products you wish to return.",
+        "order_payment_failed": "Payment failed. Please try again or use a different payment method.",
+        "order_paid": "This order has been paid and cannot be cancelled.",
+        "order_approved": "This order has been approved and cannot be cancelled."
+
     },
     "favorite": {
         "No_favorites_yet": "No favorites yet",
@@ -398,7 +401,10 @@
         "view": "View",
         "per_page": "Per Page",
         "products": "Products",
-        "show_more": "Show more products"
+        "show_more": "Show more products",
+        "no_results_title": "No products found",
+        "no_results_description": "We couldn't find any products matching your filters. Try adjusting your search criteria.",
+        "clear_filters": "Clear all filters"
     },
     "product": {
         "bundle_deal": "Bundle Deal",
@@ -416,6 +422,51 @@
         "select_color_for": "Please select a color for {name}",
         "select_size_for": "Please select a size for {name}",
         "item_number": "Item {number}",
-        "you_save": "You save {amount}"
+        "you_save": "You save {amount}",
+
+        "product_detail": "Product Detail",
+        "delivery_options": "Delivery Options",
+        "payment_methods": "Payment Methods",
+        "no_delivery_methods": "No delivery methods available",
+        "delivery_method": "Delivery Method",
+        "estimated": "Estimated",
+        "color": "Color",
+        "available_colors": "Available Colors",
+        "select_color": "Please select a color",
+        "select_size": "Please select a size",
+        "add_to_cart": "Add To Cart",
+        "added_to_cart_success": "Added To Cart",
+        "product_not_found": "Product not found",
+        "size": "Size",
+        "available_sizes": "Available Sizes",
+        "no_sizes_available": "No sizes available for this color",
+        "favorite_added": "Product added to favorites successfully",
+        "favorite_removed": "Product removed from favorites successfully",
+        "favorite_error": "Failed to update favorite",
+        "product_code": "Product Code",
+        "gender": "Gender",
+        "payment_digital_options": "You can make your payments with digital options:",
+        "you_save_label": "You save",
+        "no_description": "No description available",
+        "special_offer": "Special Offer",
+        "select_color_label": "Select color {color}",
+        "add_to_favorites": "Add to favorites",
+        "remove_from_favorites": "Remove from favorites",
+        "payment_method": "Payment Method",
+        "no_payment_methods": "No payment methods available",
+        "adding_to_cart": "Adding to cart..."
+    },
+    "sort_by": {
+        "newest": "Newest",
+        "price_low": "Price: Low to High",
+        "price_high": "Price: High to Low",
+        "name_asc": "Name: A to Z",
+        "name_desc": "Name: Z to A",
+        "stock_high": "Stock: High to Low",
+        "stock_low": "Stock: Low to High",
+        "sort": "Sort",
+        "view": "View",
+        "Show_Filter": "Show Filter",
+        "Products": "Products"
     }
 }

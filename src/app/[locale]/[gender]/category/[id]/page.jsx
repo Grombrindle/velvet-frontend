@@ -1,8 +1,6 @@
 import React from "react";
-
 import CategoryContent from "@/components/categoriesPage/CategoryContent";
 import { apiGet } from "@/lib/api";
-import FilterToggleAndResults from "@/components/categoriesPage/FilterToggleAndResults";
 
 export const dynamic = 'force-dynamic';
 
@@ -45,14 +43,16 @@ export async function generateMetadata({ params }) {
   };
 }
 
+// inside your page component
 async function page({ params }) {
   const { id, gender, locale } = await params;
 
   let totalProducts = 0;
   let categoryName = null;
-
+  let genderOptions = [];
+  
   try {
-    const [productsRes, categoryRes] = await Promise.all([
+    const [productsRes, categoryRes, genderRes] = await Promise.all([
       apiGet(`/categories/${id}/products?gender=${gender}`, {
         locale,
         next: { revalidate: 300 },
@@ -61,11 +61,25 @@ async function page({ params }) {
         locale,
         next: { revalidate: 300 },
       }).catch(() => ({ result: null })),
+      apiGet(`/genders`, {
+        params: { lang: locale || 'en' },
+        next: { revalidate: 3600 }, // Cache for 1 hour
+      }).catch(() => ({ result: [] })),
     ]);
 
     totalProducts = productsRes?.result?.meta?.total || 0;
     categoryName = categoryRes?.result;
-  } catch {
+    genderOptions = genderRes?.result || [];
+    
+    // Console log the genderOptions
+    console.log("Gender Options from API:", genderOptions);
+    console.log("Gender Options length:", genderOptions.length);
+    
+    // If you want to see the raw response
+    console.log("Gender API Response:", genderRes);
+    
+  } catch (error) {
+    console.error("Error fetching data:", error);
     // Server-side fetch failed — client will fetch its own data
   }
 
@@ -73,18 +87,19 @@ async function page({ params }) {
 
   return (
     <div className="px-1.5">
-      <h1 className="text-center mt-16 mb-4 text-2xl font-bold uppercase tracking-widest">
+      <h1 className="text-center lg:mt-16 mt-[6rem] mb-4 text-2xl font-bold uppercase tracking-widest">
         {categoryName?.name}
       </h1>
 
-      <FilterToggleAndResults totalProducts={totalProducts} />
+      {/* Pass genderOptions to CategoryContent */}
       <CategoryContent
-        // items={products}
         categoryId={id}
         gender={gender}
-        // totalProducts={totalProducts}
+        totalProducts={totalProducts}
+        genderOptions={genderOptions}
       />
     </div>
   );
 }
+
 export default page;

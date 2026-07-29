@@ -15,8 +15,8 @@ function ProductCard({ item, isMini }) {
   const isBundle = item?.type === 'bundle' || item?.is_bundle === true;
 
   // Fixed dimensions in rem
-  const imageWidth = isMini ? "10rem" : "20rem"; // 10rem = 160px, 20rem = 320px
-  const imageHeight = isMini ? "10rem" : "26.67rem"; // 10rem = 160px, 20rem = 320px
+  const imageWidth = isMini ? "md:10rem 20rem" : "20rem"; // 10rem = 160px, 20rem = 320px
+  const imageHeight = isMini ? "md:10rem 20rem" : "26.67rem"; // 10rem = 160px, 20rem = 320px
 
   // Helper function to get display price
   const getDisplayPrice = () => {

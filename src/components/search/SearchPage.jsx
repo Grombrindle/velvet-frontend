@@ -24,7 +24,6 @@ export default function SearchPage({ currentGender }) {
   const [submittedFilters, setSubmittedFilters] = useState(null);
 
   const loc = useLocale();
-
   const t = useTranslations("searchPage");
 
   const {
@@ -72,12 +71,31 @@ export default function SearchPage({ currentGender }) {
     if (submittedFilters.searchQuery)
       p.search_query = submittedFilters.searchQuery;
     if (currentGender) p["gender[]"] = currentGender;
-    if (submittedFilters.selectedCategories.length)
-      p["categories[]"] = submittedFilters.selectedCategories.join(",");
-    if (submittedFilters.selectedColors.length)
-      p["colors[]"] = submittedFilters.selectedColors.join(",");
-    if (submittedFilters.selectedSizes.length)
-      p["sizes[]"] = submittedFilters.selectedSizes.join(",");
+    
+    // FIXED: Send categories as separate parameters
+    if (submittedFilters.selectedCategories.length) {
+      submittedFilters.selectedCategories.forEach((categoryId) => {
+        p["categories[]"] = p["categories[]"] || [];
+        p["categories[]"].push(categoryId);
+      });
+    }
+    
+    // FIXED: Send colors as separate parameters
+    if (submittedFilters.selectedColors.length) {
+      submittedFilters.selectedColors.forEach((colorId) => {
+        p["colors[]"] = p["colors[]"] || [];
+        p["colors[]"].push(colorId);
+      });
+    }
+    
+    // FIXED: Send sizes as separate parameters
+    if (submittedFilters.selectedSizes.length) {
+      submittedFilters.selectedSizes.forEach((sizeId) => {
+        p["sizes[]"] = p["sizes[]"] || [];
+        p["sizes[]"].push(sizeId);
+      });
+    }
+    
     if (submittedFilters.priceMin !== "")
       p.price_range_min = Number(submittedFilters.priceMin);
     if (submittedFilters.priceMax !== "")
@@ -117,9 +135,25 @@ export default function SearchPage({ currentGender }) {
     setSubmittedFilters(null);
   };
 
+  // Handle search submission
+  const handleSearch = () => {
+    setPage(1);
+    setSubmittedFilters({
+      searchQuery,
+      selectedCategories,
+      selectedColors,
+      selectedSizes,
+      selectedSpecs,
+      priceMin,
+      priceMax,
+      inStock,
+      includeOption,
+    });
+  };
+
   return (
     <div className="container1 mx-auto px-4 py-8">
-      <div className="mb-6  border border-slate-200 bg-white p-6 shadow-sm">
+      <div className="mb-6 rounded-3xl border border-slate-200 bg-white p-6 lg:mt-0 mt-[5rem] shadow-sm">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div>
             <h1 className="text-3xl font-semibold text-slate-900">
@@ -133,20 +167,7 @@ export default function SearchPage({ currentGender }) {
             <SearchInput
               value={searchQuery}
               onChange={setSearchQuery}
-              onSubmit={() => {
-                setPage(1);
-                setSubmittedFilters({
-                  searchQuery,
-                  selectedCategories,
-                  selectedColors,
-                  selectedSizes,
-                  selectedSpecs,
-                  priceMin,
-                  priceMax,
-                  inStock,
-                  includeOption,
-                });
-              }}
+              onSubmit={handleSearch}
               placeholder={t("searchPlaceholder")}
             />
           </div>
@@ -207,7 +228,7 @@ export default function SearchPage({ currentGender }) {
         />
 
         <main className="space-y-6">
-          <div className=" border border-slate-200 bg-slate-50 p-6">
+          <div className="rounded-3xl border border-slate-200 bg-slate-50 p-6">
             <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
               <div>
                 <p className="text-sm text-slate-500">{t("resultsLabel")}</p>
@@ -219,7 +240,7 @@ export default function SearchPage({ currentGender }) {
                 <select
                   value={includeOption}
                   onChange={(e) => setIncludeOption(e.target.value)}
-                  className=" border border-slate-200 bg-white px-4 py-2 text-sm"
+                  className="rounded-3xl border border-slate-200 bg-white px-4 py-2 text-sm"
                 >
                   <option value="variants">{t("includeVariants")}</option>
                   <option value="minimal">{t("includeMinimal")}</option>
@@ -227,7 +248,7 @@ export default function SearchPage({ currentGender }) {
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value)}
-                  className=" border border-slate-200 bg-white px-4 py-2 text-sm"
+                  className="rounded-3xl border border-slate-200 bg-white px-4 py-2 text-sm"
                 >
                   <option value="price_low">{t("sortPriceLow")}</option>
                   <option value="price_high">{t("sortPriceHigh")}</option>
@@ -238,7 +259,7 @@ export default function SearchPage({ currentGender }) {
                 <select
                   value={perPage}
                   onChange={(e) => setPerPage(Number(e.target.value))}
-                  className=" border border-slate-200 bg-white px-4 py-2 text-sm"
+                  className="rounded-3xl border border-slate-200 bg-white px-4 py-2 text-sm"
                 >
                   <option value={6}>{t("perPage", { count: 6 })}</option>
                   <option value={9}>{t("perPage", { count: 9 })}</option>
@@ -250,11 +271,11 @@ export default function SearchPage({ currentGender }) {
           </div>
 
           {isLoadingOptions || isLoadingCategories ? (
-            <div className=" border border-slate-200 bg-white p-6 text-center text-slate-500">
+            <div className="rounded-3xl border border-slate-200 bg-white p-6 text-center text-slate-500">
               {t("loadingFilters")}
             </div>
           ) : optionsError || categoriesError ? (
-            <div className=" border border-red-200 bg-red-50 p-6 text-center text-red-700">
+            <div className="rounded-3xl border border-red-200 bg-red-50 p-6 text-center text-red-700">
               {t("loadError")}
             </div>
           ) : null}
@@ -266,27 +287,27 @@ export default function SearchPage({ currentGender }) {
               error={searchError}
             />
           ) : (
-            <div className=" border border-slate-200 bg-white p-8 text-center text-slate-500">
-              {/* {t("startMessage")}  */} {t("startMessage")}
+            <div className="rounded-3xl border border-slate-200 bg-white p-8 text-center text-slate-500">
+              {t("startMessage")}
             </div>
           )}
 
           {hasFilters && (
-            <div className="flex items-center justify-between gap-4  border border-slate-200 bg-white p-4 text-sm text-slate-600">
+            <div className="flex items-center justify-between gap-4 rounded-3xl border border-slate-200 bg-white p-4 text-sm text-slate-600">
               <span>{t("pageLabel", { page })}</span>
               <div className="flex items-center gap-2">
                 <button
                   type="button"
                   disabled={page <= 1}
                   onClick={() => setPage((value) => Math.max(1, value - 1))}
-                  className=" border border-slate-200 px-4 py-2 text-sm transition disabled:cursor-not-allowed disabled:opacity-50"
+                  className="rounded-3xl border border-slate-200 px-4 py-2 text-sm transition disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {t("previous")}
                 </button>
                 <button
                   type="button"
                   onClick={() => setPage((value) => value + 1)}
-                  className=" border border-slate-200 px-4 py-2 text-sm transition"
+                  className="rounded-3xl border border-slate-200 px-4 py-2 text-sm transition"
                 >
                   {t("next")}
                 </button>

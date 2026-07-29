@@ -9,7 +9,7 @@ function CheckboxOption({ label, checked, onChange }) {
         type="checkbox"
         checked={checked}
         onChange={onChange}
-        className="h-4 w-4  border-slate-300 text-black focus:ring-black"
+        className="h-4 w-4 border-slate-300 text-black focus:ring-black"
       />
       <span>{label}</span>
     </label>
@@ -60,20 +60,20 @@ export default function SearchFilterSidebar({
   const t = useTranslations("searchPage");
 
   return (
-    <aside className="w-full lg:w-80 xl:w-96 bg-white border border-slate-200 -3xl p-5 shadow-sm">
+    <aside className="w-full lg:w-80 xl:w-96 bg-white border border-slate-200 rounded-3xl p-5 shadow-sm">
       <div className="space-y-6">
         <div className="space-y-2">
           <h2 className="text-base font-semibold">{t("filtersTitle")}</h2>
           <p className="text-sm text-slate-500">{t("filtersDescription")}</p>
         </div>
 
-        <div className="space-y-4 -3xl bg-slate-50 p-4">
+        <div className="space-y-4 rounded-3xl bg-slate-50 p-4">
           <div className="flex items-center justify-between gap-4">
             <div>
               <p className="text-sm font-medium">{t("genderLabel")}</p>
               <p className="text-xs text-slate-500">{t("genderContext")}</p>
             </div>
-            <span className="-full bg-black px-3 py-1 text-xs font-semibold text-white">
+            <span className="rounded-full bg-black px-3 py-1 text-xs font-semibold text-white">
               {gender}
             </span>
           </div>
@@ -82,7 +82,7 @@ export default function SearchFilterSidebar({
               type="checkbox"
               checked={inStock}
               onChange={onToggleInStock}
-              className="h-4 w-4  border-slate-300 text-black focus:ring-black"
+              className="h-4 w-4 border-slate-300 text-black focus:ring-black"
             />
             {t("inStockOnly")}
           </label>
@@ -141,7 +141,7 @@ export default function SearchFilterSidebar({
                 onChange={(e) => onChangePriceMin(e.target.value)}
                 min={priceRange?.min ?? 0}
                 max={priceMax || priceRange?.max || 0}
-                className="w-full -2xl border border-slate-200 px-3 py-2 text-sm"
+                className="w-full rounded-2xl border border-slate-200 px-3 py-2 text-sm"
                 placeholder={String(priceRange?.min ?? 0)}
               />
               <input
@@ -150,7 +150,7 @@ export default function SearchFilterSidebar({
                 onChange={(e) => onChangePriceMax(e.target.value)}
                 min={priceMin || priceRange?.min || 0}
                 max={priceRange?.max ?? 10000}
-                className="w-full -2xl border border-slate-200 px-3 py-2 text-sm"
+                className="w-full rounded-2xl border border-slate-200 px-3 py-2 text-sm"
                 placeholder={String(priceRange?.max ?? 0)}
               />
             </div>
@@ -191,7 +191,7 @@ export default function SearchFilterSidebar({
         <button
           type="button"
           onClick={onResetFilters}
-          className="w-full -2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-100"
+          className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-100"
         >
           {t("clearFilters")}
         </button>

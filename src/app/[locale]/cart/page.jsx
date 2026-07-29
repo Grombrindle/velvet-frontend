@@ -44,13 +44,13 @@ function CartPage() {
   return (
     <div className=" min-h-screen pt-8 pb-16">
       <div className="container1 mx-auto px-2">
-        <div className="bg-[#F6F6F6] text-center py-4 text-black/70 text-sm rounded mb-8">
+        <div className="bg-[#F6F6F6] text-center py-4 text-black/70 text-sm rounded mb-8 lg:mt-0 mt-[3rem]">
           {t("deliveryNotice")}
         </div>
         <div className="flex flex-col lg:flex-row gap-8">
           <div className="flex-1 bg-white border rounded-lg p-6 min-w-0">
             <div className="flex justify-between items-center mb-6">
-              <div className="text-2xl font-bold">{t("myCart")}</div>
+              <div className="md:text-2xl text-lg font-bold">{t("myCart")}</div>
               <div className="flex items-center gap-4">
                 {items.length > 0 && (
                   <button

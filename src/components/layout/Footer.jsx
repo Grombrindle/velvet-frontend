@@ -2,6 +2,10 @@
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import React from "react";
+import { useQuery } from "@tanstack/react-query";
+import { apiGet } from "@/lib/api";
+import { useLocale } from "next-intl";
+import { getLocalePrefix } from "@/lib/locale";
 
 const TextLink = ({ children }) => (
   <p className="text-[#000000] font-normal text-[0.85rem]">{children}</p>
@@ -13,10 +17,6 @@ const SectionTitle = ({ children }) => (
 
 const CategoryItem = ({ children }) => (
   <p className="text-[#000000] font-[400] text-[0.8rem]">{children}</p>
-);
-
-const SocialIcon = ({ icon, alt, width = 15, height = 15 }) => (
-  <Image src={icon} alt={alt} width={width} height={height} />
 );
 
 const SocialMediaIcon = ({ icon, alt }) => (
@@ -39,110 +39,77 @@ const AppStoreIcon = ({ src, alt }) => (
   />
 );
 
-const SocialContactItem = ({ icon, label, isButton }) => {
-  const content = (
-    <>
-      <SocialIcon icon={icon} alt={label} />
-      <p className="text-[0.8rem]">{label}</p>
-    </>
-  );
-
-  if (isButton) {
-    return (
-      <div className="flex gap-x-2 border border-[#000000] px-2 py-2 hover:bg-gray-100 transition-colors cursor-pointer">
-        {content}
-      </div>
-    );
-  }
-
-  return (
-    <div className="flex items-center gap-x-2 hover:underline cursor-pointer">
-      {content}
-    </div>
-  );
-};
-
 function Footer() {
   const pathname = usePathname();
+  const locale = useLocale();
+  const localePrefix = getLocalePrefix(pathname);
+
   if (pathname?.startsWith("/dashboard")) {
     return null;
   }
-  // Data constants
-  const CORPORATE_ITEMS = [
-    "About us",
-    "Respect Life",
-    "Our Projects",
-    "Career at Koton",
-    "Our Policies",
-    "Information Society Services",
-    "Investor Relations",
-  ];
 
-  const HELP_ITEMS = [
-    "Frequently Asked Questions",
-    "Cancellation & Return Policies",
-    "Guide to Creating a Return Request",
-    "Order Tracking Without Membership",
-    "Personal Data Protection",
-    "Whatsapp LPPD",
-    "Site Map",
-    "Our Stores",
-  ];
+  // Fetch genders data
+  const {
+    data: gendersData,
+    isLoading: gendersLoading,
+    error: gendersError,
+  } = useQuery({
+    queryKey: ["genders-web"],
+    queryFn: () => apiGet("/web/genders"),
+    staleTime: 10 * 60 * 3600 * 24,
+  });
 
-  const POPULAR_CATEGORIES = [
-    "Velvet Romania",
-    "Velvet Kazakhstan",
-    "Velvet Russia",
-    "Velvet Serbia",
-    "Christmas Gifts",
-    "Women Dress",
-    "Women Outerwear",
-    "Jacket",
-    "Women Coat",
-    "Women Skirt",
-    "Women Trousers",
-    "Women Sweatshirt",
-    "Women Sweater",
-    "Women Blouse",
-    "Women Jacket",
-    "Winter Dress",
-    "Evening Dress",
-    "Knit Dress",
-    "Women Trenchcoat",
-    "Women Blazer Ja",
-    "Women Jeans & Jea",
-    "Collection",
-    "Women Pajama Set",
-    "Bra",
-    "Men Coat",
-    "Men Sweater",
-    "Men Suit",
-    "Men Cardigan",
-    "Men Sweatshirt",
-    "Men Sweatbottoms",
-    "Men Trousers",
-    "Men Shirt",
-    "Men Faux Leather Jacket",
-    "Men Jeans & Jean",
-    "Collection",
-    "Girls Dress",
-    "Girls Coat",
-    "Kids Tracksuit",
-    "Boys Coat",
-    "Boys Sweatshirt",
-    "BabyGirl Dress",
-    "Babyboy Coat",
-  ];
+  const genders = gendersData?.result || [];
 
-  const SOCIAL_ITEMS = [
-    {
-      icon: "/images/head-phone.svg",
-      label: "0850 208 71 71",
-      isButton: false,
+  // Fetch categories for each gender
+  const { data: categoriesData, isLoading: categoriesLoading } = useQuery({
+    queryKey: ["footer-categories", genders.map(g => g.name.en).join(',')],
+    queryFn: async () => {
+      if (!genders.length) return {};
+      
+      const limitedGenders = genders.slice(0, 3);
+      const categoryPromises = limitedGenders.map((gender) =>
+        apiGet(`/web/categories-products/${gender.name.en}`)
+      );
+      const results = await Promise.all(categoryPromises);
+      
+      return results.reduce((acc, result, index) => {
+        const genderName = limitedGenders[index].name.en;
+        acc[genderName] = result?.result?.categories || [];
+        return acc;
+      }, {});
     },
-    { icon: "/images/email.svg", label: "mim@Velvet.com", isButton: false },
-    { icon: "/images/wats.svg", label: "Whatsapp", isButton: true },
-  ];
+    enabled: genders.length > 0,
+    staleTime: 10 * 60 * 3600 * 24,
+  });
+
+  // Get all categories flattened with unique keys
+  const allCategories = React.useMemo(() => {
+    if (!categoriesData) return [];
+    const flat = [];
+    const usedKeys = new Set();
+    
+    Object.entries(categoriesData).forEach(([gender, categories]) => {
+      const genderObj = genders.find((g) => g.name.en === gender);
+      const genderLabel = genderObj?.name[locale] || gender;
+      
+      categories.forEach((cat) => {
+        const uniqueKey = `${gender}-${cat.id}`;
+        
+        if (!usedKeys.has(uniqueKey)) {
+          usedKeys.add(uniqueKey);
+          flat.push({
+            ...cat,
+            gender: gender,
+            genderLabel: genderLabel,
+            uniqueKey: uniqueKey,
+          });
+        }
+      });
+    });
+    
+    return flat;
+  }, [categoriesData, genders, locale]);
 
   const SOCIAL_MEDIA = [
     { icon: "/images/facebook.svg", alt: "Facebook" },
@@ -153,6 +120,12 @@ function Footer() {
     { src: "/images/app-store.png", alt: "app-store" },
     { src: "/images/google-play.png", alt: "google-play" },
   ];
+
+  const getGenderName = (gender) => {
+    return locale === "ar" ? gender.name.ar : gender.name.en;
+  };
+
+  const isLoading = gendersLoading || categoriesLoading;
 
   return (
     <div>
@@ -173,67 +146,80 @@ function Footer() {
         {/* Main Content */}
         <div className="container1 mx-auto">
           <div className="grid lg:grid-cols-12 lg:gap-y-0 gap-y-[2rem] grid-cols-1 gap-x-[1rem] mt-[1rem]">
-            {/* Left Section - Corporate & Help */}
-            <div className="lg:col-span-4 col-span-1">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <SectionTitle>Corporate</SectionTitle>
-                  {CORPORATE_ITEMS.map((item, index) => (
-                    <TextLink key={index}>{item}</TextLink>
-                  ))}
-                </div>
-                <div>
-                  <SectionTitle>Help</SectionTitle>
-                  {HELP_ITEMS.map((item, index) => (
-                    <TextLink key={index}>{item}</TextLink>
-                  ))}
-                </div>
+            {/* Left Section - Genders */}
+            <div className="lg:col-span-5 col-span-1">
+              <div className="grid grid-cols-3 gap-4">
+                {isLoading ? (
+                  <>
+                    <div>
+                      <div className="h-5 w-20 bg-gray-200 rounded animate-pulse mb-2"></div>
+                      <div className="h-4 w-16 bg-gray-200 rounded animate-pulse mb-1"></div>
+                      <div className="h-4 w-16 bg-gray-200 rounded animate-pulse mb-1"></div>
+                      <div className="h-4 w-16 bg-gray-200 rounded animate-pulse"></div>
+                    </div>
+                    <div>
+                      <div className="h-5 w-20 bg-gray-200 rounded animate-pulse mb-2"></div>
+                      <div className="h-4 w-16 bg-gray-200 rounded animate-pulse mb-1"></div>
+                      <div className="h-4 w-16 bg-gray-200 rounded animate-pulse mb-1"></div>
+                      <div className="h-4 w-16 bg-gray-200 rounded animate-pulse"></div>
+                    </div>
+                    <div>
+                      <div className="h-5 w-20 bg-gray-200 rounded animate-pulse mb-2"></div>
+                      <div className="h-4 w-16 bg-gray-200 rounded animate-pulse mb-1"></div>
+                      <div className="h-4 w-16 bg-gray-200 rounded animate-pulse mb-1"></div>
+                      <div className="h-4 w-16 bg-gray-200 rounded animate-pulse"></div>
+                    </div>
+                  </>
+                ) : (
+                  genders.slice(0, 3).map((gender) => (
+                    <div key={gender.id}>
+                      <SectionTitle>{getGenderName(gender)}</SectionTitle>
+                      {categoriesData?.[gender.name.en]?.slice(0, 6).map((category) => (
+                        <TextLink key={`${gender.id}-${category.id}`}>
+                          {category.name}
+                        </TextLink>
+                      ))}
+                    </div>
+                  ))
+                )}
+                {gendersError && (
+                  <div className="text-red-500 text-sm col-span-3">
+                    {locale === "ar" ? "حدث خطأ في تحميل البيانات" : "Error loading data"}
+                  </div>
+                )}
               </div>
             </div>
 
-            {/* Middle Section - Popular Categories */}
+            {/* Middle Section - All Categories */}
             <div className="lg:col-span-7 col-span-1">
               <div className="grid lg:grid-cols-5 md:grid-cols-3 grid-cols-2 gap-1">
-                <SectionTitle>Popular Categories</SectionTitle>
-                {POPULAR_CATEGORIES.map((category, index) => (
-                  <CategoryItem key={index}>{category}</CategoryItem>
-                ))}
+                <SectionTitle>
+                  {locale === "ar" ? "جميع الفئات" : "All Categories"}
+                </SectionTitle>
+                {isLoading ? (
+                  Array(10).fill(0).map((_, i) => (
+                    <div key={i} className="h-4 w-20 bg-gray-200 rounded animate-pulse"></div>
+                  ))
+                ) : (
+                  allCategories.slice(0, 25).map((category) => (
+                    <CategoryItem key={category.uniqueKey}>
+                      {category.name}
+                    </CategoryItem>
+                  ))
+                )}
               </div>
             </div>
+          </div>
 
-            {/* Right Section - Contact & Social */}
-            <div className="col-span-1 lg:ml-[-2.5rem]">
-              <div className="flex gap-x-3">
-                {/* Vertical Line */}
-                <div className="w-[1px] h-[8rem] bg-[#959595]" />
-
-                {/* Contact Info */}
-                <div>
-                  <SectionTitle>CONTACT US</SectionTitle>
-                  <div className="flex flex-col gap-y-4">
-                    {SOCIAL_ITEMS.map((item, index) => (
-                      <SocialContactItem
-                        key={index}
-                        icon={item.icon}
-                        label={item.label}
-                        isButton={item.isButton}
-                      />
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* Social Media Icons */}
-              <div className="flex gap-x-5 px-2 mt-4">
-                {SOCIAL_MEDIA.map((social, index) => (
-                  <SocialMediaIcon
-                    key={index}
-                    icon={social.icon}
-                    alt={social.alt}
-                  />
-                ))}
-              </div>
-            </div>
+          {/* Social Media Icons - Moved below */}
+          <div className="flex justify-center gap-x-5 mt-8">
+            {SOCIAL_MEDIA.map((social, index) => (
+              <SocialMediaIcon
+                key={index}
+                icon={social.icon}
+                alt={social.alt}
+              />
+            ))}
           </div>
         </div>
       </div>

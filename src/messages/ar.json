@@ -141,9 +141,12 @@
         "Loading_order_details": "جاري تحميل تفاصيل الطلب...",
         "order_not_found": "الطلب غير موجود",
         "subtotal": "المجموع الفرعي",
-        "shipping": "رسوم الشحن",
         "delivery": "التوصيل",
-        "cancel_messgae": "لمنتجات التابعة لرقم طلبك مدرجة أدناه. الرجاء تحديد سبب إرجاع للمنتجات التي تريد إرجاعها."
+        "cancel_messgae": "لمنتجات التابعة لرقم طلبك مدرجة أدناه. الرجاء تحديد سبب إرجاع للمنتجات التي تريد إرجاعها.",
+        "order_payment_failed": "فشل الدفع. يرجى المحاولة مرة أخرى أو استخدام طريقة دفع مختلفة.",
+        "order_paid": "تم دفع هذا الطلب ولا يمكن إلغاؤه.",
+        "order_approved": "تم الموافقة على هذا الطلب ولا يمكن إلغاؤه."
+
     },
     "favorite": {
         "No_favorites_yet": "لا توجد لديك عناصر مفضلة حتى الآن",
@@ -397,7 +400,10 @@
         "view": "عرض",
         "per_page": "لكل صفحة",
         "products": "المنتجات",
-        "show_more": "عرض المزيد من المنتجات"
+        "show_more": "عرض المزيد من المنتجات",
+        "no_results_title": "لا توجد منتجات",
+        "no_results_description": "لم نتمكن من العثور على أي منتجات تطابق عوامل التصفية. حاول تعديل معايير البحث الخاصة بك.",
+        "clear_filters": "مسح جميع التصفيات"
     },
     "product": {
         "bundle_deal": "عرض الحزمة",
@@ -415,6 +421,51 @@
         "select_color_for": "الرجاء اختيار لون {name}",
         "select_size_for": "الرجاء اختيار مقاس {name}",
         "item_number": "عنصر {number}",
-        "you_save": "توفر {amount}"
+        "you_save": "توفر {amount}",
+
+        "product_detail": "تفاصيل المنتج",
+        "delivery_options": "خيارات التوصيل",
+        "payment_methods": "طرق الدفع",
+        "no_delivery_methods": "لا توجد خيارات توصيل متاحة",
+        "delivery_method": "طريقة التوصيل",
+        "estimated": "المدة المتوقعة",
+        "color": "اللون",
+        "available_colors": "الألوان المتاحة",
+        "select_color": "الرجاء اختيار لون",
+        "select_size": "الرجاء اختيار مقاس",
+        "add_to_cart": "إضافة إلى السلة",
+        "added_to_cart_success": "تمت الإضافة إلى السلة",
+        "product_not_found": "المنتج غير موجود",
+        "size": "المقاس",
+        "available_sizes": "المقاسات المتاحة",
+        "no_sizes_available": "لا توجد مقاسات متاحة لهذا اللون",
+        "favorite_added": "تمت إضافة المنتج إلى المفضلة",
+        "favorite_removed": "تمت إزالة المنتج من المفضلة",
+        "favorite_error": "فشل تحديث المفضلة",
+        "product_code": "رمز المنتج",
+        "gender": "الجنس",
+        "payment_digital_options": "يمكنك الدفع باستخدام الخيارات الرقمية:",
+        "you_save_label": "توفر",
+        "no_description": "لا يوجد وصف للمنتج",
+        "special_offer": "عرض خاص",
+        "select_color_label": "اختيار لون {color}",
+        "add_to_favorites": "إضافة إلى المفضلة",
+        "remove_from_favorites": "إزالة من المفضلة",
+        "payment_method": "طريقة الدفع",
+        "no_payment_methods": "لا توجد طرق دفع متاحة",
+        "adding_to_cart": "جاري الإضافة إلى السلة..."
+    },
+    "sort_by": {
+        "newest": "الأحدث",
+        "price_low": "السعر: من الأقل إلى الأعلى",
+        "price_high": "السعر: من الأعلى إلى الأقل",
+        "name_asc": "الاسم: من أ إلى ي",
+        "name_desc": "الاسم: من ي إلى أ",
+        "stock_high": "المخزون: من الأعلى إلى الأقل",
+        "stock_low": "المخزون: من الأقل إلى الأعلى",
+        "sort": "ترتيب",
+        "view": "عرض",
+        "Show_Filter": "عرض الفلتر",
+        "Products": "المنتجات"
     }
 }

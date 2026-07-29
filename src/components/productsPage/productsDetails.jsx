@@ -2,39 +2,48 @@
 import Image from "next/image";
 import { CiHeart } from "react-icons/ci";
 import { useEffect, useState } from "react";
-import { MdKeyboardArrowRight } from "react-icons/md";
+import { MdKeyboardArrowLeft, MdKeyboardArrowRight } from "react-icons/md";
 import Line from "../ui/line";
 import { useAddToCart, useToggleFavorite } from "./hook/favourite";
 import { toast } from "react-hot-toast";
 import { FaHeart } from "react-icons/fa6";
 import { useFavoriteStore } from "@/lib/store";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import BundleSection from "./BundleSection";
 import { usePaymentMethods } from "./hook/usePaymentMethod";
 import { useDeliveryMethods } from "./hook/useDeliveryOption";
 
 const ProductsDetails = ({ productData: initialProductData }) => {
   const t = useTranslations("product");
+  const locale = useLocale();
+
   // Get product ID
   const productId = initialProductData?.result?.id || initialProductData?.id;
   const baseProduct = initialProductData?.result || initialProductData;
-  
+
   // Use favorite store
-  const { isFavorite, setFavorite, toggleFavorite: toggleFavoriteStore } = useFavoriteStore();
+  const {
+    isFavorite,
+    setFavorite,
+    toggleFavorite: toggleFavoriteStore,
+  } = useFavoriteStore();
 
   const { mutate: toggleFavoriteApi, isPending } = useToggleFavorite();
   const { mutate: addToCart } = useAddToCart();
 
   // Fetch payment methods
-  const { data: paymentMethods = [], isLoading: isPaymentMethodsLoading } = usePaymentMethods();
-  
+  const { data: paymentMethods = [], isLoading: isPaymentMethodsLoading } =
+    usePaymentMethods();
+
   // Fetch delivery methods
-  const { data: deliveryMethods = [], isLoading: isDeliveryMethodsLoading } = useDeliveryMethods();
+  const { data: deliveryMethods = [], isLoading: isDeliveryMethodsLoading } =
+    useDeliveryMethods();
 
   const [favoriteOverride, setFavoriteOverride] = useState(null);
   const [selectedColor, setSelectedColor] = useState(() => {
-    const baseIsBundle = baseProduct?.type === 'bundle' || baseProduct?.is_bundle === true;
-    return baseIsBundle ? (baseProduct?.available_colors?.[0] || null) : null;
+    const baseIsBundle =
+      baseProduct?.type === "bundle" || baseProduct?.is_bundle === true;
+    return baseIsBundle ? baseProduct?.available_colors?.[0] || null : null;
   });
   const [selectedSize, setSelectedSize] = useState(null);
   const [addedSelectionKey, setAddedSelectionKey] = useState(null);
@@ -42,22 +51,31 @@ const ProductsDetails = ({ productData: initialProductData }) => {
   const [isPaymentMethodsOpen, setIsPaymentMethodsOpen] = useState(false);
   const [isDeliveryOpen, setIsDeliveryOpen] = useState(false);
   
+  // Local loading state for add to cart
+  const [isAddingToCart, setIsAddingToCart] = useState(false);
+
   const product = {
     ...baseProduct,
     is_favorite: favoriteOverride ?? isFavorite(productId),
   };
-  const isBundle = product?.type === 'bundle' || product?.is_bundle === true;
+  const isBundle = product?.type === "bundle" || product?.is_bundle === true;
   const activeColor = selectedColor || product?.available_colors?.[0] || null;
   const selectionKey = `${activeColor?.id || ""}-${selectedSize?.id || ""}`;
   const isAddedToCart = addedSelectionKey === selectionKey;
-  const showBundleSavings = isBundle && product.original_price && product.bundle_price && product.original_price.amount > product.bundle_price.amount;
+  const showBundleSavings =
+    isBundle &&
+    product.original_price &&
+    product.bundle_price &&
+    product.original_price.amount > product.bundle_price.amount;
   const bundleSavingsAmount = showBundleSavings
-    ? (product.original_price.amount - product.bundle_price.amount).toFixed(2) + " SP"
+    ? (product.original_price.amount - product.bundle_price.amount).toFixed(2) +
+      " SP"
     : null;
 
   // Bundle selections state — one entry per child item (lazy init from props)
   const [bundleSelections, setBundleSelections] = useState(() => {
-    const baseIsBundle = baseProduct?.type === 'bundle' || baseProduct?.is_bundle === true;
+    const baseIsBundle =
+      baseProduct?.type === "bundle" || baseProduct?.is_bundle === true;
     if (baseIsBundle && baseProduct.bundles?.length) {
       return baseProduct.bundles.map((child) => ({
         productId: child.id,
@@ -74,20 +92,20 @@ const ProductsDetails = ({ productData: initialProductData }) => {
       const next = [...prev];
       next[index] = { ...next[index], [field]: value };
       // Reset size on color change
-      if (field === 'colorId') next[index].sizeId = null;
+      if (field === "colorId") next[index].sizeId = null;
       return next;
     });
     // Reset "Added To Cart" when bundle selections change
     setAddedSelectionKey(null);
   };
-  
+
   // Handle color change (resets size and "Added To Cart")
   const handleColorChange = (color) => {
     setSelectedColor(color);
     setSelectedSize(null);
     setAddedSelectionKey(null);
   };
-  
+
   // Handle size change (resets "Added To Cart")
   const handleSizeChange = (size) => {
     setSelectedSize(size);
@@ -103,29 +121,39 @@ const ProductsDetails = ({ productData: initialProductData }) => {
   // === Computed ClassNames ===
   const getSizeBtnClass = (size) => {
     const isSelected = selectedSize?.id === size.id;
-    let cls = "w-full h-[3.8rem] border flex justify-center items-center transition-all duration-200";
-    cls += isSelected ? " border-black bg-black text-white" : " border-[#D4D4D4] hover:border-gray-400";
+    let cls =
+      "w-full h-[3.8rem] border flex justify-center items-center transition-all duration-200";
+    cls += isSelected
+      ? " border-black bg-black text-white"
+      : " border-[#D4D4D4] hover:border-gray-400";
     if (!size.in_stock) cls += " opacity-50 cursor-not-allowed bg-gray-100";
     return cls;
   };
 
   const getAddBtnClass = (added) => {
-    let cls = "w-full h-[3.8rem] font-bold text-md transition-colors disabled:cursor-not-allowed";
-    cls += added ? " bg-[#D9F99D] text-[#14532D]" : " bg-[#000000] text-white cursor-pointer hover:bg-gray-800";
+    let cls =
+      "w-full h-[3.8rem] font-bold text-md transition-colors disabled:cursor-not-allowed";
+    cls += added
+      ? " bg-[#D9F99D] text-[#14532D]"
+      : " bg-[#000000] text-white cursor-pointer hover:bg-gray-800";
     return cls;
   };
 
   const getColorBtnClass = (colorId) => {
     const isActive = activeColor?.id === colorId;
     let cls = "w-[1.8rem] h-[1.8rem] relative cursor-pointer overflow-hidden";
-    cls += isActive ? " border-black border-2 ring-black ring-offset-2" : " border-gray-300";
+    cls += isActive
+      ? " border-black border-2 ring-black ring-offset-2"
+      : " border-gray-300";
     return cls;
   };
 
   const getChildColorBtnClass = (colorId, currentSel) => {
     const isActive = currentSel === colorId;
     let cls = "w-[1.5rem] h-[1.5rem] rounded-full border-2";
-    cls += isActive ? " border-black ring-2 ring-offset-1 ring-black" : " border-gray-300";
+    cls += isActive
+      ? " border-black ring-2 ring-offset-1 ring-black"
+      : " border-gray-300";
     return cls;
   };
 
@@ -165,11 +193,11 @@ const ProductsDetails = ({ productData: initialProductData }) => {
   if (!product) {
     return (
       <div className="text-center py-10">
-        <p className="text-red-500">Product not found</p>
+        <p className="text-red-500">{t("product_not_found")}</p>
       </div>
     );
   }
-  
+
   // Get available sizes from selected color
   const availableSizes = activeColor?.available_sizes || [];
 
@@ -179,8 +207,10 @@ const ProductsDetails = ({ productData: initialProductData }) => {
     const newFavoriteState = !currentFavoriteState;
 
     // Show optimistic toast
-    const action = newFavoriteState ? "added to" : "removed from";
-    toast.success(`Product ${action} favorites successfully`);
+    const action = newFavoriteState
+      ? t("favorite_added")
+      : t("favorite_removed");
+    toast.success(action);
     setFavoriteOverride(newFavoriteState);
 
     // Update store first (optimistic update)
@@ -192,16 +222,19 @@ const ProductsDetails = ({ productData: initialProductData }) => {
         // Revert on error
         toggleFavoriteStore(productId); // toggle back
         setFavoriteOverride(currentFavoriteState);
-        toast.error("Failed to update favorite");
+        toast.error(t("favorite_error"));
         console.error("Failed to toggle favorite:", error);
       },
       onSuccess: (data) => {
         // If API returns success but with different value, sync it
-        if (data?.is_favorite !== undefined && data.is_favorite !== newFavoriteState) {
+        if (
+          data?.is_favorite !== undefined &&
+          data.is_favorite !== newFavoriteState
+        ) {
           setFavorite(productId, data.is_favorite);
           setFavoriteOverride(data.is_favorite);
         }
-      }
+      },
     });
   };
 
@@ -225,7 +258,7 @@ const ProductsDetails = ({ productData: initialProductData }) => {
             </span>
           </div>
           <p className="text-xs text-green-600">
-            You save {discountDetails.savings.formatted}
+            {t("you_save", { amount: discountDetails.savings.formatted })}
           </p>
         </div>
       );
@@ -260,35 +293,44 @@ const ProductsDetails = ({ productData: initialProductData }) => {
       "/images/600x800.png"
     );
   };
-  
+
   const handleAddToCart = () => {
+    // Show loader immediately
+    setIsAddingToCart(true);
+
     if (isBundle) {
       // Validate bundle's own color
       if (!activeColor) {
         toast.error(t("select_bundle_color"));
+        setIsAddingToCart(false);
         return;
       }
 
       // Bundle auto-resolves its first available size (bundle size picker removed)
-      const bundleSize = activeColor?.available_sizes?.find(s => s.in_stock)
-        || activeColor?.available_sizes?.[0]
-        || null;
+      const bundleSize =
+        activeColor?.available_sizes?.find((s) => s.in_stock) ||
+        activeColor?.available_sizes?.[0] ||
+        null;
 
       if (!bundleSize) {
         toast.error(t("select_bundle_size"));
+        setIsAddingToCart(false);
         return;
       }
 
       // Validate all children have color and size selected
       for (let i = 0; i < bundleSelections.length; i++) {
         const sel = bundleSelections[i];
-        const childName = product.bundles?.[i]?.name || t("item_number", { number: i + 1 });
+        const childName =
+          product.bundles?.[i]?.name || t("item_number", { number: i + 1 });
         if (!sel.colorId) {
           toast.error(t("select_color_for", { name: childName }));
+          setIsAddingToCart(false);
           return;
         }
         if (!sel.sizeId) {
           toast.error(t("select_size_for", { name: childName }));
+          setIsAddingToCart(false);
           return;
         }
       }
@@ -307,58 +349,74 @@ const ProductsDetails = ({ productData: initialProductData }) => {
 
       const bundlePrice = product.bundle_price || product.price;
 
-      addToCart({
-        product_id: product.id,
-        quantity: 1,
-        colors_id,
-        sizes_id,
-        product_name: product.name,
-        image: getCartImage(),
-        price: bundlePrice,
-        currency: bundlePrice?.currency_code,
-        color_name: activeColor.name,
-        size_name: bundleSize.name,
-      }, {
-        onError: () => {
-          setAddedSelectionKey(null);
+      addToCart(
+        {
+          product_id: product.id,
+          quantity: 1,
+          colors_id,
+          sizes_id,
+          product_name: product.name,
+          image: getCartImage(),
+          price: bundlePrice,
+          currency: bundlePrice?.currency_code,
+          color_name: activeColor.name,
+          size_name: bundleSize.name,
         },
-      });
+        {
+          onSuccess: () => {
+            setIsAddingToCart(false);
+          },
+          onError: () => {
+            setAddedSelectionKey(null);
+            setIsAddingToCart(false);
+          },
+        },
+      );
 
       return;
     }
 
     // === Standard (non-bundle) add-to-cart ===
     if (!activeColor) {
-      toast.error("Please select a color");
+      toast.error(t("select_color"));
+      setIsAddingToCart(false);
       return;
     }
 
     if (!selectedSize) {
-      toast.error("Please select a size");
+      toast.error(t("select_size"));
+      setIsAddingToCart(false);
       return;
     }
 
     setAddedSelectionKey(selectionKey);
     const cartPrice = getCartPricePayload();
 
-    addToCart({
-      product_id: product.id,
-      quantity: 1,
-      colors_id: [activeColor.id],
-      sizes_id: [selectedSize.id],
-      product_name: product.name,
-      image: getCartImage(),
-      price: cartPrice,
-      currency: cartPrice?.currency_code,
-      color_name: activeColor.name,
-      size_name: selectedSize.name,
-    }, {
-      onError: () => {
-        setAddedSelectionKey(null);
+    addToCart(
+      {
+        product_id: product.id,
+        quantity: 1,
+        colors_id: [activeColor.id],
+        sizes_id: [selectedSize.id],
+        product_name: product.name,
+        image: getCartImage(),
+        price: cartPrice,
+        currency: cartPrice?.currency_code,
+        color_name: activeColor.name,
+        size_name: selectedSize.name,
       },
-    });
+      {
+        onSuccess: () => {
+          setIsAddingToCart(false);
+        },
+        onError: () => {
+          setAddedSelectionKey(null);
+          setIsAddingToCart(false);
+        },
+      },
+    );
   };
-  
+
   return (
     <div className="lg:pl-[2.3rem] relative">
       <div className="flex flex-col lg:space-y-6 space-y-4 lg:mt-0 mt-[1rem]">
@@ -387,6 +445,7 @@ const ProductsDetails = ({ productData: initialProductData }) => {
             getChildSizeBtnClass={getChildSizeBtnClass}
             showBundleSavings={showBundleSavings}
             bundleSavingsAmount={bundleSavingsAmount}
+            isAddingToCart={isAddingToCart}
           />
         ) : (
           /* ===== STANDARD (NON-BUNDLE) UI ===== */
@@ -397,44 +456,50 @@ const ProductsDetails = ({ productData: initialProductData }) => {
               {product.discount?.has_discount && (
                 <p className="font-bold text-[0.9rem] text-[#EB5757]">
                   {product.discount.type === "category_percentage"
-                    ? (product.discount.category_discount_details?.percentage || "") + "% OFF ON THIS CATEGORY"
+                    ? (product.discount.category_discount_details?.percentage ||
+                        "") + "% OFF ON THIS CATEGORY"
                     : product.discount.buy_x_get_y_details?.label ||
-                      "Special Offer"}
+                      t("special_offer")}
                 </p>
               )}
 
               <p className="text-[0.8rem] text-[#333333]">
-                {product.sku || "Product Code: " + product.id} | Color:{" "}
+                {t("product_code")}: {product.sku || product.id} | {t("color")}:{" "}
                 {activeColor?.name || product.primary_color?.name}
               </p>
 
               {/* Color Selection */}
-              {product.available_colors && product.available_colors.length > 0 && (
-                <div className="mt-3">
-                  <h1 className="font-bold text-[#000000] text-[0.9rem] mb-2">
-                    Available Colors
-                  </h1>
-                  <div className="flex flex-wrap gap-3">
-                    {product.available_colors.map((color) => (
-                      <button
-                        key={color.id}
-                        onClick={() => handleColorChange(color)}
-                        className={getColorBtnClass(color.id)}
-                        style={{
-                          backgroundColor: color.hex_code || color.color_code,
-                        }}
-                        title={color.name}
-                        aria-label={`Select color ${color.name}`}
-                      />
-                    ))}
+              {product.available_colors &&
+                product.available_colors.length > 0 && (
+                  <div className="mt-3">
+                    <h1 className="font-bold text-[#000000] text-[0.9rem] mb-2">
+                      {t("available_colors")}
+                    </h1>
+                    <div className="flex flex-wrap gap-3">
+                      {product.available_colors.map((color) => (
+                        <button
+                          key={color.id}
+                          onClick={() => handleColorChange(color)}
+                          className={getColorBtnClass(color.id)}
+                          style={{
+                            backgroundColor: color.hex_code || color.color_code,
+                          }}
+                          title={color.name}
+                          aria-label={t("select_color_label", {
+                            color: color.name,
+                          })}
+                        />
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
             </div>
 
             {/* Size Selection */}
             <div>
-              <h1 className="font-bold text-[#000000] text-[0.9rem]">Size</h1>
+              <h1 className="font-bold text-[#000000] text-[0.9rem]">
+                {t("size")}
+              </h1>
               <Line mt="mt-2" />
 
               {availableSizes.length > 0 ? (
@@ -452,7 +517,7 @@ const ProductsDetails = ({ productData: initialProductData }) => {
                 </div>
               ) : (
                 <p className="text-sm text-gray-500 mt-2">
-                  No sizes available for this color
+                  {t("no_sizes_available")}
                 </p>
               )}
 
@@ -463,10 +528,38 @@ const ProductsDetails = ({ productData: initialProductData }) => {
                 <div className="w-[80%]">
                   <button
                     onClick={handleAddToCart}
-                    disabled={isAddedToCart}
+                    disabled={isAddedToCart || isAddingToCart}
                     className={getAddBtnClass(isAddedToCart)}
                   >
-                    {isAddedToCart ? "Added To Cart" : "Add To Cart"}
+                    {isAddingToCart ? (
+                      <div className="flex items-center justify-center gap-2">
+                        <svg
+                          className="animate-spin h-5 w-5 text-white"
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                        >
+                          <circle
+                            className="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            strokeWidth="4"
+                          ></circle>
+                          <path
+                            className="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                          ></path>
+                        </svg>
+                        <span>{t("adding_to_cart")}</span>
+                      </div>
+                    ) : isAddedToCart ? (
+                      t("added_to_cart_success")
+                    ) : (
+                      t("add_to_cart")
+                    )}
                   </button>
                 </div>
                 <div className="w-[20%]">
@@ -476,8 +569,8 @@ const ProductsDetails = ({ productData: initialProductData }) => {
                     disabled={isPending}
                     aria-label={
                       product.is_favorite
-                        ? "Remove from favorites"
-                        : "Add to favorites"
+                        ? t("remove_from_favorites")
+                        : t("add_to_favorites")
                     }
                   >
                     <div className="w-[2.3rem] h-[2.3rem] relative flex items-center justify-center">
@@ -503,17 +596,21 @@ const ProductsDetails = ({ productData: initialProductData }) => {
             onClick={() => setIsProductDetailsOpen(!isProductDetailsOpen)}
           >
             <h1 className="font-bold text-[#000000] text-[0.95rem] mt-3">
-              Product Detail
+              {t("product_detail")}
             </h1>
             <div className={getDropdownChevronClass(isProductDetailsOpen)}>
-              <MdKeyboardArrowRight />
+              {locale == "en" ? (
+                <MdKeyboardArrowRight />
+              ) : (
+                <MdKeyboardArrowLeft />
+              )}
             </div>
           </div>
 
           {/* Dropdown Content */}
           <div className={getDropdownContentClass(isProductDetailsOpen)}>
             <p className="text-[#000000] font-light text-[0.8rem] mt-2">
-              {product.description || "Product description goes here"}
+              {product.description || t("no_description")}
             </p>
 
             {/* Specifications from API */}
@@ -532,7 +629,7 @@ const ProductsDetails = ({ productData: initialProductData }) => {
 
             {product.gender && (
               <h1 className="text-[0.9rem] font-bold text-[#000000] mt-2">
-                Gender:
+                {t("gender")}:
                 <span className="text-[0.8rem] font-light ml-1 capitalize">
                   {product.gender}
                 </span>
@@ -549,10 +646,14 @@ const ProductsDetails = ({ productData: initialProductData }) => {
             onClick={() => setIsDeliveryOpen(!isDeliveryOpen)}
           >
             <h1 className="font-bold text-[#000000] text-[0.95rem] mt-3">
-              Delivery Options
+              {t("delivery_options")}
             </h1>
             <div className={getDropdownChevronClass(isDeliveryOpen)}>
-              <MdKeyboardArrowRight />
+              {locale == "en" ? (
+                <MdKeyboardArrowRight />
+              ) : (
+                <MdKeyboardArrowLeft />
+              )}
             </div>
           </div>
 
@@ -565,13 +666,20 @@ const ProductsDetails = ({ productData: initialProductData }) => {
             ) : deliveryMethods.length > 0 ? (
               <div className="mt-2 space-y-2">
                 {deliveryMethods.map((method) => (
-                  <div key={method.id || method.name} className="border-b border-gray-100 pb-2 last:border-0">
+                  <div
+                    key={method.id || method.name}
+                    className="border-b border-gray-100 pb-2 last:border-0"
+                  >
                     <div className="flex items-start gap-2">
                       {method.image && (
                         <div className="relative w-8 h-8 flex-shrink-0 mt-1">
                           <Image
                             src={method.image}
-                            alt={method.name || method.method_name || "Delivery method"}
+                            alt={
+                              method.name ||
+                              method.method_name ||
+                              t("delivery_method")
+                            }
                             fill
                             className="object-contain"
                             sizes="32px"
@@ -580,7 +688,9 @@ const ProductsDetails = ({ productData: initialProductData }) => {
                       )}
                       <div>
                         <p className="font-medium text-[0.85rem] text-[#000000]">
-                          {method.name || method.method_name || "Delivery Method"}
+                          {method.name ||
+                            method.method_name ||
+                            t("delivery_method")}
                         </p>
                         {method.description && (
                           <p className="text-[0.8rem] text-[#666666]">
@@ -589,13 +699,14 @@ const ProductsDetails = ({ productData: initialProductData }) => {
                         )}
                         {method.estimated_time && (
                           <p className="text-[0.75rem] text-[#888888] mt-0.5">
-                            Estimated: {method.estimated_time}
+                            {t("estimated")}: {method.estimated_time}
                           </p>
                         )}
                         {method.price && (
                           <p className="text-[0.8rem] font-medium text-[#000000] mt-0.5">
-                            {typeof method.price === 'object' 
-                              ? method.price.formatted || `${method.price.amount} ${method.price.currency_code}`
+                            {typeof method.price === "object"
+                              ? method.price.formatted ||
+                                `${method.price.amount} ${method.price.currency_code}`
                               : method.price}
                           </p>
                         )}
@@ -606,7 +717,7 @@ const ProductsDetails = ({ productData: initialProductData }) => {
               </div>
             ) : (
               <p className="text-sm text-gray-500 mt-2">
-                No delivery methods available
+                {t("no_delivery_methods")}
               </p>
             )}
           </div>
@@ -620,19 +731,23 @@ const ProductsDetails = ({ productData: initialProductData }) => {
             onClick={() => setIsPaymentMethodsOpen(!isPaymentMethodsOpen)}
           >
             <h1 className="font-bold text-[#000000] text-[0.95rem] mt-3">
-              Payment Methods
+              {t("payment_methods")}
             </h1>
             <div className={getDropdownChevronClass(isPaymentMethodsOpen)}>
-              <MdKeyboardArrowRight />
+              {locale == "en" ? (
+                <MdKeyboardArrowRight />
+              ) : (
+                <MdKeyboardArrowLeft />
+              )}
             </div>
           </div>
 
           {/* Dropdown Content - Dynamic from API */}
           <div className={getDropdownContentClass(isPaymentMethodsOpen)}>
             <p className="text-[0.9rem] text-[#333333] mt-2">
-              You can make your payments with digital options:
+              {t("payment_digital_options")}
             </p>
-            
+
             {isPaymentMethodsLoading ? (
               <div className="flex justify-center items-center py-4">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
@@ -648,7 +763,11 @@ const ProductsDetails = ({ productData: initialProductData }) => {
                       <div className="relative w-full h-full">
                         <Image
                           src={method.image}
-                          alt={method.name || method.method_name || "Payment method"}
+                          alt={
+                            method.name ||
+                            method.method_name ||
+                            t("payment_method")
+                          }
                           fill
                           className="object-contain"
                           sizes="(max-width: 768px) 100vw, 33vw"
@@ -656,7 +775,9 @@ const ProductsDetails = ({ productData: initialProductData }) => {
                       </div>
                     ) : (
                       <span className="text-sm font-medium text-gray-700">
-                        {method.name || method.method_name || "Payment Method"}
+                        {method.name ||
+                          method.method_name ||
+                          t("payment_method")}
                       </span>
                     )}
                   </div>
@@ -664,7 +785,7 @@ const ProductsDetails = ({ productData: initialProductData }) => {
               </div>
             ) : (
               <p className="text-sm text-gray-500 mt-2">
-                No payment methods available
+                {t("no_payment_methods")}
               </p>
             )}
           </div>

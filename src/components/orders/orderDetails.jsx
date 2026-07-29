@@ -84,10 +84,33 @@ const DeliveryAddress = ({ address, t }) => {
   );
 };
 
+// Retry Payment Button component
+const RetryPaymentButton = ({ t, onClick, url }) => {
+  if (!url) return null;
+  
+  return (
+    <button
+      onClick={() => window.open(url, '_blank')}
+      className="mt-4 px-6 py-2 bg-blue-600 text-white font-bold rounded-md hover:bg-blue-700 transition-colors"
+    >
+      {t("Retry_Payment")}
+    </button>
+  );
+};
+
 // CancelButton component with status check
 const CancelButton = ({ t, onClick, status }) => {
   // Statuses where cancellation is NOT allowed
-  const nonCancelableStatuses = ['shipping', 'delivered', 'cancelled', 'completed', 'approved'];
+  const nonCancelableStatuses = [
+    'shipping', 
+    'delivered', 
+    'cancelled', 
+    'completed', 
+    'approved', 
+    'paid',
+    'payment_failed',
+    'refunded' // Refunded orders cannot be cancelled
+  ];
   const isCancelable = !nonCancelableStatuses.includes(status?.toLowerCase());
   
   // Don't render button if order can't be cancelled
@@ -104,26 +127,51 @@ const CancelButton = ({ t, onClick, status }) => {
 };
 
 // Message for non-cancelable orders
-const NonCancelableMessage = ({ t, status, statusMessage }) => {
+const NonCancelableMessage = ({ t, status, statusMessage, needsPaymentAction, retryPaymentUrl }) => {
   // If there's a status message from API, use it
   if (statusMessage) {
     return (
-      <p className="text-amber-600 text-md mt-4">
-        {statusMessage}
-      </p>
+      <div className="mt-4">
+        <p className="text-amber-600 text-md">
+          {statusMessage}
+        </p>
+        {/* Show retry payment button if payment failed and needs action */}
+        {status?.toLowerCase() === 'payment_failed' && needsPaymentAction && retryPaymentUrl && (
+          <RetryPaymentButton t={t} onClick={() => {}} url={retryPaymentUrl} />
+        )}
+      </div>
     );
   }
   
   const statusMessages = {
+    'paid': t("order_paid") || "This order has been paid and cannot be cancelled.",
+    'payment_failed': t("order_payment_failed") || "Payment failed. Please try again.",
     'shipping': t("order_shipped"),
     'delivered': t("order_delivered"),
     'completed': t("order_completed"),
     'cancelled': t("order_cancelled"),
-    'approved': t("order_approved")
+    'approved': t("order_approved"),
+    'refunded': t("order_refunded") || "This order has been refunded."
   };
   
   const message = statusMessages[status?.toLowerCase()] || 
                   "This order cannot be cancelled due to its current status.";
+  
+  // Special handling for payment_failed
+  if (status?.toLowerCase() === 'payment_failed') {
+    return (
+      <div className="mt-4">
+        <p className="text-red-600 text-md">
+          {message}
+        </p>
+        {needsPaymentAction && retryPaymentUrl && (
+          <div className="mt-2">
+            <RetryPaymentButton t={t} onClick={() => {}} url={retryPaymentUrl} />
+          </div>
+        )}
+      </div>
+    );
+  }
   
   return (
     <p className="text-red-600 text-md mt-4 italic">
@@ -136,19 +184,21 @@ const NonCancelableMessage = ({ t, status, statusMessage }) => {
 const StatusBadge = ({ status }) => {
   const statusColors = {
     'pending': 'bg-yellow-100 text-yellow-800',
-    'paid': 'bg-green-100 text-green-800', // added from payload
+    'paid': 'bg-green-100 text-green-800',
+    'payment_failed': 'bg-red-100 text-red-800',
     'approved': 'bg-green-100 text-green-800',
     'shipping': 'bg-blue-100 text-blue-800',
     'delivered': 'bg-purple-100 text-purple-800',
     'completed': 'bg-gray-100 text-gray-800',
-    'cancelled': 'bg-red-100 text-red-800'
+    'cancelled': 'bg-red-100 text-red-800',
+    'refunded': 'bg-red-100 text-red-800'
   };
   
   const colorClass = statusColors[status?.toLowerCase()] || 'bg-gray-100 text-gray-800';
   
   return (
     <span className={`px-3 py-1 rounded-full text-sm font-medium ${colorClass}`}>
-      {status}
+      {status?.replace('_', ' ').toUpperCase()}
     </span>
   );
 };
@@ -162,6 +212,7 @@ const OrderDetailsClient = ({ orderId }) => {
 
   // Extract nested 'order' from 'result' based on new API structure
   const orderData = response?.result?.order || response?.order || response?.result || response;
+  const nextStep = response?.result?.next_step || null;
 
   // Loading state
   if (isLoading) {
@@ -200,12 +251,25 @@ const OrderDetailsClient = ({ orderId }) => {
     shippingAddress: orderData.address,
     paymentMethod: orderData.payment_method?.name,
     deliveryMethod: orderData.delivery_method?.name,
-    userEmail: orderData.user_email
+    userEmail: orderData.user_email,
+    needsPaymentAction: orderData.needs_payment_action || false
   };
 
   // Check if order can be cancelled
-  const nonCancelableStatuses = ['shipping', 'delivered', 'cancelled', 'completed', 'approved'];
+  const nonCancelableStatuses = [
+    'shipping', 
+    'delivered', 
+    'cancelled', 
+    'completed', 
+    'approved', 
+    'paid',
+    'payment_failed',
+    'refunded'
+  ];
   const canCancel = !nonCancelableStatuses.includes(mappedOrderData.status?.toLowerCase());
+
+  // Get retry payment URL from nextStep
+  const retryPaymentUrl = nextStep?.type === 'webview' ? nextStep.url : null;
 
   return (
     <div className="container5 mx-auto lg:mt-0 mt-[7rem]">
@@ -302,7 +366,22 @@ const OrderDetailsClient = ({ orderId }) => {
             t={t} 
             status={mappedOrderData.status}
             statusMessage={mappedOrderData.statusMessage}
+            needsPaymentAction={mappedOrderData.needsPaymentAction}
+            retryPaymentUrl={retryPaymentUrl}
           />
+        )}
+        
+        {/* Show Retry Payment button for payment_failed status */}
+        {mappedOrderData.status?.toLowerCase() === 'payment_failed' && 
+         mappedOrderData.needsPaymentAction && 
+         retryPaymentUrl && (
+          <div className="mt-2">
+            <RetryPaymentButton 
+              t={t} 
+              onClick={() => {}} 
+              url={retryPaymentUrl} 
+            />
+          </div>
         )}
         
         <DeliveryAddress t={t} address={mappedOrderData.shippingAddress} />

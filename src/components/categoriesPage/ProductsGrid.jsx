@@ -11,21 +11,26 @@ function ProductsGrid({ clothingItems }) {
   return (
     <div className="overflow-hidden w-full">
       <motion.div
-        layout="preserve-aspect"
-        className={`grid  w-full transition-all duration-500 ease-in-out ${
-          isFilterOpen ? " translate-x-[0%] " : ""
+        className={`grid w-full transition-all duration-500 ease-in-out ${
+          isFilterOpen ? "translate-x-[0%]" : ""
         } ${getGridClasses(viewMode)}`}
       >
-        <AnimatePresence mode="sync">
+        <AnimatePresence>
           {clothingItems.map((item, index) => {
+            // Fallback to a safe unique composite key if item.id is missing
+            const uniqueKey = item.id ?? `product-${index}-${item.slug || 'item'}`;
             const isFull = viewMode === 1 && index % 3 === 0;
+            
             return (
-              <Suspense key={item.id ?? index}>
+              <Suspense key={uniqueKey}>
                 <motion.div
-                  layout="position"
+                  layout
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
                   transition={{
-                    ease: "easeInOut",
-                    duration: 0.5,
+                    layout: { duration: 0.3, ease: "easeInOut" },
+                    opacity: { duration: 0.2 }
                   }}
                   className={isFull ? "col-span-2" : "col-span-1"}
                 >
@@ -40,18 +45,15 @@ function ProductsGrid({ clothingItems }) {
           })}
         </AnimatePresence>
       </motion.div>
-      {/* <div className="flex justify-center mt-8">
-        <ShowMoreButton />
-      </div> */}
     </div>
   );
 }
+
 function getGridClasses(viewMode) {
-  if (viewMode === 1) return "grid-cols-2 place-items-center gap-y-20";
-  if (viewMode === 2) return "grid-cols-2 place-items-center px-52 gap-y-16";
-  if (viewMode === 3) return "grid-cols-4 place-items-center px-1 gap-x-4 gap-y-10";
-  if (viewMode === 4) return "grid-cols-8 place-items-center";
-  return "place-items-center";
+  if (viewMode === 1) return "md:grid-cols-2 grid-cols-1 place-items-center gap-y-20";
+  if (viewMode === 2) return "md:grid-cols-2 grid-cols-1 place-items-center px-52 gap-y-16";
+  if (viewMode === 3) return "md:grid-cols-4 grid-cols-1 place-items-center px-1 gap-x-4 gap-y-10";
+  if (viewMode === 4) return "md:grid-cols-8 grid-cols-1 gap-x-4 gap-y-[2rem] w-full"; 
 }
 
 export default ProductsGrid;

@@ -1,4 +1,5 @@
 "use client";
+
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useChangeCurrency, useCurrencies } from "./hooks/useCurrencies";
@@ -6,15 +7,17 @@ import { toast } from "react-hot-toast";
 import Loader from "../ui/loader";
 import ErrorState from "../ui/errorMessage";
 import { useTranslations } from "next-intl";
+import { useRouter } from "next/navigation"; // ✅ Added router import
+
 const AllCurrencies = () => {
   const t = useTranslations("currencies");
+  const router = useRouter(); // ✅ Initialized router
+
   const { data, isLoading, error } = useCurrencies();
   const changeCurrencyMutation = useChangeCurrency();
 
   const { setValue, watch, handleSubmit } = useForm();
-
   const selectedCurrencyId = watch("currencyId");
-
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
@@ -28,14 +31,13 @@ const AllCurrencies = () => {
   };
 
   const onSubmit = async (formData) => {
-    const currentCurrencyId = data?.user_currency?.id; // ✅ define it here
+    const currentCurrencyId = data?.user_currency?.id;
 
     if (!formData.currencyId) {
       toast.error("Please select a currency");
       return;
     }
 
-    // ✅ check if nothing changed
     if (formData.currencyId === currentCurrencyId) {
       toast.error(t("You_didnt_change_currency"));
       return;
@@ -46,31 +48,36 @@ const AllCurrencies = () => {
     try {
       await changeCurrencyMutation.mutateAsync(formData.currencyId);
       toast.success(t("currency_changed_successfully!"));
+      
+      // ✅ Tells Next.js to re-fetch Server Components so the ProductPage gets the new currency
+      router.refresh(); 
+      
     } catch (error) {
       toast.error(error?.message || t("Failed_to_change_currency"));
     } finally {
       setIsSaving(false);
     }
   };
+
   if (isLoading) {
-    return (
- <Loader text={t("loading_currencies")} />
-    );
+    return <Loader text={t("loading_currencies")} />;
   }
 
   if (error) {
-      return <ErrorState message={error.message} />;
-
+    return <ErrorState message={error.message} />;
   }
 
   const currencies = data?.currencies || [];
+
   return (
     <>
       <form
         onSubmit={handleSubmit(onSubmit)}
         className="flex flex-col space-y-[1rem]"
       >
-        <h1 className="font-bold text-2xl text-center">{t("currency_selection")}</h1>
+        <h1 className="font-bold text-2xl text-center">
+          {t("currency_selection")}
+        </h1>
 
         <p className="text-xl mt-3 px-5">{t("currency_options")}</p>
 
@@ -104,6 +111,7 @@ const AllCurrencies = () => {
           className={`w-[22rem] mt-[1rem] h-[3.5rem] text-white font-bold bg-black ${
             isSaving ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
           }`}
+          disabled={isSaving}
         >
           {isSaving ? t("SAVING") : t("SAVE")}
         </button>
@@ -111,4 +119,5 @@ const AllCurrencies = () => {
     </>
   );
 };
+
 export default AllCurrencies;
