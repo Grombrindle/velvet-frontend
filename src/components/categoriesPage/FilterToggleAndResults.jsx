@@ -3,22 +3,23 @@ import { useCategoryPageStore } from "@/lib/store";
 import { useLocale, useTranslations } from "next-intl";
 import React from "react";
 import { FaPlus } from "react-icons/fa";
-import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
+import SortDropdown from "./filters/sortFilter";
 
-function FilterToggleAndResults({ totalProducts }) {
+function FilterToggleAndResults({ totalProducts, sortBy, onSortChange }) {
   const { toggleFilter, viewMode, setViewMode, isFilterOpen } =
     useCategoryPageStore();
-  const t = useTranslations("categoriesPage");
   const locale = useLocale();
+  const t = useTranslations("sort_by")
+
   return (
-    <div className="container1 mb-5 mx-auto flex justify-between  text-sm items-center max-w-1/4">
+    <div className="container1 mb-5 mx-auto flex justify-between text-sm items-center max-w-1/4 relative">
       <button
         onClick={toggleFilter}
         className={`flex items-center transition-all duration-200 py-1 rounded ${
           isFilterOpen ? "bg-black text-white px-5 " : "text-black"
-        } gap-2 uppercase tracking-wide cursor-pointer`}
+        } gap-2 cursor-pointer`}
       >
-        {t("show_filters")}
+        {t("Show_Filter")}
         <span>
           <FaPlus
             className={`transition-all duration-200 ${
@@ -30,8 +31,9 @@ function FilterToggleAndResults({ totalProducts }) {
       </button>
 
       <div className="flex items-center gap-6">
-        <div className="flex items-center gap-4">
-          <span className="text-xs font-bold tracking-widest uppercase">
+        {/* Entire View section */}
+        <div className="hidden md:flex items-center gap-4">
+          <span className="text-xs font-bold tracking-widest">
             {t("view")}
           </span>
 
@@ -49,17 +51,13 @@ function FilterToggleAndResults({ totalProducts }) {
             />
           </div>
         </div>
+        
         <span>
-          {totalProducts} {t("products")}
+          {totalProducts} {t("Products")}
         </span>
-        <button className="uppercase tracking-wide inline-flex items-center ">
-          {t("sort")}{" "}
-          {locale === "en" ? (
-            <IoIosArrowForward size={16} />
-          ) : (
-            <IoIosArrowBack size={16} />
-          )}
-        </button>
+
+        {/* Sort Dropdown - Now using the separated component */}
+        <SortDropdown sortBy={sortBy} onSortChange={onSortChange} />
       </div>
     </div>
   );

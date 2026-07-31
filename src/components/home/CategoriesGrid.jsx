@@ -2,13 +2,14 @@ import React, { Suspense } from "react";
 import CategoryCard from "../ui/CategoryCard";
 
 function CategoriesGrid({ data }) {
+  console.log("CategoriesGrid",CategoriesGrid)
   const pattern = ["two", "sevenFive", "three"];
 
   let imageIndex = 0;
 
   return (
     <div className="w-full">
-      {Array.from({ length: Math.ceil(data.length / 3) }).map((_, rowIndex) => {
+      {Array.from({ length: Math.ceil(data?.length / 3) }).map((_, rowIndex) => {
         if (imageIndex >= data.length) return null;
 
         const layout = pattern[rowIndex % pattern.length];

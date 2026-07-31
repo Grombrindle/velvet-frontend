@@ -1,17 +1,233 @@
+// "use client";
+// import { useCallback, useEffect, useRef, useState } from "react";
+// import { useTranslations } from "next-intl";
+// import { apiGet, apiPost } from "@/lib/api";
+
+// const POLL_INTERVAL = 5000;
+// const MAX_POLL_TIME = 5 * 60 * 1000;
+
+// function NextStepHandler({ nextStep, orderId, onComplete }) {
+//   const t = useTranslations("checkout");
+//   const [stepState, setStepState] = useState("idle");
+//   const [error, setError] = useState(null);
+//   const [otpFields, setOtpFields] = useState({});
+//   const [submitting, setSubmitting] = useState(false);
+//   const pollRef = useRef(null);
+//   const pollStartRef = useRef(null);
+
+//   const cleanup = useCallback(() => {
+//     if (pollRef.current) {
+//       clearInterval(pollRef.current);
+//       pollRef.current = null;
+//     }
+//   }, []);
+
+//   useEffect(() => cleanup, [cleanup]);
+
+//   // Auto-open payment URL on mount
+//   useEffect(() => {
+//     if (nextStep?.type === "webview" && nextStep.url) {
+//       window.open(nextStep.url, "_blank", "noopener,noreferrer");
+//       startPolling();
+//     }
+//   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+//   const startPolling = useCallback(() => {
+//     cleanup();
+//     setStepState("polling");
+//     pollStartRef.current = Date.now();
+
+//     pollRef.current = setInterval(async () => {
+//       if (Date.now() - pollStartRef.current > MAX_POLL_TIME) {
+//         cleanup();
+//         setStepState("timeout");
+//         return;
+//       }
+
+//       try {
+//         const res = await apiGet(`/orders/${orderId}`);
+//         const order = res?.result || res;
+//         const status = order?.status || order?.payment_status;
+
+//         if (status === "paid" || status === "completed") {
+//           cleanup();
+//           onComplete();
+//         } else if (status === "payment_failed" || status === "failed") {
+//           cleanup();
+//           setStepState("error");
+//           setError(t("retry"));
+//         }
+//       } catch {
+//         // continue polling
+//       }
+//     }, POLL_INTERVAL);
+//   }, [cleanup, orderId, onComplete, t]);
+
+//   const handleManualCheck = useCallback(async () => {
+//     try {
+//       setStepState("polling");
+//       const res = await apiGet(`/orders/${orderId}`);
+//       const order = res?.result || res;
+//       const status = order?.status || order?.payment_status;
+//       if (status === "paid" || status === "completed") {
+//         cleanup();
+//         onComplete();
+//       } else {
+//         setStepState("idle");
+//       }
+//     } catch {
+//       setStepState("idle");
+//     }
+//   }, [cleanup, orderId, onComplete]);
+
+//   useEffect(() => {
+//     if (!nextStep) {
+//       onComplete();
+//     }
+//   }, [nextStep, onComplete]);
+
+//   if (!nextStep) return null;
+
+//   if (nextStep.type === "webview") {
+//     return (
+//       <div className="bg-white border rounded-lg p-6 text-center space-y-4">
+//         <h2 className="text-xl font-bold">{nextStep.title || t("payment_required")}</h2>
+
+//         {stepState === "idle" && (
+//           <div className="space-y-3">
+//             <div className="flex justify-center">
+//               <div className="w-8 h-8 border-2 border-black border-t-transparent rounded-full animate-spin" />
+//             </div>
+//             <p className="text-sm text-gray-600">{t("redirecting_payment")}</p>
+//           </div>
+//         )}
+
+//         {stepState === "polling" && (
+//           <div className="space-y-3">
+//             <div className="flex justify-center">
+//               <div className="w-8 h-8 border-2 border-black border-t-transparent rounded-full animate-spin" />
+//             </div>
+//             <p className="text-sm text-gray-600">{t("payment_confirming")}</p>
+//             <button
+//               className="text-sm underline text-gray-500"
+//               onClick={handleManualCheck}
+//             >
+//               {t("payment_complete_manually")}
+//             </button>
+//           </div>
+//         )}
+
+//         {stepState === "error" && (
+//           <div className="space-y-3">
+//             <p className="text-sm text-red-600">{t("error_generic")}</p>
+//             <button
+//               className="bg-black text-white px-6 py-2 rounded font-bold text-sm"
+//               onClick={() => {
+//                 setStepState("idle");
+//               }}
+//             >
+//               {t("retry")}
+//             </button>
+//           </div>
+//         )}
+
+//         {stepState === "timeout" && (
+//           <div className="space-y-3">
+//             <p className="text-sm text-gray-600">{t("payment_timeout")}</p>
+//             <button
+//               className="text-sm underline text-gray-500"
+//               onClick={handleManualCheck}
+//             >
+//               {t("payment_complete_manually")}
+//             </button>
+//           </div>
+//         )}
+//       </div>
+//     );
+//   }
+
+//   if (nextStep.type === "otp") {
+//     const otpLength = nextStep.otp_length || 6;
+//     const endpoint = nextStep.verify_otp_endpoint
+//       ? `/${nextStep.verify_otp_endpoint}`
+//       : null;
+
+//     const handleOtpSubmit = async () => {
+//       setSubmitting(true);
+//       try {
+//         if (!endpoint) {
+//           setError(t("error_generic"));
+//           return;
+//         }
+//         const res = await apiPost(endpoint, { code: otpFields.code });
+//         if (res?.success) {
+//           onComplete();
+//         } else {
+//           setError(res?.message || t("error_generic"));
+//         }
+//       } catch {
+//         setError(t("error_generic"));
+//       } finally {
+//         setSubmitting(false);
+//       }
+//     };
+
+//     return (
+//       <div className="bg-white border rounded-lg p-6 space-y-4">
+//         <h2 className="text-xl font-bold">{nextStep.title || t("payment_required")}</h2>
+//         {nextStep.subtitle && (
+//           <p className="text-sm text-gray-500">{nextStep.subtitle}</p>
+//         )}
+//         <div>
+//           <label className="text-sm font-semibold text-gray-700 block mb-2">
+//             {t("complete_payment")}
+//           </label>
+//           <input
+//             type="text"
+//             inputMode="numeric"
+//             maxLength={otpLength}
+//             className="w-full border rounded px-3 py-2 text-sm text-center tracking-widest"
+//             placeholder={"·".repeat(otpLength)}
+//             value={otpFields.code || ""}
+//             onChange={(e) =>
+//               setOtpFields({ code: e.target.value.replace(/\D/g, "").slice(0, otpLength) })
+//             }
+//           />
+//         </div>
+//         {error && <p className="text-sm text-red-600">{error}</p>}
+//         <button
+//           className="w-full bg-black text-white py-3 rounded font-bold text-lg disabled:opacity-50"
+//           onClick={handleOtpSubmit}
+//           disabled={submitting || !otpFields.code || otpFields.code.length < otpLength}
+//         >
+//           {submitting ? t("processing") : t("complete_payment")}
+//         </button>
+//       </div>
+//     );
+//   }
+
+//   return null;
+// }
+
+// export default NextStepHandler;
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { apiGet, apiPost } from "@/lib/api";
+import { toast } from "react-hot-toast";
 
 const POLL_INTERVAL = 5000;
 const MAX_POLL_TIME = 5 * 60 * 1000;
 
-function NextStepHandler({ nextStep, orderId, onComplete }) {
+function NextStepHandler({ nextStep, orderId, paymentFields = {}, onComplete }) {
   const t = useTranslations("checkout");
   const [stepState, setStepState] = useState("idle");
   const [error, setError] = useState(null);
   const [otpFields, setOtpFields] = useState({});
   const [submitting, setSubmitting] = useState(false);
+  const [sendingOtp, setSendingOtp] = useState(false);
+  
+  const hasSentOtp = useRef(false);
   const pollRef = useRef(null);
   const pollStartRef = useRef(null);
 
@@ -23,14 +239,6 @@ function NextStepHandler({ nextStep, orderId, onComplete }) {
   }, []);
 
   useEffect(() => cleanup, [cleanup]);
-
-  // Auto-open payment URL on mount
-  useEffect(() => {
-    if (nextStep?.type === "webview" && nextStep.url) {
-      window.open(nextStep.url, "_blank", "noopener,noreferrer");
-      startPolling();
-    }
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const startPolling = useCallback(() => {
     cleanup();
@@ -63,110 +271,94 @@ function NextStepHandler({ nextStep, orderId, onComplete }) {
     }, POLL_INTERVAL);
   }, [cleanup, orderId, onComplete, t]);
 
-  const handleManualCheck = useCallback(async () => {
-    try {
-      setStepState("polling");
-      const res = await apiGet(`/orders/${orderId}`);
-      const order = res?.result || res;
-      const status = order?.status || order?.payment_status;
-      if (status === "paid" || status === "completed") {
-        cleanup();
-        onComplete();
-      } else {
-        setStepState("idle");
-      }
-    } catch {
-      setStepState("idle");
+  useEffect(() => {
+    if (nextStep?.type === "webview" && nextStep.url) {
+      window.open(nextStep.url, "_blank", "noopener,noreferrer");
+      startPolling();
     }
-  }, [cleanup, orderId, onComplete]);
+  }, [nextStep, startPolling]);
+
+  // Extract identifier safely across common key naming variations
+  const getIdentifier = useCallback(() => {
+    return (
+      paymentFields?.identifier ||
+      paymentFields?.phone ||
+      paymentFields?.mobile ||
+      paymentFields?.phoneNumber ||
+      nextStep?.identifier ||
+      ""
+    );
+  }, [paymentFields, nextStep]);
+
+  // Send OTP with required `identifier` and `channel` parameters
+  const sendOtpRequest = useCallback(async () => {
+    if (sendingOtp) return;
+    setSendingOtp(true);
+    try {
+      const endpoint = nextStep?.send_otp_endpoint || "/checkout/otp/send";
+      const cleanEndpoint = endpoint.startsWith("/") ? endpoint : `/${endpoint}`;
+
+      const payload = {
+        order_id: orderId,
+        identifier: getIdentifier(),
+        channel: nextStep?.channel || "sms",
+      };
+
+      await apiPost(cleanEndpoint, payload);
+    } catch (err) {
+      const apiMsg =
+        err?.response?.error?.identifier?.[0] ||
+        err?.response?.error?.channel?.[0] ||
+        err?.response?.message ||
+        err?.message ||
+        t("error_generic");
+      toast.error(apiMsg);
+    } finally {
+      setSendingOtp(false);
+    }
+  }, [nextStep, orderId, getIdentifier, sendingOtp, t]);
 
   useEffect(() => {
-    if (!nextStep) {
-      onComplete();
+    if (nextStep?.type === "otp" && !hasSentOtp.current) {
+      hasSentOtp.current = true;
+      sendOtpRequest();
     }
-  }, [nextStep, onComplete]);
+  }, [nextStep, sendOtpRequest]);
 
   if (!nextStep) return null;
 
-  if (nextStep.type === "webview") {
-    return (
-      <div className="bg-white border rounded-lg p-6 text-center space-y-4">
-        <h2 className="text-xl font-bold">{nextStep.title || t("payment_required")}</h2>
-
-        {stepState === "idle" && (
-          <div className="space-y-3">
-            <div className="flex justify-center">
-              <div className="w-8 h-8 border-2 border-black border-t-transparent rounded-full animate-spin" />
-            </div>
-            <p className="text-sm text-gray-600">{t("redirecting_payment")}</p>
-          </div>
-        )}
-
-        {stepState === "polling" && (
-          <div className="space-y-3">
-            <div className="flex justify-center">
-              <div className="w-8 h-8 border-2 border-black border-t-transparent rounded-full animate-spin" />
-            </div>
-            <p className="text-sm text-gray-600">{t("payment_confirming")}</p>
-            <button
-              className="text-sm underline text-gray-500"
-              onClick={handleManualCheck}
-            >
-              {t("payment_complete_manually")}
-            </button>
-          </div>
-        )}
-
-        {stepState === "error" && (
-          <div className="space-y-3">
-            <p className="text-sm text-red-600">{t("error_generic")}</p>
-            <button
-              className="bg-black text-white px-6 py-2 rounded font-bold text-sm"
-              onClick={() => {
-                setStepState("idle");
-              }}
-            >
-              {t("retry")}
-            </button>
-          </div>
-        )}
-
-        {stepState === "timeout" && (
-          <div className="space-y-3">
-            <p className="text-sm text-gray-600">{t("payment_timeout")}</p>
-            <button
-              className="text-sm underline text-gray-500"
-              onClick={handleManualCheck}
-            >
-              {t("payment_complete_manually")}
-            </button>
-          </div>
-        )}
-      </div>
-    );
-  }
-
   if (nextStep.type === "otp") {
     const otpLength = nextStep.otp_length || 6;
-    const endpoint = nextStep.verify_otp_endpoint
-      ? `/${nextStep.verify_otp_endpoint}`
-      : null;
+    const verifyEndpoint = nextStep.verify_otp_endpoint || "/checkout/otp/verify";
+    const cleanVerifyEndpoint = verifyEndpoint.startsWith("/") ? verifyEndpoint : `/${verifyEndpoint}`;
 
     const handleOtpSubmit = async () => {
       setSubmitting(true);
+      setError(null);
       try {
-        if (!endpoint) {
-          setError(t("error_generic"));
-          return;
-        }
-        const res = await apiPost(endpoint, { code: otpFields.code });
-        if (res?.success) {
+        const payload = {
+          code: otpFields.code,
+          otp: otpFields.code,
+          order_id: orderId,
+          identifier: getIdentifier(),
+          channel: nextStep?.channel || "sms",
+        };
+
+        const res = await apiPost(cleanVerifyEndpoint, payload);
+
+        if (res?.success || res?.status === "success" || res?.result) {
           onComplete();
         } else {
           setError(res?.message || t("error_generic"));
         }
-      } catch {
-        setError(t("error_generic"));
+      } catch (err) {
+        const apiMsg =
+          err?.response?.error?.code?.[0] ||
+          err?.response?.error?.identifier?.[0] ||
+          err?.response?.message ||
+          err?.message ||
+          t("error_generic");
+        setError(apiMsg);
       } finally {
         setSubmitting(false);
       }
@@ -194,14 +386,27 @@ function NextStepHandler({ nextStep, orderId, onComplete }) {
             }
           />
         </div>
+
         {error && <p className="text-sm text-red-600">{error}</p>}
+
         <button
           className="w-full bg-black text-white py-3 rounded font-bold text-lg disabled:opacity-50"
           onClick={handleOtpSubmit}
-          disabled={submitting || !otpFields.code || otpFields.code.length < otpLength}
+          disabled={submitting || sendingOtp || !otpFields.code || otpFields.code.length < otpLength}
         >
           {submitting ? t("processing") : t("complete_payment")}
         </button>
+
+        <div className="text-center pt-2">
+          <button
+            type="button"
+            className="text-xs text-gray-500 underline disabled:opacity-50"
+            onClick={sendOtpRequest}
+            disabled={sendingOtp}
+          >
+            {sendingOtp ? t("processing") : "Resend OTP"}
+          </button>
+        </div>
       </div>
     );
   }

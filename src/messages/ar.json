@@ -141,9 +141,12 @@
         "Loading_order_details": "جاري تحميل تفاصيل الطلب...",
         "order_not_found": "الطلب غير موجود",
         "subtotal": "المجموع الفرعي",
-        "shipping": "رسوم الشحن",
         "delivery": "التوصيل",
-        "cancel_messgae": "لمنتجات التابعة لرقم طلبك مدرجة أدناه. الرجاء تحديد سبب إرجاع للمنتجات التي تريد إرجاعها."
+        "cancel_messgae": "لمنتجات التابعة لرقم طلبك مدرجة أدناه. الرجاء تحديد سبب إرجاع للمنتجات التي تريد إرجاعها.",
+        "order_payment_failed": "فشل الدفع. يرجى المحاولة مرة أخرى أو استخدام طريقة دفع مختلفة.",
+        "order_paid": "تم دفع هذا الطلب ولا يمكن إلغاؤه.",
+        "order_approved": "تم الموافقة على هذا الطلب ولا يمكن إلغاؤه."
+
     },
     "favorite": {
         "No_favorites_yet": "لا توجد لديك عناصر مفضلة حتى الآن",
@@ -161,7 +164,7 @@
         "currency_selection": "اختيار العملة",
         "SAVING": "جاري الحفظ...",
         "SAVE": "حفظ",
-        "currency_changed_successfully": "تم تغيير العملة بنجاح!"
+        "currency_changed_successfully!": "تم تغيير العملة بنجاح!"
     },
     "logout": {
         "sure_logout": "هل أنت متأكد أنك تريد تسجيل الخروج؟ ستحتاج إلى تسجيل الدخول مرة أخرى للوصول إلى حسابك.",
@@ -244,9 +247,9 @@
         "Loading_questions": "تحميل الأسئلة..."
 
     },
-    "navbar":{
+    "navbar": {
         "login": "تسجيل الدخول",
-        "welcome":"مرحبًا "
+        "welcome": "مرحبًا "
     },
     "cart": {
         "myBag": "حقيبتي",
@@ -318,7 +321,7 @@
         "section_loading": "جاري التحميل...",
         "section_error": "فشل التحميل. الرجاء المحاولة مرة أخرى."
     },
-    "auth":{
+    "auth": {
         "email": "البريد الإلكتروني",
         "password": "كلمة المرور",
         "remember_me": "تذكرني",
@@ -327,40 +330,80 @@
         "logging_in": "جاري تسجيل الدخول...",
         "invalid_credentials": "بيانات اعتماد غير صالحة. يرجى المحاولة مرة أخرى.",
         "login": "تسجيل الدخول",
-        "enter_credentials":"أدخل بيانات الاعتماد الخاصة بك أدناه لتسجيل الدخول إلى حسابك.",
+        "enter_credentials": "أدخل بيانات الاعتماد الخاصة بك أدناه لتسجيل الدخول إلى حسابك.",
         "no_account": "ليس لديك حساب؟",
         "register_here": "سجل هنا",
         "first_name": "الاسم الأول",
-        "surname":"الأسم الاخير",
-        "phone_number":"رقم الهاتف",
-        "birth_date":"تاريخ الميلاد",
-        "gender":"الجنس",
+        "surname": "الأسم الاخير",
+        "phone_number": "رقم الهاتف",
+        "birth_date": "تاريخ الميلاد",
+        "gender": "الجنس",
 
-         "create_account":"انشئ حساب",
-        "fill_in_details":"املأ التفاصيل الخاصة بك لإنشاء حسابك.",
+        "create_account": "انشئ حساب",
+        "fill_in_details": "املأ التفاصيل الخاصة بك لإنشاء حسابك.",
 
-        "register_account":" تسجيل",
-        "setting_things_up":"جاري إعداد الأمور...",
+        "register_account": " تسجيل",
+        "setting_things_up": "جاري إعداد الأمور...",
 
-        "have_account":" لديك حساب؟",
-        "login_here":"سجل دخول هنا",
+        "have_account": " لديك حساب؟",
+        "login_here": "سجل دخول هنا",
 
-        "required_name":"الأسم مطلوب",
-        "required_surname":"الأسم الأخير مطلوب",
-        "invalid_email":"البريد الالكتروني غير صالح",
-        "password_length":"كلمة السر يجب ان تكون 8 محارف على الاقل",
-        "confirm_password":"تأكيد كلمة السر",
-        "passwords_must_match":"كلمات السر يجب ان تتطابق",
-        "required_phone":"رقم الهاتف مطلوب",
-        "invaid_date":"تاريخ الميلاد غير صالح"
+        "required_name": "الأسم مطلوب",
+        "required_surname": "الأسم الأخير مطلوب",
+        "invalid_email": "البريد الالكتروني غير صالح",
+        "password_length": "كلمة السر يجب ان تكون 8 محارف على الاقل",
+        "confirm_password": "تأكيد كلمة السر",
+        "passwords_must_match": "كلمات السر يجب ان تتطابق",
+        "required_phone": "رقم الهاتف مطلوب",
+        "invalid_date": "تاريخ الميلاد غير صالح",
+
+        "email_required": "البريد الإلكتروني مطلوب",
+        "forgot_password_title": "نسيت كلمة المرور",
+        "forgot_password_subtitle": "أدخل بريدك الإلكتروني لتلقي رمز إعادة تعيين كلمة المرور",
+        "email_label": "عنوان البريد الإلكتروني",
+        "email_placeholder": "name@example.com",
+        "send_otp": "إرسال رمز التحقق",
+        "sending_otp": "جاري إرسال الرمز...",
+        "back_to_login": "العودة إلى تسجيل الدخول",
+        "otp_sent_success": "تم إرسال رمز التحقق إلى بريدك الإلكتروني بنجاح!",
+        "failed_send_otp": "فشل إرسال رمز التحقق. يرجى المحاولة مرة أخرى.",
+        "generic_error": "حدث خطأ ما. يرجى المحاولة لاحقاً.",
+
+        "verify_otp_title": "التحقق من الرمز",
+        "verify_otp_subtitle": "أدخل الرمز المكون من 6 أرقام المرسل إلى بريدك الإلكتروني",
+        "otp_label": "رمز التحقق",
+        "otp_placeholder": "أدخل الرمز المكون من 6 أرقام",
+        "otp_required": "رمز التحقق مطلوب",
+        "otp_length": "يجب أن يتكون رمز التحقق من 6 أرقام بالضبط",
+        "verify_otp": "التحقق من الرمز",
+        "verifying": "جاري التحقق...",
+        "resend_otp": "إعادة إرسال الرمز",
+        "otp_verified_success": "تم التحقق من الرمز بنجاح!",
+        "invalid_otp_error": "رمز التحقق غير صالح. يرجى المحاولة مرة أخرى.",
+
+        "reset_password_title": "إعادة تعيين كلمة المرور",
+        "reset_password_subtitle": "أدخل كلمة المرور الجديدة أدناه لاستعادة إمكانية الوصول إلى حسابك",
+        "new_password_label": "كلمة المرور الجديدة",
+        "confirm_password_label": "تأكيد كلمة المرور الجديدة",
+        "password_required": "كلمة المرور مطلوبة",
+        "password_min_length": "يجب أن تكون كلمة المرور 6 أحرف على الأقل",
+        "confirm_password_required": "يرجى تأكيد كلمة المرور",
+        "passwords_dont_match": "كلمتا المرور غير متطابقتين",
+        "reset_password_button": "إعادة تعيين كلمة المرور",
+        "resetting_password": "جاري إعادة تعيين كلمة المرور...",
+        "reset_password_success": "تم إعادة تعيين كلمة المرور بنجاح!",
+        "failed_reset_password": "فشلت إعادة تعيين كلمة المرور. يرجى المحاولة مرة أخرى."
     },
-    "categoriesPage":{
-        "show_filters":"عرض الفلاتر",
-        "sort":"ترتيب",
-        "view":"عرض",
-        "per_page":"لكل صفحة",
-        "products":"المنتجات",
-        "show_more":"عرض المزيد من المنتجات"
+    "categoriesPage": {
+        "show_filters": "عرض الفلاتر",
+        "sort": "ترتيب",
+        "view": "عرض",
+        "per_page": "لكل صفحة",
+        "products": "المنتجات",
+        "show_more": "عرض المزيد من المنتجات",
+        "no_results_title": "لا توجد منتجات",
+        "no_results_description": "لم نتمكن من العثور على أي منتجات تطابق عوامل التصفية. حاول تعديل معايير البحث الخاصة بك.",
+        "clear_filters": "مسح جميع التصفيات"
     },
     "product": {
         "bundle_deal": "عرض الحزمة",
@@ -378,6 +421,51 @@
         "select_color_for": "الرجاء اختيار لون {name}",
         "select_size_for": "الرجاء اختيار مقاس {name}",
         "item_number": "عنصر {number}",
-        "you_save": "توفر {amount}"
+        "you_save": "توفر {amount}",
+
+        "product_detail": "تفاصيل المنتج",
+        "delivery_options": "خيارات التوصيل",
+        "payment_methods": "طرق الدفع",
+        "no_delivery_methods": "لا توجد خيارات توصيل متاحة",
+        "delivery_method": "طريقة التوصيل",
+        "estimated": "المدة المتوقعة",
+        "color": "اللون",
+        "available_colors": "الألوان المتاحة",
+        "select_color": "الرجاء اختيار لون",
+        "select_size": "الرجاء اختيار مقاس",
+        "add_to_cart": "إضافة إلى السلة",
+        "added_to_cart_success": "تمت الإضافة إلى السلة",
+        "product_not_found": "المنتج غير موجود",
+        "size": "المقاس",
+        "available_sizes": "المقاسات المتاحة",
+        "no_sizes_available": "لا توجد مقاسات متاحة لهذا اللون",
+        "favorite_added": "تمت إضافة المنتج إلى المفضلة",
+        "favorite_removed": "تمت إزالة المنتج من المفضلة",
+        "favorite_error": "فشل تحديث المفضلة",
+        "product_code": "رمز المنتج",
+        "gender": "الجنس",
+        "payment_digital_options": "يمكنك الدفع باستخدام الخيارات الرقمية:",
+        "you_save_label": "توفر",
+        "no_description": "لا يوجد وصف للمنتج",
+        "special_offer": "عرض خاص",
+        "select_color_label": "اختيار لون {color}",
+        "add_to_favorites": "إضافة إلى المفضلة",
+        "remove_from_favorites": "إزالة من المفضلة",
+        "payment_method": "طريقة الدفع",
+        "no_payment_methods": "لا توجد طرق دفع متاحة",
+        "adding_to_cart": "جاري الإضافة إلى السلة..."
+    },
+    "sort_by": {
+        "newest": "الأحدث",
+        "price_low": "السعر: من الأقل إلى الأعلى",
+        "price_high": "السعر: من الأعلى إلى الأقل",
+        "name_asc": "الاسم: من أ إلى ي",
+        "name_desc": "الاسم: من ي إلى أ",
+        "stock_high": "المخزون: من الأعلى إلى الأقل",
+        "stock_low": "المخزون: من الأقل إلى الأعلى",
+        "sort": "ترتيب",
+        "view": "عرض",
+        "Show_Filter": "عرض الفلتر",
+        "Products": "المنتجات"
     }
 }

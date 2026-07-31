@@ -28,10 +28,8 @@ function CartSummary({ totalCount, totalFormatted, onCheckout }) {
   };
 
   return (
-    <div
-      className="cart-summary border rounded-lg p-6 bg-white w-full"
-      style={{ maxWidth: 370 }}
-    >
+  <div className="cart-summary border rounded-lg p-6 bg-white w-full max-w-[23.125rem]">
+
       <div className="flex justify-between items-center mb-4">
         <div className="font-bold text-xl">{t("summary")}</div>
         <div className="text-xs font-semibold underline cursor-pointer">
@@ -44,7 +42,7 @@ function CartSummary({ totalCount, totalFormatted, onCheckout }) {
       </div>
       <div className="mb-4">
         <div className="text-sm mb-1">{t("promotionCode")}</div>
-        <div className="flex gap-2">
+        <div className="md:flex gap-2">
           <input
             className="border rounded px-2 py-1 flex-1"
             type="text"
@@ -53,7 +51,7 @@ function CartSummary({ totalCount, totalFormatted, onCheckout }) {
             placeholder=""
           />
           <button
-            className="bg-black text-white px-6 py-1 rounded font-bold text-sm disabled:opacity-50"
+            className="bg-black text-white px-6 py-1 rounded font-bold text-sm disabled:opacity-50 md:mt-0 mt-[1rem]"
             onClick={handleApply}
             disabled={isApplyingPromo || !promo.trim()}
           >

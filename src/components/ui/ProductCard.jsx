@@ -14,6 +14,39 @@ function ProductCard({ item, isMini }) {
   const [isLoading, setIsLoading] = useState(true);
   const isBundle = item?.type === 'bundle' || item?.is_bundle === true;
 
+  // Fixed dimensions in rem
+  const imageWidth = isMini ? "md:10rem 20rem" : "20rem"; // 10rem = 160px, 20rem = 320px
+  const imageHeight = isMini ? "md:10rem 20rem" : "26.67rem"; // 10rem = 160px, 20rem = 320px
+
+  // Helper function to get display price
+  const getDisplayPrice = () => {
+    if (item?.discount?.has_discount && item.discount.category_discount_details) {
+      return item.discount.category_discount_details.discounted_price.formatted;
+    }
+    return item?.price?.formatted || `${item?.price?.symbol}${item?.price?.amount}`;
+  };
+
+  // Helper function to get original price (for strikethrough)
+  const getOriginalPrice = () => {
+    if (item?.discount?.has_discount && item.discount.category_discount_details) {
+      return item.discount.category_discount_details.original_price.formatted;
+    }
+    return null;
+  };
+
+  // Helper function to get bundle original price
+  const getBundleOriginalPrice = () => {
+    if (isBundle && item.original_price) {
+      return item.original_price.formatted || `${item.original_price.symbol}${item.original_price.amount}`;
+    }
+    return null;
+  };
+
+  // Get the displayed price
+  const displayPrice = getDisplayPrice();
+  const originalPrice = getOriginalPrice();
+  const bundleOriginalPrice = getBundleOriginalPrice();
+
   return (
     <div className="relative cursor-pointer flex flex-col items-start justify-center group h-full w-full">
       <div className="absolute px-5 top-0 left-0 w-full flex items-center justify-between h-10 z-10">
@@ -32,6 +65,11 @@ function ProductCard({ item, isMini }) {
       >
         <div
           className={`relative w-full overflow-hidden ${isMini ? "aspect-1" : "aspect-3/4"}`}
+          style={{
+            width: imageWidth,
+            height: imageHeight,
+            maxWidth: "100%",
+          }}
         >
           {/* loader overlay */}
           <div
@@ -50,8 +88,9 @@ function ProductCard({ item, isMini }) {
           <NextImage
             fill
             src={item.images?.[0] || "/images/600x800.png"}
-            className=" object-cover transition-transform duration-300 group-hover:scale-110"
+            className="object-cover transition-transform duration-300 group-hover:scale-110"
             alt={item.name || "product"}
+            sizes={`(max-width: 768px) 100vw, ${isMini ? "10rem" : "20rem"}`}
             onLoad={() => {
               setIsLoading(false);
             }}
@@ -79,13 +118,16 @@ function ProductCard({ item, isMini }) {
         </div>
       </Link>
       {!isMini && (
-        <div className="pt-3 px-8 text-base">
+        <div className="pt-3 text-base">
           <h2 className="">{item.name}</h2>
-          <p className="font-bold text-base">{item.price.amount} SP</p>
-          {isBundle && item.original_price && (
-            <p className="text-sm text-gray-400 line-through">
-              {item.original_price.amount} SP
-            </p>
+          <div className="flex items-center gap-2">
+            <p className="font-bold text-base">{displayPrice}</p>
+            {originalPrice && (
+              <p className="text-sm text-[#333333] line-through">{originalPrice}</p>
+            )}
+          </div>
+          {isBundle && bundleOriginalPrice && (
+            <p className="text-sm text-[#333333] line-through">{bundleOriginalPrice}</p>
           )}
         </div>
       )}

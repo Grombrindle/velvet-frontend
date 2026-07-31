@@ -131,7 +131,7 @@ const FavoriteCard = () => {
 
               {/* Delete button - Navigates to product after deletion */}
               <div
-                className={`absolute cursor-pointer ${locale === "en"?'right-[1rem]':'left-[1rem]'} top-[1rem] z-10`}
+                className={`absolute cursor-pointer ${locale === "en"?'right-[0.8rem]':'left-[0.8rem]'} top-[0.6rem] z-10`}
                 onClick={(e) => handleDelete(item.product_id, item.name, e)}
               >
                 {deletingId === item.product_id ? (
