@@ -8,6 +8,7 @@ import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import CategoryDropdown from "./CategoryDropdown";
 import CartMenu from "./CartMenu";
 import LanguageSwitcher from "./LanguageSwitcher";
+import NotificationsBell from "../notifications/NotificationsBell";
 import { useAuthStore } from "@/lib/store";
 import NavbarDashboard from "./Navbar-dashboard";
 import { useQuery } from "@tanstack/react-query";
@@ -318,6 +319,9 @@ function NavBar() {
               height={20}
             />
           </Link>
+
+          {/* Notifications Bell */}
+          <NotificationsBell />
 
           <div
             onMouseEnter={() => setCartOpen(true)}

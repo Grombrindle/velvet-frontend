@@ -16,6 +16,7 @@ import LocaleQueryInvalidator from "@/components/layout/LocaleQueryInvalidator";
 import { Suspense } from "react";
 import SplashScreen from "@/components/splashScreen/SplashScreen";
 import AuthModals from "@/components/auth/AuthModals";
+import NotificationsProvider from "@/components/notifications/NotificationsProvider";
 import { Toaster } from "react-hot-toast";
 
 // --- Fonts Setup ---
@@ -98,8 +99,11 @@ export default async function RootLayout({ children, params }) {
   const fontClass = locale === "ar" ? ping.className : lufga.className;
   const messages = await getMessages();
 
+  // suppressHydrationWarning on <html>: the inline splash script below adds
+  // the "show-splash" class to <html> in the browser before React hydrates,
+  // so the DOM intentionally differs from the server HTML.
   return (
-    <html lang={locale} dir={locale === "ar" ? "rtl" : "ltr"}>
+    <html lang={locale} dir={locale === "ar" ? "rtl" : "ltr"} suppressHydrationWarning>
       <head>
         {/* CSS rule applied IMMEDIATELY on first byte parsed */}
         <style
@@ -153,10 +157,12 @@ export default async function RootLayout({ children, params }) {
               }}
             />
 
-            <main>{children}</main>
-
-            <AuthModals />
-            <Footer />
+            {/* FCM root provider — registers the SW + token, listens for messages */}
+            <NotificationsProvider>
+              <main>{children}</main>
+              <AuthModals />
+              <Footer />
+            </NotificationsProvider>
           </NextIntlClientProvider>
         </ReactQueryProvider>
       </body>

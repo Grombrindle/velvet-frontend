@@ -94,6 +94,16 @@
         "CHANGE_MY_PASSWORD": "CHANGE MY PASSWORD",
         "CHANGING": "CHANGING..."
     },
+    "notifications": {
+        "title": "Notifications",
+        "loading": "Loading...",
+        "load_error": "Could not load notifications",
+        "empty": "No notifications yet",
+        "load_more": "Load more",
+        "enable_label": "Enable notifications",
+        "permission_granted": "Notifications enabled",
+        "permission_denied": "Notifications are blocked in your browser"
+    },
     "order": {
         "order_no": "Order No",
         "order_date": "Order date",

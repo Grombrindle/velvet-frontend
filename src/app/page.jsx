@@ -1,23 +1,10 @@
 import { redirect } from "next/navigation";
-import { apiGet } from "@/lib/api";
-import { defaultLocale } from "@/lib/locale";
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
-export default async function Home({ searchParams }) {
-  const genderQuery = (await searchParams)?.gender;
-
-  // if (genderQuery) {
-  //   redirect(`/${defaultLocale}/${genderQuery}`);
-  // }
-  if (genderQuery) {
-    redirect(`/${defaultLocale}/${encodeURIComponent(genderQuery)}`);
-  }
-
-  const gendersData = await apiGet(`/web/genders`, {
-    next: { revalidate: 24 * 60 * 60 }, // 24 hours
-  });
-  const firstGender = gendersData?.result?.[0]?.name.en || "Female";
-  // redirect(`/${defaultLocale}/${firstGender}`);
-  redirect(`/${defaultLocale}/${encodeURIComponent(firstGender)}`);
+export default async function Home() {
+  // Root / -> default locale. The [locale] home page then auto-redirects to
+  // the first gender (e.g. /en/woman). No API call here, so the root never
+  // depends on the backend being up.
+  redirect("/en");
 }

@@ -9,6 +9,7 @@ import { MdArrowBackIos, MdArrowForwardIos } from "react-icons/md";
 import { IoIosLogOut, IoIosSettings } from "react-icons/io";
 import CategoryDropdownMobile from "./CategoryDropdownMobile";
 import LanguageSwitcher from "./LanguageSwitcher";
+import NotificationsBell from "../notifications/NotificationsBell";
 import NavbarDashboard from "./Navbar-dashboard";
 import { useQuery } from "@tanstack/react-query";
 import { apiGet } from "@/lib/api";
@@ -284,6 +285,9 @@ function NavbarMobile() {
               </div>
               <span className="text-xs text-gray-600 mt-1">Wishlist</span>
             </Link>
+
+            {/* Notifications Bell */}
+            <NotificationsBell variant="mobile" />
 
             {/* Cart */}
             <Link

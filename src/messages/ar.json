@@ -94,6 +94,16 @@
         "CHANGE_MY_PASSWORD": "تغيير كلمه السر",
         "CHANGING": "جاري التغيير..."
     },
+    "notifications": {
+        "title": "الإشعارات",
+        "loading": "جاري التحميل...",
+        "load_error": "تعذر تحميل الإشعارات",
+        "empty": "لا توجد إشعارات بعد",
+        "load_more": "تحميل المزيد",
+        "enable_label": "تفعيل الإشعارات",
+        "permission_granted": "تم تفعيل الإشعارات",
+        "permission_denied": "الإشعارات محظورة في متصفحك"
+    },
     "order": {
         "order_no": "رقم الطلب",
         "order_date": "تاريخ الطلب",
