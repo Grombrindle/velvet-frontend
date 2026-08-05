@@ -101,8 +101,11 @@
         "empty": "No notifications yet",
         "load_more": "Load more",
         "enable_label": "Enable notifications",
+        "mark_all_read": "Mark all as read",
         "permission_granted": "Notifications enabled",
-        "permission_denied": "Notifications are blocked in your browser"
+        "permission_denied": "Notifications are blocked in your browser",
+        "push_verified": "Test push sent — check your device",
+        "push_verify_failed": "Push delivery failed — see server logs"
     },
     "order": {
         "order_no": "Order No",

@@ -7,6 +7,7 @@ import {
   useNotifications,
   useNotificationPreferences,
   useUpdateNotificationPreferences,
+  useMarkNotificationsRead,
 } from "@/lib/hooks/useNotifications";
 import { useHydrated } from "@/lib/hooks/useHydration";
 import Loader from "../ui/loader";
@@ -44,6 +45,7 @@ export default function NotificationsDropdown({ open, onClose }) {
     isLoading: prefsLoading,
   } = useNotificationPreferences();
   const updatePrefs = useUpdateNotificationPreferences();
+  const markRead = useMarkNotificationsRead();
 
   // Close on Escape
   useEffect(() => {
@@ -60,11 +62,16 @@ export default function NotificationsDropdown({ open, onClose }) {
   const unreadCount = items.filter((n) => !n.isRead).length;
 
   const handleOpenNotification = (n) => {
+    if (!n.isRead) markRead.mutate([n.id]);
     const payload = n.payload || {};
     if (payload.order_id) {
       router.push(`/${locale}/dashboard/orders/${payload.order_id}`);
       onClose();
     }
+  };
+
+  const handleMarkAllRead = () => {
+    if (unreadCount > 0) markRead.mutate([]);
   };
 
   const togglePref = (key) => {
@@ -77,9 +84,17 @@ export default function NotificationsDropdown({ open, onClose }) {
       <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
         <h3 className="font-bold text-slate-800">{t("title")}</h3>
         {unreadCount > 0 && (
-          <span className="text-xs bg-black text-white rounded-full px-2 py-0.5">
-            {unreadCount}
-          </span>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleMarkAllRead}
+              className="text-xs text-slate-500 hover:text-black transition-colors"
+            >
+              {t("mark_all_read")}
+            </button>
+            <span className="text-xs bg-black text-white rounded-full px-2 py-0.5">
+              {unreadCount}
+            </span>
+          </div>
         )}
       </div>
 

@@ -43,3 +43,7 @@ export async function updateNotificationPreferences(payload) {
 export async function sendTestNotification() {
   return apiPost("/notifications/test-sound");
 }
+
+export async function markNotificationsRead(ids = []) {
+  return apiPost("/notifications/read", ids.length ? { ids } : {});
+}

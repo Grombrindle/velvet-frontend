@@ -101,8 +101,11 @@
         "empty": "لا توجد إشعارات بعد",
         "load_more": "تحميل المزيد",
         "enable_label": "تفعيل الإشعارات",
+        "mark_all_read": "تحديد الكل كمقروء",
         "permission_granted": "تم تفعيل الإشعارات",
-        "permission_denied": "الإشعارات محظورة في متصفحك"
+        "permission_denied": "الإشعارات محظورة في متصفحك",
+        "push_verified": "تم إرسال إشعار تجريبي — تحقق من جهازك",
+        "push_verify_failed": "فشل تسليم الإشعار — راجع سجلات الخادم"
     },
     "order": {
         "order_no": "رقم الطلب",

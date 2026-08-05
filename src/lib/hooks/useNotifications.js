@@ -3,6 +3,7 @@ import {
   fetchNotifications,
   fetchNotificationPreferences,
   updateNotificationPreferences,
+  markNotificationsRead,
 } from "@/lib/notifications";
 
 export const notificationsQueryKey = (page = 1) => ["notifications", "list", page];
@@ -32,6 +33,17 @@ export const useUpdateNotificationPreferences = () => {
     mutationFn: (payload) => updateNotificationPreferences(payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["notifications", "preferences"] });
+    },
+  });
+};
+
+// Mark specific notifications (or all) as read; invalidates the bell badge
+export const useMarkNotificationsRead = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (ids = []) => markNotificationsRead(ids),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["notifications", "list"] });
     },
   });
 };
