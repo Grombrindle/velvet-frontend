@@ -79,7 +79,7 @@ export default function NotificationsDropdown({ open, onClose }) {
   };
 
   return (
-    <div className="absolute right-0 top-full mt-3 w-96 max-w-[calc(100vw-2rem)] bg-white border border-slate-100 shadow-xl rounded-2xl z-30 overflow-hidden">
+    <div className={`absolute ${locale == "ar"?'left-0':'right-0'} top-full mt-3 w-96 max-w-[calc(100vw-2rem)] bg-white border border-slate-100 shadow-xl rounded-2xl z-30 overflow-hidden`}>
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
         <h3 className="font-bold text-slate-800">{t("title")}</h3>

@@ -480,5 +480,8 @@
         "view": "عرض",
         "Show_Filter": "عرض الفلتر",
         "Products": "المنتجات"
+    },
+    "privacyPolicy": {
+        "loading_privacy_policy": "جاري تحميل سياسة الخصوصية"
     }
 }

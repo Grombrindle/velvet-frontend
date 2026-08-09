@@ -28,6 +28,16 @@ const ProductsDetails = ({ productData: initialProductData }) => {
     toggleFavorite: toggleFavoriteStore,
   } = useFavoriteStore();
 
+  // Sync API favorite state with store on mount and when API data changes
+  useEffect(() => {
+    if (baseProduct?.is_favorite !== undefined) {
+      const currentFavorite = isFavorite(productId);
+      if (currentFavorite !== baseProduct.is_favorite) {
+        setFavorite(productId, baseProduct.is_favorite);
+      }
+    }
+  }, [baseProduct?.is_favorite, productId, setFavorite, isFavorite]);
+
   const { mutate: toggleFavoriteApi, isPending } = useToggleFavorite();
   const { mutate: addToCart } = useAddToCart();
 
@@ -54,10 +64,14 @@ const ProductsDetails = ({ productData: initialProductData }) => {
   // Local loading state for add to cart
   const [isAddingToCart, setIsAddingToCart] = useState(false);
 
+  // Use API is_favorite first, then store, with override taking precedence
   const product = {
     ...baseProduct,
-    is_favorite: favoriteOverride ?? isFavorite(productId),
+    is_favorite: favoriteOverride !== null 
+      ? favoriteOverride 
+      : (baseProduct?.is_favorite || isFavorite(productId) || false),
   };
+  
   const isBundle = product?.type === "bundle" || product?.is_bundle === true;
   const activeColor = selectedColor || product?.available_colors?.[0] || null;
   const selectionKey = `${activeColor?.id || ""}-${selectedSize?.id || ""}`;
@@ -202,8 +216,8 @@ const ProductsDetails = ({ productData: initialProductData }) => {
   const availableSizes = activeColor?.available_sizes || [];
 
   const handleToggleFavorite = () => {
-    // Get current favorite state from store
-    const currentFavoriteState = isFavorite(productId);
+    // Get current favorite state from the product (which uses API data)
+    const currentFavoriteState = product.is_favorite;
     const newFavoriteState = !currentFavoriteState;
 
     // Show optimistic toast
@@ -211,6 +225,8 @@ const ProductsDetails = ({ productData: initialProductData }) => {
       ? t("favorite_added")
       : t("favorite_removed");
     toast.success(action);
+    
+    // Set override for optimistic UI
     setFavoriteOverride(newFavoriteState);
 
     // Update store first (optimistic update)
@@ -220,8 +236,9 @@ const ProductsDetails = ({ productData: initialProductData }) => {
     toggleFavoriteApi(product.id, {
       onError: (error) => {
         // Revert on error
-        toggleFavoriteStore(productId); // toggle back
         setFavoriteOverride(currentFavoriteState);
+        // Revert store
+        setFavorite(productId, currentFavoriteState);
         toast.error(t("favorite_error"));
         console.error("Failed to toggle favorite:", error);
       },
@@ -231,8 +248,8 @@ const ProductsDetails = ({ productData: initialProductData }) => {
           data?.is_favorite !== undefined &&
           data.is_favorite !== newFavoriteState
         ) {
-          setFavorite(productId, data.is_favorite);
           setFavoriteOverride(data.is_favorite);
+          setFavorite(productId, data.is_favorite);
         }
       },
     });

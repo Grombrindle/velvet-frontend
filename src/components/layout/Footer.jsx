@@ -6,37 +6,46 @@ import { useQuery } from "@tanstack/react-query";
 import { apiGet } from "@/lib/api";
 import { useLocale } from "next-intl";
 import { getLocalePrefix } from "@/lib/locale";
+import Link from "next/link"; // Add this import
 
-const TextLink = ({ children }) => (
-  <p className="text-[#000000] font-normal text-[0.85rem]">{children}</p>
+const TextLink = ({ children, href }) => (
+  <Link href={href || "#"} className="text-[#000000] font-normal text-[0.85rem] hover:underline block">
+    {children}
+  </Link>
 );
 
 const SectionTitle = ({ children }) => (
   <h1 className="text-[#000000] font-bold text-[0.9rem]">{children}</h1>
 );
 
-const CategoryItem = ({ children }) => (
-  <p className="text-[#000000] font-[400] text-[0.8rem]">{children}</p>
+const CategoryItem = ({ children, href }) => (
+  <Link href={href || "#"} className="text-[#000000] font-[400] text-[0.8rem] hover:underline block">
+    {children}
+  </Link>
 );
 
-const SocialMediaIcon = ({ icon, alt }) => (
-  <Image
-    src={icon}
-    alt={alt}
-    width={34}
-    height={34}
-    className="cursor-pointer"
-  />
+const SocialMediaIcon = ({ icon, alt, href }) => (
+  <Link href={href || "#"} target="_blank" rel="noopener noreferrer">
+    <Image
+      src={icon}
+      alt={alt}
+      width={34}
+      height={34}
+      className="cursor-pointer hover:opacity-70 transition-opacity"
+    />
+  </Link>
 );
 
-const AppStoreIcon = ({ src, alt }) => (
-  <Image
-    src={src}
-    alt={alt}
-    width={80}
-    height={80}
-    className="cursor-pointer"
-  />
+const AppStoreIcon = ({ src, alt, href }) => (
+  <Link href={href || "#"} target="_blank" rel="noopener noreferrer">
+    <Image
+      src={src}
+      alt={alt}
+      width={80}
+      height={80}
+      className="cursor-pointer hover:opacity-70 transition-opacity"
+    />
+  </Link>
 );
 
 function Footer() {
@@ -112,13 +121,13 @@ function Footer() {
   }, [categoriesData, genders, locale]);
 
   const SOCIAL_MEDIA = [
-    { icon: "/images/facebook.svg", alt: "Facebook" },
-    { icon: "/images/instagram.svg", alt: "Instagram" },
+    { icon: "/images/facebook.svg", alt: "Facebook", href: "https://facebook.com/velvet" },
+    { icon: "/images/instagram.svg", alt: "Instagram", href: "https://instagram.com/velvet" },
   ];
 
   const APP_STORES = [
-    { src: "/images/app-store.png", alt: "app-store" },
-    { src: "/images/google-play.png", alt: "google-play" },
+    { src: "/images/app-store.png", alt: "app-store", href: "https://apps.apple.com/app/velvet" },
+    { src: "/images/google-play.png", alt: "google-play", href: "https://play.google.com/store/apps/details?id=com.velvet" },
   ];
 
   const getGenderName = (gender) => {
@@ -138,7 +147,12 @@ function Footer() {
           </p>
           <div className="flex gap-x-2 mt-3">
             {APP_STORES.map((store, index) => (
-              <AppStoreIcon key={index} src={store.src} alt={store.alt} />
+              <AppStoreIcon 
+                key={index} 
+                src={store.src} 
+                alt={store.alt} 
+                href={store.href}
+              />
             ))}
           </div>
         </div>
@@ -175,7 +189,10 @@ function Footer() {
                     <div key={gender.id}>
                       <SectionTitle>{getGenderName(gender)}</SectionTitle>
                       {categoriesData?.[gender.name.en]?.slice(0, 6).map((category) => (
-                        <TextLink key={`${gender.id}-${category.id}`}>
+                        <TextLink 
+                          key={`${gender.id}-${category.id}`}
+                          href={`/${locale}/${gender.name.en}/category/${category.id}`}
+                        >
                           {category.name}
                         </TextLink>
                       ))}
@@ -202,7 +219,10 @@ function Footer() {
                   ))
                 ) : (
                   allCategories.slice(0, 25).map((category) => (
-                    <CategoryItem key={category.uniqueKey}>
+                    <CategoryItem 
+                      key={category.uniqueKey}
+                      href={`/${locale}/${category.gender}/category/${category.id}`}
+                    >
                       {category.name}
                     </CategoryItem>
                   ))
@@ -218,6 +238,7 @@ function Footer() {
                 key={index}
                 icon={social.icon}
                 alt={social.alt}
+                href={social.href}
               />
             ))}
           </div>

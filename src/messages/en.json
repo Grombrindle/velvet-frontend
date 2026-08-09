@@ -481,5 +481,8 @@
         "view": "View",
         "Show_Filter": "Show Filter",
         "Products": "Products"
+    },
+    "privacyPolicy": {
+        "loading_privacy_policy": "Loading Privacy Policy"
     }
 }
