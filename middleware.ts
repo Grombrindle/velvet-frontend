@@ -13,6 +13,17 @@ export default function middleware(request: NextRequest) {
   if (pathname === "/") {
     return NextResponse.redirect(new URL("/en/woman", request.url));
   }
+
+  // Legacy SEO/redirect artifacts: strip a trailing "index.php" so old links
+  // (/index.php, /en/index.php) land on the clean URL instead of rendering
+  // a broken path (the old PHP site used to redirect here).
+  if (/index\.php\/?$/.test(pathname)) {
+    const cleaned = pathname.replace(/\/?index\.php\/?$/, "");
+    return NextResponse.redirect(
+      new URL(cleaned === "" ? "/en/woman" : cleaned, request.url)
+    );
+  }
+
   return intlMiddleware(request);
 }
 
