@@ -12,6 +12,7 @@ import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
 import toast from "react-hot-toast";
 import VerifyOtpForm from "./VerifyOtpForm";
+import { useAuthStore } from "@/lib/store";
 
 const getRegisterSchema = (t) =>
   z
@@ -66,6 +67,7 @@ export default function RegisterForm() {
   const router = useRouter();
   const t = useTranslations("auth");
   const locale = useLocale();
+  const setAuth = useAuthStore((state) => state.setAuth);
 
   const [step, setStep] = useState("register"); // "register" | "otp"
   const [registeredEmail, setRegisteredEmail] = useState("");
@@ -120,8 +122,17 @@ export default function RegisterForm() {
 
   const onSubmit = (values) => registerMutation.mutate(values);
 
-  const handleOtpSuccess = () => {
-    router.push(`/${locale}/login`);
+  // Account is created but NOT yet active: the email OTP activates it, and
+  // verify-otp returns a real login token (token + user) so the user enters
+  // the site immediately.
+  const handleOtpSuccess = (result) => {
+    if (!result?.token || !result?.user) {
+      toast.error(t("generic_error"));
+      return;
+    }
+    setAuth({ token: result.token, user: result.user });
+    toast.success(t("register_success"));
+    router.push(`/${locale}`);
   };
 
   const handleResendOtp = () => {

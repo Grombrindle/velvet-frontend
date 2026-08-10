@@ -79,19 +79,23 @@ export default function NotificationsDropdown({ open, onClose }) {
   };
 
   return (
-    <div className={`absolute ${locale == "ar"?'left-0':'right-0'} top-full mt-3 w-96 max-w-[calc(100vw-2rem)] bg-white border border-slate-100 shadow-xl rounded-2xl z-30 overflow-hidden`}>
+    <div
+      className={`fixed inset-x-2 top-16 z-30 sm:absolute sm:inset-x-auto sm:top-full sm:mt-3 sm:w-96 ${
+        locale === "ar" ? "sm:left-0" : "sm:right-0"
+      } bg-white border border-slate-100 shadow-xl rounded-2xl overflow-hidden`}
+    >
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
-        <h3 className="font-bold text-slate-800">{t("title")}</h3>
+      <div className="flex items-center justify-between gap-2 px-4 py-3 border-b border-gray-100">
+        <h3 className="font-bold text-slate-800 truncate">{t("title")}</h3>
         {unreadCount > 0 && (
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 shrink-0">
             <button
               onClick={handleMarkAllRead}
-              className="text-xs text-slate-500 hover:text-black transition-colors"
+              className="text-xs text-slate-500 hover:text-black transition-colors whitespace-nowrap"
             >
               {t("mark_all_read")}
             </button>
-            <span className="text-xs bg-black text-white rounded-full px-2 py-0.5">
+            <span className="text-xs bg-black text-white rounded-full px-2 py-0.5 shrink-0">
               {unreadCount}
             </span>
           </div>
@@ -99,7 +103,7 @@ export default function NotificationsDropdown({ open, onClose }) {
       </div>
 
       {/* Body */}
-      <div className="max-h-96 overflow-y-auto">
+      <div className="max-h-[min(60vh,24rem)] sm:max-h-96 overflow-y-auto">
         {isLoading ? (
           <div className="flex justify-center py-10">
             <Loader text={t("loading")} />
