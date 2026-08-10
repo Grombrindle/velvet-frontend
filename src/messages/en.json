@@ -357,6 +357,7 @@
 
         "register_account": "Register account",
         "setting_things_up": "Setting things up...",
+        "register_success": "Account created — you're logged in!",
 
         "have_account": " Do you have an account?",
         "login_here": "Login here",

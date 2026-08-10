@@ -26,32 +26,50 @@ jobs:
 
             # ---- STEP 1: Pull latest code ----
             echo ""
-            echo "[1/5] Pulling latest code..."
+            echo "[1/6] Pulling latest code..."
             cd /home/velvetweb/velvet-repo
             git fetch origin
             git reset --hard origin/main
             git clean -fd
 
-            # ---- STEP 2: Install dependencies ----
+            # ---- STEP 2: Clean stale legacy files from the web root ----
+            # The old PHP site left an index.php that redirects "/" to
+            # "/en/index.php", intercepting the Next.js app. Back it up
+            # (never delete) so the root URL keeps serving the new site.
             echo ""
-            echo "[2/5] Installing dependencies..."
+            echo "[2/6] Cleaning stale legacy files from web root..."
+            for ROOT in /home/velvetweb/public_html /home/velvetweb/velvet-repo/public; do
+              if [ -d "$ROOT" ]; then
+                echo "Scanning $ROOT"
+                if [ -f "$ROOT/index.php" ] && [ ! -L "$ROOT/index.php" ]; then
+                  mv -f "$ROOT/index.php" "$ROOT/index.php.bak-$(date +%Y%m%d%H%M%S)"
+                  echo "Backed up $ROOT/index.php"
+                else
+                  echo "No index.php found (or it is a symlink)"
+                fi
+              fi
+            done
+
+            # ---- STEP 3: Install dependencies ----
+            echo ""
+            echo "[3/6] Installing dependencies..."
             npm install
 
-            # ---- STEP 3: Build ----
+            # ---- STEP 4: Build ----
             echo ""
-            echo "[3/5] Building..."
+            echo "[4/6] Building..."
             npm run build
 
-            # ---- STEP 4: Restart via PM2 ----
+            # ---- STEP 5: Restart via PM2 ----
             echo ""
-            echo "[4/5] Restarting application..."
+            echo "[5/6] Restarting application..."
             cd /home/velvetweb/velvet-repo
             pm2 delete velvet-frontend 2>/dev/null || true
             pm2 start npm --name velvet-frontend -- start
 
-            # ---- STEP 5: Save and verify ----
+            # ---- STEP 6: Save and verify ----
             echo ""
-            echo "[5/5] Saving PM2 config..."
+            echo "[6/6] Saving PM2 config..."
             pm2 save
             sleep 2
             pm2 status
