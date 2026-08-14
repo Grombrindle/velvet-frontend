@@ -24,6 +24,14 @@ jobs:
             echo "  $(date)"
             echo "=========================================="
 
+            # ---- Load nvm (local Node.js) ----
+            export NVM_DIR="$HOME/.nvm"
+            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+            nvm use default   # uses the LTS version you installed
+            echo "Node version: $(node --version)"
+            echo "npm version: $(npm --version)"
+
+
             # ---- STEP 1: Pull latest code ----
             echo ""
             echo "[1/6] Pulling latest code..."
@@ -32,23 +40,14 @@ jobs:
             git reset --hard origin/main
             git clean -fd
 
-            # ---- STEP 2: Clean stale legacy files from the web root ----
-            # The old PHP site left an index.php that redirects "/" to
-            # "/en/index.php", intercepting the Next.js app. Back it up
-            # (never delete) so the root URL keeps serving the new site.
+
+            # ---- STEP 2: Remove old PHP entry points (skip if not present) ----
             echo ""
-            echo "[2/6] Cleaning stale legacy files from web root..."
-            for ROOT in /home/velvetweb/public_html /home/velvetweb/velvet-repo/public; do
-              if [ -d "$ROOT" ]; then
-                echo "Scanning $ROOT"
-                if [ -f "$ROOT/index.php" ] && [ ! -L "$ROOT/index.php" ]; then
-                  mv -f "$ROOT/index.php" "$ROOT/index.php.bak-$(date +%Y%m%d%H%M%S)"
-                  echo "Backed up $ROOT/index.php"
-                else
-                  echo "No index.php found (or it is a symlink)"
-                fi
-              fi
-            done
+            echo "[2/6] Removing old PHP index files if they exist..."
+            #rm -f /home/velvetweb/public_html/index.php
+            #rm -f /home/velvetweb/velvet-repo/public/index.php
+            echo "Done."
+
 
             # ---- STEP 3: Install dependencies ----
             echo ""
