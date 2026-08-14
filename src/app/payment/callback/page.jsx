@@ -4,6 +4,7 @@ import { supportedLocales, defaultLocale } from "@/lib/locale";
 
 export const dynamic = "force-dynamic";
 
+
 export default async function RootCallbackPage({ searchParams }) {
   const cookieStore = await cookies();
   const localeCookie = cookieStore.get("NEXT_LOCALE")?.value;
