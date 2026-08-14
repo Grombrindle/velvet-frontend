@@ -36,6 +36,9 @@ export default function LoginForm({ onSuccess: onSuccessProp }) {
   const [step, setStep] = useState("login");
   const [resetEmail, setResetEmail] = useState("");
   const [resetToken, setResetToken] = useState("");
+  // "reset"  = verify OTP to reset the password (forgot-password flow)
+  // "activate" = verify OTP to activate a fresh account, then log straight in
+  const [verifyMode, setVerifyMode] = useState("reset");
 
   const loginForm = useForm({
     resolver: zodResolver(loginSchema),
@@ -52,6 +55,13 @@ export default function LoginForm({ onSuccess: onSuccessProp }) {
         } else {
           router.push(`/${locale}`);
         }
+      } else if (data?.error === "EMAIL_NOT_VERIFIED") {
+        // Account exists but was never activated — jump straight to the
+        // OTP verification screen so the user can activate and log in.
+        toast.error(t("verify_email_required"));
+        setVerifyMode("activate");
+        setResetEmail(loginForm.getValues("email") || "");
+        setStep("verify");
       } else {
         toast.error(data?.message || "Login failed. Please try again.");
       }
@@ -65,12 +75,20 @@ export default function LoginForm({ onSuccess: onSuccessProp }) {
   };
 
   const handleForgotPasswordSuccess = (email) => {
+    setVerifyMode("reset");
     setResetEmail(email);
     setStep("verify");
   };
 
-  const handleVerifyOtpSuccess = (token) => {
-    setResetToken(token);
+  const handleVerifyOtpSuccess = (result) => {
+    if (verifyMode === "activate" && result?.token && result?.user) {
+      // Fresh account just activated → log the user straight in.
+      setAuth({ token: result.token, user: result.user });
+      toast.success(t("register_success"));
+      router.push(`/${locale}`);
+      return;
+    }
+    setResetToken(result?.token || "");
     setStep("reset");
   };
 
@@ -79,6 +97,16 @@ export default function LoginForm({ onSuccess: onSuccessProp }) {
     loginForm.setValue("email", resetEmail);
     setResetEmail("");
     setResetToken("");
+  };
+
+  const handleResendOtp = () => {
+    if (verifyMode === "activate") {
+      apiPost("/auth/forgot-password", { email: resetEmail })
+        .then((d) => toast.success(d?.message || t("otp_sent_success")))
+        .catch(() => toast.error(t("generic_error")));
+      return;
+    }
+    setStep("forgot");
   };
 
   return (
@@ -189,7 +217,7 @@ export default function LoginForm({ onSuccess: onSuccessProp }) {
           <VerifyOtpForm
             email={resetEmail}
             onSuccess={handleVerifyOtpSuccess}
-            onResendOtp={() => setStep("forgot")}
+            onResendOtp={handleResendOtp}
             onBackToLogin={handleBackToLogin}
           />
         )}

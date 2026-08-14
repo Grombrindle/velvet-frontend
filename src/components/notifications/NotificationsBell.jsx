@@ -45,13 +45,17 @@ export default function NotificationsBell({ variant = "desktop" }) {
   if (!hydrated || !isAuthenticated) return null;
 
   return (
-    <div className="relative">
+    <div
+      className={`relative ${
+        variant === "mobile" ? "flex flex-col items-center justify-center group" : ""
+      }`}
+    >
       <button
         onClick={handleClick}
-        className={`relative flex items-center justify-center hover:opacity-70 transition-opacity ${
+        className={`relative flex items-center justify-center transition-opacity ${
           variant === "mobile"
-            ? "w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200"
-            : ""
+            ? "w-10 h-10 rounded-full bg-gray-100 group-hover:bg-gray-200"
+            : "hover:opacity-70"
         }`}
         aria-label={t("title")}
       >
@@ -62,6 +66,10 @@ export default function NotificationsBell({ variant = "desktop" }) {
           </span>
         )}
       </button>
+
+      {variant === "mobile" && (
+        <span className="text-xs text-gray-600 mt-1">Notifications</span>
+      )}
 
       {open && (
         <>

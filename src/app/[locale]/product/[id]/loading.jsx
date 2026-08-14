@@ -1,4 +1,8 @@
+import { useLocale } from "next-intl";
+
 export default function Loading() {
+  const locale = useLocale();
+
   return (
     <div className="h-screen flex flex-col items-center justify-center bg-white">
       {/* Simple circular loader */}
@@ -10,7 +14,7 @@ export default function Loading() {
       {/* Text */}
       <div className="mt-6 text-center">
         <span className="text-gray-700 text-base font-medium">
-          Loading product details...
+          {locale === "en" ? "Loading product details..." : "جاري تحميل تفاصيل المنتج..."}
         </span>
       </div>
     </div>

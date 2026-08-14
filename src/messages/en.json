@@ -394,6 +394,8 @@
         "resend_otp": "Resend code",
         "otp_verified_success": "Verification code verified successfully!",
         "invalid_otp_error": "Invalid verification code. Please try again.",
+        "register_success": "Account activated — you're logged in!",
+        "verify_email_required": "Please verify your email first — check your inbox for the code",
 
         "reset_password_title": "Reset Password",
         "reset_password_subtitle": "Enter your new password below to reset your account access",
@@ -482,5 +484,8 @@
         "view": "View",
         "Show_Filter": "Show Filter",
         "Products": "Products"
+    },
+    "privacyPolicy": {
+        "loading_privacy_policy": "Loading Privacy Policy"
     }
 }

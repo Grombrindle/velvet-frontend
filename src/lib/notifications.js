@@ -11,39 +11,39 @@ import { apiGet, apiPost, apiPut } from "./api";
  */
 
 export async function registerDeviceToken(fcmToken) {
-  return apiPost("/notifications/token", { fcm_token: fcmToken });
+    return apiPost("/notifications/token", { fcm_token: fcmToken });
 }
 
 export async function updateDeviceToken(fcmToken) {
-  return apiPut("/notifications/token", { fcm_token: fcmToken });
+    return apiPut("/notifications/token", { fcm_token: fcmToken });
 }
 
 export async function fetchNotifications({ page = 1, size = 20 } = {}) {
-  const response = await apiGet("/notifications/paginate", {
-    params: { page, size },
-  });
-  if (response?.success && response?.result) {
-    return response.result; // { data, pagination }
-  }
-  return { data: [], pagination: null };
+    const response = await apiGet("/notifications/paginate", {
+        params: { page, size },
+    });
+    if (response ? .success && response ? .result) {
+        return response.result; // { data, pagination }
+    }
+    return { data: [], pagination: null };
 }
 
 export async function fetchNotificationPreferences() {
-  const response = await apiGet("/notifications/preferences");
-  if (response?.success && response?.result) {
-    return response.result;
-  }
-  return { notification_enabled: true, notification_sound_enabled: true };
+    const response = await apiGet("/notifications/preferences");
+    if (response ? .success && response ? .result) {
+        return response.result;
+    }
+    return { notification_enabled: true, notification_sound_enabled: true };
 }
 
 export async function updateNotificationPreferences(payload) {
-  return apiPut("/notifications/preferences", payload);
+    return apiPut("/notifications/preferences", payload);
 }
 
 export async function sendTestNotification() {
-  return apiPost("/notifications/test-sound");
+    return apiPost("/notifications/test-sound");
 }
 
 export async function markNotificationsRead(ids = []) {
-  return apiPost("/notifications/read", ids.length ? { ids } : {});
+    return apiPost("/notifications/read", ids.length ? { ids } : {});
 }

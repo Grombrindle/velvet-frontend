@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -11,6 +11,7 @@ import { apiPost } from "@/lib/api";
 import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
 import toast from "react-hot-toast";
+import VerifyOtpForm from "./VerifyOtpForm";
 import { useAuthStore } from "@/lib/store";
 
 const getRegisterSchema = (t) =>
@@ -68,6 +69,9 @@ export default function RegisterForm() {
   const locale = useLocale();
   const setAuth = useAuthStore((state) => state.setAuth);
 
+  const [step, setStep] = useState("register"); // "register" | "otp"
+  const [registeredEmail, setRegisteredEmail] = useState("");
+
   const {
     register,
     handleSubmit,
@@ -76,21 +80,35 @@ export default function RegisterForm() {
     resolver: zodResolver(getRegisterSchema(t)),
   });
 
-  // Main Registration Mutation — the API already returns a Sanctum token
-  // (same shape as login), so we log the user in immediately.
+  // Resend / Trigger OTP Mutation
+  const sendOtpMutation = useMutation({
+    mutationFn: (email) => apiPost("/auth/forgot-password", { email }),
+    onSuccess() {
+      toast.success(t("otp_sent_success") || "OTP code sent to your email!");
+      setStep("otp"); // Strictly move to OTP step here only after success
+    },
+    onError(error) {
+      const errMsg = getErrorMessage(error, t("generic_error"));
+      toast.error(errMsg);
+    },
+  });
+
+  // Main Registration Mutation
   const registerMutation = useMutation({
     mutationFn: (payload) => apiPost("/auth/register", payload),
-    onSuccess(data) {
+    onSuccess(data, variables) {
       // Defensive check: If your API returns HTTP 200/201 but success flag is false
       if (data && data.success === false) {
         const errMsg = getErrorMessage(data, "Registration failed.");
         toast.error(errMsg);
-        return;
+        return; // STOP execution — do not go to OTP step
       }
 
-      setAuth(data.result);
-      toast.success(t("register_success"));
-      router.push(`/${locale}`);
+      const userEmail = variables.email;
+      setRegisteredEmail(userEmail);
+
+      // Trigger OTP request only after successful registration
+      sendOtpMutation.mutate(userEmail);
     },
     onError(error) {
       // Triggers when API returns HTTP 422, 400, 500, etc.
@@ -104,6 +122,25 @@ export default function RegisterForm() {
 
   const onSubmit = (values) => registerMutation.mutate(values);
 
+  // Account is created but NOT yet active: the email OTP activates it, and
+  // verify-otp returns a real login token (token + user) so the user enters
+  // the site immediately.
+  const handleOtpSuccess = (result) => {
+    if (!result?.token || !result?.user) {
+      toast.error(t("generic_error"));
+      return;
+    }
+    setAuth({ token: result.token, user: result.user });
+    toast.success(t("register_success"));
+    router.push(`/${locale}`);
+  };
+
+  const handleResendOtp = () => {
+    if (registeredEmail) {
+      sendOtpMutation.mutate(registeredEmail);
+    }
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -111,7 +148,9 @@ export default function RegisterForm() {
       className="sm:mx-auto sm:w-full sm:max-w-xl"
     >
       <div className="bg-white py-10 px-8 shadow-2xl shadow-slate-200/50 border border-slate-100">
-        <div className="mb-10 text-center">
+        {step === "register" ? (
+          <>
+            <div className="mb-10 text-center">
               <h2 className="text-3xl font-bold text-slate-900 tracking-tight">
                 {t("create_account")}
               </h2>
@@ -228,10 +267,12 @@ export default function RegisterForm() {
 
               <button
                 type="submit"
-                disabled={registerMutation.isPending}
+                disabled={
+                  registerMutation.isPending || sendOtpMutation.isPending
+                }
                 className="w-full flex justify-center items-center gap-2 py-3.5 px-4 shadow-lg text-sm font-bold text-white bg-black hover:bg-gray-950 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-600 transition-all active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
               >
-                {registerMutation.isPending ? (
+                {registerMutation.isPending || sendOtpMutation.isPending ? (
                   <>
                     <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                     {t("setting_things_up")}
@@ -262,6 +303,14 @@ export default function RegisterForm() {
                 </Link>
               </p>
             </div>
+          </>
+        ) : (
+          <VerifyOtpForm
+            email={registeredEmail}
+            onSuccess={handleOtpSuccess}
+            onResendOtp={handleResendOtp}
+          />
+        )}
       </div>
     </motion.div>
   );

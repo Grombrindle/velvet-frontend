@@ -17,11 +17,11 @@ const errorStyles = "text-red-500 text-xs mt-1 font-medium";
 export default function VerifyOtpForm({ email, onSuccess, onResendOtp, onBackToLogin }) {
   const t = useTranslations("auth");
   const [countdown, setCountdown] = useState(120);
-  const [isResendDisabled, setIsResendDisabled] = useState(true);
+  // Derived: the resend button unlocks when the countdown reaches 0
+  const isResendDisabled = countdown > 0;
 
   const startCountdown = useCallback(() => {
     setCountdown(120);
-    setIsResendDisabled(true);
   }, []);
 
   const verifyOtpSchema = useMemo(
@@ -57,8 +57,6 @@ export default function VerifyOtpForm({ email, onSuccess, onResendOtp, onBackToL
       timer = setInterval(() => {
         setCountdown((prev) => prev - 1);
       }, 1000);
-    } else if (countdown === 0) {
-      setIsResendDisabled(false);
     }
     return () => clearInterval(timer);
   }, [countdown]);
@@ -68,8 +66,9 @@ export default function VerifyOtpForm({ email, onSuccess, onResendOtp, onBackToL
     onSuccess(data) {
       if (data?.success) {
         toast.success(t("otp_verified_success"));
-        const token = data?.result?.token || data?.token || "";
-        onSuccess(token);
+        // Pass the whole result so callers get token + user (register flow
+        // logs the user straight in; reset flow only needs the token).
+        onSuccess(data?.result || {});
       } else {
         toast.error(data?.message || t("invalid_otp_error"));
       }

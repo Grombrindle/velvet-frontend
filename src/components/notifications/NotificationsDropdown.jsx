@@ -80,7 +80,9 @@ export default function NotificationsDropdown({ open, onClose }) {
 
   return (
     <div
-      className="fixed inset-x-2 top-14 z-30 sm:absolute sm:inset-x-auto sm:right-0 sm:top-full sm:mt-3 sm:w-96 bg-white border border-slate-100 shadow-xl rounded-2xl overflow-hidden"
+      className={`fixed inset-x-2 top-16 z-30 sm:absolute sm:inset-x-auto sm:top-full sm:mt-3 sm:w-96 ${
+        locale === "ar" ? "sm:left-0" : "sm:right-0"
+      } bg-white border border-slate-100 shadow-xl rounded-2xl overflow-hidden`}
     >
       {/* Header */}
       <div className="flex items-center justify-between gap-2 px-4 py-3 border-b border-gray-100">
