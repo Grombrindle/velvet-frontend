@@ -24,6 +24,14 @@ jobs:
             echo "  $(date)"
             echo "=========================================="
 
+            # ---- Load nvm (local Node.js) ----
+            export NVM_DIR="$HOME/.nvm"
+            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+            nvm use default   # uses the LTS version you installed
+            echo "Node version: $(node --version)"
+            echo "npm version: $(npm --version)"
+
+
             # ---- STEP 1: Pull latest code ----
             echo ""
             echo "[1/6] Pulling latest code..."
