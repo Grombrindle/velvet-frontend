@@ -8,21 +8,23 @@ export function useCheckoutOptions() {
     queryFn: async () => {
       const [deliveryRes, paymentRes] = await Promise.allSettled([
         apiGet("/delivery-methods/with-default-address"),
-        apiGet("/payment-methods/checkout-options"),
+        apiGet("/payment-methods/options"),
       ]);
 
       const deliveryData = deliveryRes.status === "fulfilled"
         ? (deliveryRes.value?.result || deliveryRes.value || {})
         : {};
       const paymentData = paymentRes.status === "fulfilled"
-        ? (paymentRes.value?.result || paymentRes.value || {})
-        : {};
+        ? (paymentRes.value?.result || paymentRes.value || [])
+        : [];
 
       return {
         deliveryMethods: deliveryData.delivery_options || [],
         stores: deliveryData.stores || [],
         defaultAddress: deliveryData.my_default_address || null,
-        paymentMethods: paymentData.payment_methods || paymentData || [],
+        paymentMethods: Array.isArray(paymentData)
+          ? paymentData
+          : paymentData.payment_methods || [],
       };
     },
     staleTime: 60 * 1000,
