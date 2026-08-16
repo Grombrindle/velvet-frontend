@@ -3,15 +3,17 @@ import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { useMutation } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
 import toast from "react-hot-toast";
+import { useQuery } from "@tanstack/react-query";
 
 import { apiPost } from "@/lib/api";
 import { useAuthStore } from "@/lib/store";
+import { getGenderFromPathname, getLocalePrefix } from "@/lib/locale";
 
 import ForgotPasswordForm from "./ForgotPasswordForm";
 import VerifyOtpForm from "./VerifyOtpForm";
@@ -30,20 +32,59 @@ const errorStyles = "text-red-500 text-xs mt-1 font-medium";
 export default function LoginForm({ onSuccess: onSuccessProp }) {
   const t = useTranslations("auth");
   const router = useRouter();
+  const pathname = usePathname();
   const setAuth = useAuthStore((state) => state.setAuth);
   const locale = useLocale();
 
   const [step, setStep] = useState("login");
   const [resetEmail, setResetEmail] = useState("");
   const [resetToken, setResetToken] = useState("");
-  // "reset"  = verify OTP to reset the password (forgot-password flow)
-  // "activate" = verify OTP to activate a fresh account, then log straight in
   const [verifyMode, setVerifyMode] = useState("reset");
 
   const loginForm = useForm({
     resolver: zodResolver(loginSchema),
     defaultValues: { email: "", password: "" },
   });
+
+  // Fetch genders data (same as NavBar)
+  const {
+    data: gendersData,
+    isLoading: gendersLoading,
+  } = useQuery({
+    queryKey: ["genders-web"],
+    queryFn: () => apiGet("/web/genders"),
+    staleTime: 10 * 60 * 3600 * 24,
+  });
+
+  const navItems = React.useMemo(
+    () => gendersData?.result || [],
+    [gendersData],
+  );
+
+  // Get the current gender from the path (same as NavBar)
+  const searchParams = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '');
+  const currentGender = getGenderFromPathname(pathname, searchParams);
+  const localePrefix = getLocalePrefix(pathname);
+
+  // Get activeGender - exactly like NavBar
+  // NavBar: const activeGender = currentGender || navItems[0]?.name.en;
+  const activeGender = React.useMemo(() => {
+    if (!gendersLoading && navItems.length > 0) {
+      // If currentGender exists (could be Arabic), find the matching English version
+      if (currentGender) {
+        // Find the nav item that matches the current gender (either by en or ar name)
+        const matchedItem = navItems.find(item => 
+          item.name.en === currentGender || item.name.ar === currentGender
+        );
+        if (matchedItem) {
+          return matchedItem.name.en; // Always return the English version
+        }
+      }
+      // Fallback to the first gender's English name
+      return navItems[0]?.name.en || "men";
+    }
+    return "men";
+  }, [currentGender, navItems, gendersLoading]);
 
   const loginMutation = useMutation({
     mutationFn: (payload) => apiPost("/auth/login", payload),
@@ -53,11 +94,10 @@ export default function LoginForm({ onSuccess: onSuccessProp }) {
         if (onSuccessProp) {
           onSuccessProp();
         } else {
-          router.push(`/${locale}`);
+          // Navigate using the English gender name (like NavBar logo)
+          router.push(`${localePrefix}/${activeGender}`);
         }
       } else if (data?.error === "EMAIL_NOT_VERIFIED") {
-        // Account exists but was never activated — jump straight to the
-        // OTP verification screen so the user can activate and log in.
         toast.error(t("verify_email_required"));
         setVerifyMode("activate");
         setResetEmail(loginForm.getValues("email") || "");
@@ -82,10 +122,11 @@ export default function LoginForm({ onSuccess: onSuccessProp }) {
 
   const handleVerifyOtpSuccess = (result) => {
     if (verifyMode === "activate" && result?.token && result?.user) {
-      // Fresh account just activated → log the user straight in.
       setAuth({ token: result.token, user: result.user });
       toast.success(t("register_success"));
-      router.push(`/${locale}`);
+      
+      // Navigate using the English gender name
+      router.push(`${localePrefix}/${activeGender}`);
       return;
     }
     setResetToken(result?.token || "");

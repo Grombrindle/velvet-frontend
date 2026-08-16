@@ -639,7 +639,7 @@ export function useCart(options = {}) {
   });
 }
 
-export function useAddToCart(locale = "ar") {
+export function useAddToCart(locale) {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -658,12 +658,10 @@ export function useAddToCart(locale = "ar") {
     onMutate: async (variables) => {
       const previousCart = await cancelAndSnapshot(queryClient);
 
-      // Detect bundle: if colors_id/sizes_id have more than 1 element
       const isBundle =
         Array.isArray(variables.colors_id) && variables.colors_id.length > 1;
 
       if (isBundle) {
-        // Skip optimistic update for bundles — complex structure, just invalidate
         return { previousCart: null, skippedOptimistic: true };
       }
 
@@ -721,36 +719,25 @@ export function useAddToCart(locale = "ar") {
       return { previousCart };
     },
     onError: (error, _variables, context) => {
-      // Handle auth errors (401) with a user-friendly message + login modal
+      // Handle auth errors (401)
       if (error.status === 401) {
         showAuthToast();
         return;
       }
 
       if (context?.skippedOptimistic) {
-        // For bundles, just show error — no cart state to roll back
-        toast.error(
-          locale === "en"
-            ? "Failed to add bundle to cart"
-            : "فشل إضافة الباقة إلى السلة"
-        );
+        // For bundles, just return error — no toast
         return;
       }
       if (context?.previousCart) {
         queryClient.setQueryData(CART_QUERY_KEY, context.previousCart);
       }
-      toast.error(
-        locale === "en"
-          ? error?.response?.message || "Failed to add item to cart"
-          : error?.response?.message || "فشل إضافة المنتج إلى السلة"
-      );
+      // ❌ REMOVED toast.error from here
+      return;
     },
     onSuccess: () => {
-      toast.success(
-        locale === "en"
-          ? "Item added to cart successfully!"
-          : "تم إضافة المنتج إلى السلة بنجاح!"
-      );
+      // ❌ REMOVED toast.success from here
+      return;
     },
     onSettled: async () => {
       await queryClient.invalidateQueries({ queryKey: CART_QUERY_KEY });

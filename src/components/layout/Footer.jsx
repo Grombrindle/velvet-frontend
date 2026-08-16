@@ -4,12 +4,15 @@ import { usePathname } from "next/navigation";
 import React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { apiGet } from "@/lib/api";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { getLocalePrefix } from "@/lib/locale";
 import Link from "next/link"; // Add this import
 
 const TextLink = ({ children, href }) => (
-  <Link href={href || "#"} className="text-[#000000] font-normal text-[0.85rem] hover:underline block">
+  <Link
+    href={href || "#"}
+    className="text-[#000000] font-normal text-[0.85rem] hover:underline block"
+  >
     {children}
   </Link>
 );
@@ -19,7 +22,10 @@ const SectionTitle = ({ children }) => (
 );
 
 const CategoryItem = ({ children, href }) => (
-  <Link href={href || "#"} className="text-[#000000] font-[400] text-[0.8rem] hover:underline block">
+  <Link
+    href={href || "#"}
+    className="text-[#000000] font-[400] text-[0.8rem] hover:underline block"
+  >
     {children}
   </Link>
 );
@@ -51,6 +57,7 @@ const AppStoreIcon = ({ src, alt, href }) => (
 function Footer() {
   const pathname = usePathname();
   const locale = useLocale();
+  const t = useTranslations("footer");
   const localePrefix = getLocalePrefix(pathname);
 
   if (pathname?.startsWith("/dashboard")) {
@@ -72,16 +79,16 @@ function Footer() {
 
   // Fetch categories for each gender
   const { data: categoriesData, isLoading: categoriesLoading } = useQuery({
-    queryKey: ["footer-categories", genders.map(g => g.name.en).join(',')],
+    queryKey: ["footer-categories", genders.map((g) => g.name.en).join(",")],
     queryFn: async () => {
       if (!genders.length) return {};
-      
+
       const limitedGenders = genders.slice(0, 3);
       const categoryPromises = limitedGenders.map((gender) =>
-        apiGet(`/web/categories-products/${gender.name.en}`)
+        apiGet(`/web/categories-products/${gender.name.en}`),
       );
       const results = await Promise.all(categoryPromises);
-      
+
       return results.reduce((acc, result, index) => {
         const genderName = limitedGenders[index].name.en;
         acc[genderName] = result?.result?.categories || [];
@@ -97,14 +104,14 @@ function Footer() {
     if (!categoriesData) return [];
     const flat = [];
     const usedKeys = new Set();
-    
+
     Object.entries(categoriesData).forEach(([gender, categories]) => {
       const genderObj = genders.find((g) => g.name.en === gender);
       const genderLabel = genderObj?.name[locale] || gender;
-      
+
       categories.forEach((cat) => {
         const uniqueKey = `${gender}-${cat.id}`;
-        
+
         if (!usedKeys.has(uniqueKey)) {
           usedKeys.add(uniqueKey);
           flat.push({
@@ -116,18 +123,34 @@ function Footer() {
         }
       });
     });
-    
+
     return flat;
   }, [categoriesData, genders, locale]);
 
   const SOCIAL_MEDIA = [
-    { icon: "/images/facebook.svg", alt: "Facebook", href: "https://facebook.com/velvet" },
-    { icon: "/images/instagram.svg", alt: "Instagram", href: "https://instagram.com/velvet" },
+    {
+      icon: "/images/facebook.svg",
+      alt: "Facebook",
+      href: "https://facebook.com/velvet",
+    },
+    {
+      icon: "/images/instagram.svg",
+      alt: "Instagram",
+      href: "https://instagram.com/velvet",
+    },
   ];
 
   const APP_STORES = [
-    { src: "/images/app-store.png", alt: "app-store", href: "https://apps.apple.com/app/velvet" },
-    { src: "/images/google-play.png", alt: "google-play", href: "https://play.google.com/store/apps/details?id=com.velvet" },
+    {
+      src: "/images/app-store.png",
+      alt: "app-store",
+      href: "https://apps.apple.com/app/velvet",
+    },
+    {
+      src: "/images/google-play.png",
+      alt: "google-play",
+      href: "https://play.google.com/store/apps/details?id=com.velvet",
+    },
   ];
 
   const getGenderName = (gender) => {
@@ -141,16 +164,16 @@ function Footer() {
       {/* Top Section - App Download */}
       <div className="w-full mx-auto lg:h-[23rem] mt-[3rem] py-[3rem] bg-[#F4F4F4]">
         <div className="flex justify-center text-center items-center flex-col">
-          <h1 className="text-[#000000] text-[0.9rem]">Download Our App</h1>
+          <h1 className="text-[#000000] text-[0.9rem]">{t("Download_App")}</h1>
           <p className="text-[#000000] lg:px-0 px-[1rem] text-[0.9rem] font-light">
-            Discover our mobile app and get special deals just for you!
+            {t("Discover_app")}{" "}
           </p>
           <div className="flex gap-x-2 mt-3">
             {APP_STORES.map((store, index) => (
-              <AppStoreIcon 
-                key={index} 
-                src={store.src} 
-                alt={store.alt} 
+              <AppStoreIcon
+                key={index}
+                src={store.src}
+                alt={store.alt}
                 href={store.href}
               />
             ))}
@@ -188,20 +211,24 @@ function Footer() {
                   genders.slice(0, 3).map((gender) => (
                     <div key={gender.id}>
                       <SectionTitle>{getGenderName(gender)}</SectionTitle>
-                      {categoriesData?.[gender.name.en]?.slice(0, 6).map((category) => (
-                        <TextLink 
-                          key={`${gender.id}-${category.id}`}
-                          href={`/${locale}/${gender.name.en}/category/${category.id}`}
-                        >
-                          {category.name}
-                        </TextLink>
-                      ))}
+                      {categoriesData?.[gender.name.en]
+                        ?.slice(0, 6)
+                        .map((category) => (
+                          <TextLink
+                            key={`${gender.id}-${category.id}`}
+                            href={`/${locale}/${gender.name.en}/category/${category.id}`}
+                          >
+                            {category.name}
+                          </TextLink>
+                        ))}
                     </div>
                   ))
                 )}
                 {gendersError && (
                   <div className="text-red-500 text-sm col-span-3">
-                    {locale === "ar" ? "حدث خطأ في تحميل البيانات" : "Error loading data"}
+                    {locale === "ar"
+                      ? "حدث خطأ في تحميل البيانات"
+                      : "Error loading data"}
                   </div>
                 )}
               </div>
@@ -213,20 +240,23 @@ function Footer() {
                 <SectionTitle>
                   {locale === "ar" ? "جميع الفئات" : "All Categories"}
                 </SectionTitle>
-                {isLoading ? (
-                  Array(10).fill(0).map((_, i) => (
-                    <div key={i} className="h-4 w-20 bg-gray-200 rounded animate-pulse"></div>
-                  ))
-                ) : (
-                  allCategories.slice(0, 25).map((category) => (
-                    <CategoryItem 
-                      key={category.uniqueKey}
-                      href={`/${locale}/${category.gender}/category/${category.id}`}
-                    >
-                      {category.name}
-                    </CategoryItem>
-                  ))
-                )}
+                {isLoading
+                  ? Array(10)
+                      .fill(0)
+                      .map((_, i) => (
+                        <div
+                          key={i}
+                          className="h-4 w-20 bg-gray-200 rounded animate-pulse"
+                        ></div>
+                      ))
+                  : allCategories.slice(0, 25).map((category) => (
+                      <CategoryItem
+                        key={category.uniqueKey}
+                        href={`/${locale}/${category.gender}/category/${category.id}`}
+                      >
+                        {category.name}
+                      </CategoryItem>
+                    ))}
               </div>
             </div>
           </div>
