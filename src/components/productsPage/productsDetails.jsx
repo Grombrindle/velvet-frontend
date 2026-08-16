@@ -311,128 +311,149 @@ const ProductsDetails = ({ productData: initialProductData }) => {
     );
   };
 
-  const handleAddToCart = () => {
-    // Show loader immediately
-    setIsAddingToCart(true);
+ const handleAddToCart = () => {
+  // Show loader immediately
+  setIsAddingToCart(true);
 
-    if (isBundle) {
-      // Validate bundle's own color
-      if (!activeColor) {
-        toast.error(t("select_bundle_color"));
-        setIsAddingToCart(false);
-        return;
-      }
-
-      // Bundle auto-resolves its first available size (bundle size picker removed)
-      const bundleSize =
-        activeColor?.available_sizes?.find((s) => s.in_stock) ||
-        activeColor?.available_sizes?.[0] ||
-        null;
-
-      if (!bundleSize) {
-        toast.error(t("select_bundle_size"));
-        setIsAddingToCart(false);
-        return;
-      }
-
-      // Validate all children have color and size selected
-      for (let i = 0; i < bundleSelections.length; i++) {
-        const sel = bundleSelections[i];
-        const childName =
-          product.bundles?.[i]?.name || t("item_number", { number: i + 1 });
-        if (!sel.colorId) {
-          toast.error(t("select_color_for", { name: childName }));
-          setIsAddingToCart(false);
-          return;
-        }
-        if (!sel.sizeId) {
-          toast.error(t("select_size_for", { name: childName }));
-          setIsAddingToCart(false);
-          return;
-        }
-      }
-
-      setAddedSelectionKey(selectionKey);
-
-      // Build array payload: [bundleColor, child1Color, child2Color, ...]
-      const colors_id = [
-        activeColor.id,
-        ...bundleSelections.map((s) => s.colorId),
-      ];
-      const sizes_id = [
-        bundleSize.id,
-        ...bundleSelections.map((s) => s.sizeId),
-      ];
-
-      const bundlePrice = product.bundle_price || product.price;
-
-      addToCart(
-        {
-          product_id: product.id,
-          quantity: 1,
-          colors_id,
-          sizes_id,
-          product_name: product.name,
-          image: getCartImage(),
-          price: bundlePrice,
-          currency: bundlePrice?.currency_code,
-          color_name: activeColor.name,
-          size_name: bundleSize.name,
-        },
-        {
-          onSuccess: () => {
-            setIsAddingToCart(false);
-          },
-          onError: () => {
-            setAddedSelectionKey(null);
-            setIsAddingToCart(false);
-          },
-        },
-      );
-
-      return;
-    }
-
-    // === Standard (non-bundle) add-to-cart ===
+  if (isBundle) {
+    // Validate bundle's own color
     if (!activeColor) {
-      toast.error(t("select_color"));
+      toast.error(t("select_bundle_color"));
       setIsAddingToCart(false);
       return;
     }
 
-    if (!selectedSize) {
-      toast.error(t("select_size"));
+    const bundleSize =
+      activeColor?.available_sizes?.find((s) => s.in_stock) ||
+      activeColor?.available_sizes?.[0] ||
+      null;
+
+    if (!bundleSize) {
+      toast.error(t("select_bundle_size"));
       setIsAddingToCart(false);
       return;
+    }
+
+    for (let i = 0; i < bundleSelections.length; i++) {
+      const sel = bundleSelections[i];
+      const childName =
+        product.bundles?.[i]?.name || t("item_number", { number: i + 1 });
+      if (!sel.colorId) {
+        toast.error(t("select_color_for", { name: childName }));
+        setIsAddingToCart(false);
+        return;
+      }
+      if (!sel.sizeId) {
+        toast.error(t("select_size_for", { name: childName }));
+        setIsAddingToCart(false);
+        return;
+      }
     }
 
     setAddedSelectionKey(selectionKey);
-    const cartPrice = getCartPricePayload();
+
+    const colors_id = [
+      activeColor.id,
+      ...bundleSelections.map((s) => s.colorId),
+    ];
+    const sizes_id = [
+      bundleSize.id,
+      ...bundleSelections.map((s) => s.sizeId),
+    ];
+
+    const bundlePrice = product.bundle_price || product.price;
 
     addToCart(
       {
         product_id: product.id,
         quantity: 1,
-        colors_id: [activeColor.id],
-        sizes_id: [selectedSize.id],
+        colors_id,
+        sizes_id,
         product_name: product.name,
         image: getCartImage(),
-        price: cartPrice,
-        currency: cartPrice?.currency_code,
+        price: bundlePrice,
+        currency: bundlePrice?.currency_code,
         color_name: activeColor.name,
-        size_name: selectedSize.name,
+        size_name: bundleSize.name,
       },
       {
         onSuccess: () => {
           setIsAddingToCart(false);
+          // ✅ Add success toast here
+          toast.success(
+            locale === "en"
+              ? "Bundle added to cart successfully!"
+              : "تم إضافة الباقة إلى السلة بنجاح!"
+          );
         },
-        onError: () => {
+        onError: (error) => {
           setAddedSelectionKey(null);
           setIsAddingToCart(false);
+          // ✅ Add error toast here
+          toast.error(
+            locale === "en"
+              ? error?.response?.message || "Failed to add bundle to cart"
+              : error?.response?.message || "فشل إضافة الباقة إلى السلة"
+          );
         },
       },
     );
-  };
+
+    return;
+  }
+
+  // === Standard (non-bundle) add-to-cart ===
+  if (!activeColor) {
+    toast.error(t("select_color"));
+    setIsAddingToCart(false);
+    return;
+  }
+
+  if (!selectedSize) {
+    toast.error(t("select_size"));
+    setIsAddingToCart(false);
+    return;
+  }
+
+  setAddedSelectionKey(selectionKey);
+  const cartPrice = getCartPricePayload();
+
+  addToCart(
+    {
+      product_id: product.id,
+      quantity: 1,
+      colors_id: [activeColor.id],
+      sizes_id: [selectedSize.id],
+      product_name: product.name,
+      image: getCartImage(),
+      price: cartPrice,
+      currency: cartPrice?.currency_code,
+      color_name: activeColor.name,
+      size_name: selectedSize.name,
+    },
+    {
+      onSuccess: () => {
+        setIsAddingToCart(false);
+        // ✅ Add success toast here
+        toast.success(
+          locale === "en"
+            ? "Item added to cart successfully!"
+            : "تم إضافة المنتج إلى السلة بنجاح!"
+        );
+      },
+      onError: (error) => {
+        setAddedSelectionKey(null);
+        setIsAddingToCart(false);
+        // ✅ Add error toast here
+        toast.error(
+          locale === "en"
+            ? error?.response?.message || "Failed to add item to cart"
+            : error?.response?.message || "فشل إضافة المنتج إلى السلة"
+        );
+      },
+    },
+  );
+};
 
   return (
     <div className="lg:pl-[2.3rem] relative">

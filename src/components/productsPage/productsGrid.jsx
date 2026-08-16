@@ -39,13 +39,7 @@ const ProductsGrid = ({ productData }) => {
 
   const imagesToDisplay = getImagesToDisplay();
 
-  if (!imagesToDisplay || imagesToDisplay.length === 0) {
-    return (
-      <div className="text-center py-10">
-        <p className="text-gray-500">No images available for this color</p>
-      </div>
-    );
-  }
+
 
   return (
     <div>

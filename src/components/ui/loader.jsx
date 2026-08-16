@@ -1,5 +1,5 @@
 // components/ui/Loader.jsx
-const Loader = ({ text = "Loading..." }) => {
+const Loader = ({ text = "" }) => {
   return (
     <div className="flex justify-center items-center h-[40rem]">
       <div className="text-center">

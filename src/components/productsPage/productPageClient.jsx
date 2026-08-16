@@ -8,6 +8,7 @@ import { apiGet } from "@/lib/api";
 import ProductsDetails from "@/components/productsPage/productsDetails";
 import ProductsGrid from "@/components/productsPage/productsGrid";
 import { supportedLocales, defaultLocale } from "@/lib/locale";
+import Loader from "../ui/loader";
 
 export default function ProductPageClient() {
   const params = useParams();
@@ -22,7 +23,7 @@ export default function ProductPageClient() {
   // Use React Query for data fetching
   const {
     data: productData,
-    isLoading,
+    isLoading:productDataLoading,
     error,
     refetch,
   } = useQuery({
@@ -42,8 +43,12 @@ export default function ProductPageClient() {
     retry: 1,
     refetchOnWindowFocus: false,
   });
-
   // Render the product page
+  if(productDataLoading){
+    return(
+      <Loader/>
+    )
+  }
   return (
     <div className="container3 mx-auto lg:mt-[2rem] mt-[5rem]">
       <div className="grid lg:grid-cols-12">

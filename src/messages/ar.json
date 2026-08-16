@@ -262,7 +262,11 @@
     },
     "navbar": {
         "login": "تسجيل الدخول",
-        "welcome": "مرحبًا "
+        "welcome": "مرحبًا ",
+        "Dashboard": "لوحة التحكم",
+        "Wishlist": "المفضلة",
+        "Cart": "سلة التسوق",
+        "Logout": "تسجيل الخروج"
     },
     "cart": {
         "myBag": "حقيبتي",
@@ -485,5 +489,16 @@
     },
     "privacyPolicy": {
         "loading_privacy_policy": "جاري تحميل سياسة الخصوصية"
+    },
+    "footer": {
+        "Download_App": "تحميل تطبيقنا",
+        "Discover_app": "اكتشف تطبيقنا للجوال واستمتع بعروض حصرية مخصصة لك"
+    },
+    "filterBar": {
+        "clear_all": "إلغاء جميع التصفيات",
+        "Gender": "الجنس",
+        "products": "المنتجات",
+        "All Genders": "جميع الأجناس"
     }
+
 }

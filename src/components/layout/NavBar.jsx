@@ -238,7 +238,7 @@ function NavBar() {
                         <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
                           <IoIosSettings className="text-lg text-slate-600" />
                         </div>
-                        <span>Dashboard</span>
+                        <span>{t("Dashboard")}</span>
                       </Link>
 
                       <Link
@@ -261,7 +261,7 @@ function NavBar() {
                             />
                           </svg>
                         </div>
-                        <span>Wishlist</span>
+                        <span>{t("Wishlist")}</span>
                       </Link>
 
                       <Link
@@ -284,7 +284,7 @@ function NavBar() {
                             />
                           </svg>
                         </div>
-                        <span>Cart</span>
+                        <span>{t("Cart")}</span>
                         {cartCount > 0 && (
                           <span className="ml-auto bg-black text-white text-xs font-bold px-2 py-0.5 rounded-full">
                             {cartCount}
@@ -299,7 +299,7 @@ function NavBar() {
                         <div className="w-8 h-8 rounded-full bg-red-50 flex items-center justify-center">
                           <IoIosLogOut className="text-lg text-red-500" />
                         </div>
-                        <span>Logout</span>
+                        <span>{t("Logout")}</span>
                       </button>
                     </div>
                   </>

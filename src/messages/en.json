@@ -262,7 +262,11 @@
     },
     "navbar": {
         "welcome": "Welcome",
-        "login": "Login"
+        "login": "Login",
+        "Dashboard": "Dashboard",
+        "Wishlist": "Wishlist",
+        "Cart": "Cart",
+        "Logout": "Logout"
     },
     "cart": {
         "myBag": "My Bag",
@@ -486,5 +490,15 @@
     },
     "privacyPolicy": {
         "loading_privacy_policy": "Loading Privacy Policy"
+    },
+    "footer": {
+        "Download_App": "Download Our App",
+        "Discover_app": "Discover our mobile app and get special deals just for you!"
+    },
+    "filterBar": {
+        "clear_all": "Clear All",
+        "Gender": "Gender",
+        "products": "products",
+        "All Genders": "All Genders"
     }
 }
