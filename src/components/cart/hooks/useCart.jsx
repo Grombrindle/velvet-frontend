@@ -639,7 +639,7 @@ export function useCart(options = {}) {
   });
 }
 
-export function useAddToCart(locale) {
+export function useAddToCart() {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -656,13 +656,17 @@ export function useAddToCart(locale) {
         sizes_id: Array.isArray(sizes_id) ? sizes_id : [sizes_id],
       }),
     onMutate: async (variables) => {
-      const previousCart = await cancelAndSnapshot(queryClient);
+      // إلغاء أي طلبات جارية لنفس الكوي
+      await queryClient.cancelQueries({ queryKey: CART_QUERY_KEY });
+      
+      // حفظ حالة السلة الحالية قبل التعديل (للتراجع)
+      const previousCart = queryClient.getQueryData(CART_QUERY_KEY);
 
       const isBundle =
         Array.isArray(variables.colors_id) && variables.colors_id.length > 1;
 
       if (isBundle) {
-        return { previousCart: null, skippedOptimistic: true };
+        return { previousCart, skippedOptimistic: true };
       }
 
       const quantity = toNumber(variables.quantity, 1);
@@ -674,6 +678,7 @@ export function useAddToCart(locale) {
         ? variables.sizes_id[0]
         : variables.sizes_id;
 
+      // إضافة المنتج بشكل متفائل (قبل رد الـ API)
       setOptimisticCart(queryClient, (cart) => {
         const existingIndex = cart.items.findIndex(
           (item) =>
@@ -716,35 +721,54 @@ export function useAddToCart(locale) {
         };
       });
 
-      return { previousCart };
+      // إرجاع الحالة السابقة للاستخدام في حالة الفشل
+      return { previousCart, skippedOptimistic: false };
     },
     onError: (error, _variables, context) => {
-      // Handle auth errors (401)
-      if (error.status === 401) {
+      const status = error?.status || error?.response?.status || error?.statusCode;
+      const message = error?.response?.data?.message || error?.message || "";
+
+      // معالجة أخطاء المصادقة (التوكن منتهي)
+      if (status === 401 || message.toLowerCase().includes("unauthenticated")) {
         showAuthToast();
+        // التراجع عن التحديث المتفائل - حذف المنتج من الواجهة
+        if (context?.previousCart) {
+          queryClient.setQueryData(CART_QUERY_KEY, context.previousCart);
+        }
         return;
       }
 
-      if (context?.skippedOptimistic) {
-        // For bundles, just return error — no toast
-        return;
-      }
-      if (context?.previousCart) {
+      // التراجع عن التحديث المتفائل في حالة أي خطأ آخر
+      if (!context?.skippedOptimistic && context?.previousCart) {
         queryClient.setQueryData(CART_QUERY_KEY, context.previousCart);
       }
-      // ❌ REMOVED toast.error from here
-      return;
+
+      toast.error(message || "Failed to add item to cart");
     },
-    onSuccess: () => {
-      // ❌ REMOVED toast.success from here
-      return;
+    onSuccess: (data, _variables, context) => {
+      // التحقق من رسالة "Unauthenticated" حتى لو كان الـ status 200
+      const message = data?.message || data?.result?.message;
+      
+      if (message === "Unauthenticated.") {
+        showAuthToast();
+        // التراجع عن التحديث المتفائل
+        if (context?.previousCart) {
+          queryClient.setQueryData(CART_QUERY_KEY, context.previousCart);
+        }
+        return; // منع ظهور رسالة النجاح
+      }
+
+      // فقط إذا نجحت العملية نظهر رسالة النجاح
+      toast.success("Item added to cart successfully!");
     },
-    onSettled: async () => {
-      await queryClient.invalidateQueries({ queryKey: CART_QUERY_KEY });
+    onSettled: async (_data, _error, _variables, context) => {
+      // فقط نقوم بتحديث الكوي إذا لم نكن قد تخطينا التحديث المتفائل
+      if (!context?.skippedOptimistic) {
+        await queryClient.invalidateQueries({ queryKey: CART_QUERY_KEY });
+      }
     },
   });
 }
-
 export function useUpdateCartItemQuantity() {
   const queryClient = useQueryClient();
 

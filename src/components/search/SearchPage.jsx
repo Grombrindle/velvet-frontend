@@ -22,6 +22,7 @@ export default function SearchPage({ currentGender }) {
   const [perPage, setPerPage] = useState(12);
   const [page, setPage] = useState(1);
   const [submittedFilters, setSubmittedFilters] = useState(null);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
 
   const loc = useLocale();
   const t = useTranslations("searchPage");
@@ -57,49 +58,86 @@ export default function SearchPage({ currentGender }) {
     item.id.startsWith("spec_"),
   );
 
+  // ⭐ NEW: Auto-submit initial search with ONLY gender
+  useEffect(() => {
+    if (currentGender && isInitialLoad) {
+      // Set default price range values in the UI
+      if (priceFilter) {
+        setPriceMin(String(Math.floor(priceFilter.range.min)));
+        setPriceMax(String(Math.ceil(priceFilter.range.max)));
+      }
+      
+      // ⭐ CRITICAL: Submit with NO filters, just gender
+      setSubmittedFilters({
+        searchQuery: "",
+        selectedCategories: [],
+        selectedColors: [],
+        selectedSizes: [],
+        selectedSpecs: [],
+        priceMin: "",
+        priceMax: "",
+        inStock: false,
+        includeOption: "",
+        isInitialLoad: true, // Flag for initial load
+      });
+      setIsInitialLoad(false);
+    }
+  }, [currentGender, priceFilter]);
+
   const params = useMemo(() => {
     if (!submittedFilters) return null;
 
-    const p = {
-      include: submittedFilters.includeOption || "minimal",
-      page,
-      per_page: perPage,
-      sort_by: sortBy,
-      ...(submittedFilters.inStock ? { in_stock: 1 } : {}),
-    };
+    const p = {};
 
-    if (submittedFilters.searchQuery)
-      p.search_query = submittedFilters.searchQuery;
-    if (currentGender) p["gender[]"] = currentGender;
-    
-    // FIXED: Send categories as separate parameters
-    if (submittedFilters.selectedCategories.length) {
-      submittedFilters.selectedCategories.forEach((categoryId) => {
-        p["categories[]"] = p["categories[]"] || [];
-        p["categories[]"].push(categoryId);
-      });
+    // ⭐ CRITICAL: Only add parameters if this is NOT initial load
+    if (!submittedFilters.isInitialLoad) {
+      // Add pagination and sorting for non-initial loads
+      p.include = submittedFilters.includeOption || "variants";
+      p.page = page;
+      p.per_page = perPage;
+      p.sort_by = sortBy;
+      
+      if (submittedFilters.inStock) {
+        p.in_stock = 1;
+      }
+      
+      if (submittedFilters.searchQuery) {
+        p.search_query = submittedFilters.searchQuery;
+      }
+      
+      if (submittedFilters.selectedCategories && submittedFilters.selectedCategories.length > 0) {
+        submittedFilters.selectedCategories.forEach((categoryId) => {
+          p["categories[]"] = p["categories[]"] || [];
+          p["categories[]"].push(categoryId);
+        });
+      }
+      
+      if (submittedFilters.selectedColors && submittedFilters.selectedColors.length > 0) {
+        submittedFilters.selectedColors.forEach((colorId) => {
+          p["colors[]"] = p["colors[]"] || [];
+          p["colors[]"].push(colorId);
+        });
+      }
+      
+      if (submittedFilters.selectedSizes && submittedFilters.selectedSizes.length > 0) {
+        submittedFilters.selectedSizes.forEach((sizeId) => {
+          p["sizes[]"] = p["sizes[]"] || [];
+          p["sizes[]"].push(sizeId);
+        });
+      }
+      
+      if (submittedFilters.priceMin && submittedFilters.priceMin !== "") {
+        p.price_range_min = Number(submittedFilters.priceMin);
+      }
+      if (submittedFilters.priceMax && submittedFilters.priceMax !== "") {
+        p.price_range_max = Number(submittedFilters.priceMax);
+      }
     }
-    
-    // FIXED: Send colors as separate parameters
-    if (submittedFilters.selectedColors.length) {
-      submittedFilters.selectedColors.forEach((colorId) => {
-        p["colors[]"] = p["colors[]"] || [];
-        p["colors[]"].push(colorId);
-      });
+
+    // ⭐ ALWAYS add gender to all requests
+    if (currentGender) {
+      p["gender[]"] = currentGender;
     }
-    
-    // FIXED: Send sizes as separate parameters
-    if (submittedFilters.selectedSizes.length) {
-      submittedFilters.selectedSizes.forEach((sizeId) => {
-        p["sizes[]"] = p["sizes[]"] || [];
-        p["sizes[]"].push(sizeId);
-      });
-    }
-    
-    if (submittedFilters.priceMin !== "")
-      p.price_range_min = Number(submittedFilters.priceMin);
-    if (submittedFilters.priceMax !== "")
-      p.price_range_max = Number(submittedFilters.priceMax);
 
     return p;
   }, [submittedFilters, currentGender, sortBy, page, perPage]);
@@ -126,16 +164,27 @@ export default function SearchPage({ currentGender }) {
     setSelectedColors([]);
     setSelectedSizes([]);
     setSelectedSpecs([]);
-    setPriceMin(priceFilter ? String(Math.floor(priceFilter.range.min)) : "");
-    setPriceMax(priceFilter ? String(Math.ceil(priceFilter.range.max)) : "");
+    setPriceMin("");
+    setPriceMax("");
     setInStock(false);
-    setIncludeOption("minimal");
+    setIncludeOption("variants");
     setSearchQuery("");
     setPage(1);
-    setSubmittedFilters(null);
+    // ⭐ Reset to show all - only gender
+    setSubmittedFilters({
+      searchQuery: "",
+      selectedCategories: [],
+      selectedColors: [],
+      selectedSizes: [],
+      selectedSpecs: [],
+      priceMin: "",
+      priceMax: "",
+      inStock: false,
+      includeOption: "",
+      isInitialLoad: true, // ⭐ This will trigger the clean API call
+    });
   };
 
-  // Handle search submission
   const handleSearch = () => {
     setPage(1);
     setSubmittedFilters({
@@ -144,10 +193,11 @@ export default function SearchPage({ currentGender }) {
       selectedColors,
       selectedSizes,
       selectedSpecs,
-      priceMin,
-      priceMax,
+      priceMin: priceMin || "",
+      priceMax: priceMax || "",
       inStock,
-      includeOption,
+      includeOption: includeOption || "variants",
+      isInitialLoad: false, // ⭐ NOT initial load - include all params
     });
   };
 
@@ -239,7 +289,12 @@ export default function SearchPage({ currentGender }) {
               <div className="flex flex-wrap items-center gap-3">
                 <select
                   value={includeOption}
-                  onChange={(e) => setIncludeOption(e.target.value)}
+                  onChange={(e) => {
+                    setIncludeOption(e.target.value);
+                    if (submittedFilters && !submittedFilters.isInitialLoad) {
+                      handleSearch();
+                    }
+                  }}
                   className="rounded-3xl border border-slate-200 bg-white px-4 py-2 text-sm"
                 >
                   <option value="variants">{t("includeVariants")}</option>
@@ -247,7 +302,12 @@ export default function SearchPage({ currentGender }) {
                 </select>
                 <select
                   value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value)}
+                  onChange={(e) => {
+                    setSortBy(e.target.value);
+                    if (submittedFilters && !submittedFilters.isInitialLoad) {
+                      handleSearch();
+                    }
+                  }}
                   className="rounded-3xl border border-slate-200 bg-white px-4 py-2 text-sm"
                 >
                   <option value="price_low">{t("sortPriceLow")}</option>
@@ -258,7 +318,12 @@ export default function SearchPage({ currentGender }) {
                 </select>
                 <select
                   value={perPage}
-                  onChange={(e) => setPerPage(Number(e.target.value))}
+                  onChange={(e) => {
+                    setPerPage(Number(e.target.value));
+                    if (submittedFilters && !submittedFilters.isInitialLoad) {
+                      handleSearch();
+                    }
+                  }}
                   className="rounded-3xl border border-slate-200 bg-white px-4 py-2 text-sm"
                 >
                   <option value={6}>{t("perPage", { count: 6 })}</option>
@@ -292,7 +357,7 @@ export default function SearchPage({ currentGender }) {
             </div>
           )}
 
-          {hasFilters && (
+          {hasFilters && !submittedFilters?.isInitialLoad && products.length > 0 && (
             <div className="flex items-center justify-between gap-4 rounded-3xl border border-slate-200 bg-white p-4 text-sm text-slate-600">
               <span>{t("pageLabel", { page })}</span>
               <div className="flex items-center gap-2">

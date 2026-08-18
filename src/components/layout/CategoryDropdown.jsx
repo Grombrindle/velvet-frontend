@@ -25,18 +25,30 @@ const CategoryDropdown = ({
   const { data, isLoading } = useQuery({
     queryKey: ["categoryData", hoveredCategory],
     queryFn: () => apiGet(`/web/categories-products/${hoveredCategory}`),
-    enabled: !!hoveredCategory, // لا يتم التفعيل إلا إذا كان هناك Category محدد
-    staleTime: 1000 * 60 * 5, // كاش لمدة 5 دقائق
+    enabled: !!hoveredCategory,
+    staleTime: 1000 * 60 * 5,
   });
 
   const categories = data?.result?.categories || [];
 
-  // تحديد الـ SubCategory المختار (افتراضياً أول واحد إذا لم يتم التحويم)
+  // Set default subcategory when data loads
+  useEffect(() => {
+    if (categories.length > 0 && !hoveredSubCategory) {
+      setHoveredSubCategory(categories[0].id);
+    }
+  }, [categories, hoveredSubCategory]);
+
+  // Reset hoveredSubCategory when hoveredCategory changes
+  useEffect(() => {
+    setHoveredSubCategory(null);
+  }, [hoveredCategory]);
+
+  // Determine selected subcategory
   const selectedSubCategory = hoveredSubCategory
     ? categories.find((cat) => cat.id === hoveredSubCategory)
-    : categories;
+    : categories[0]; // Fallback to first category if none selected
 
-  // تجهيز الصور للعرض (Latest و Trending)
+  // Prepare display images
   const displayImages = [];
   if (selectedSubCategory?.latest_product) {
     displayImages.push({
@@ -113,7 +125,7 @@ const CategoryDropdown = ({
 
                     {/* Second Column: Products Display */}
                     <div className="col-span-5">
-                      {selectedSubCategory.name && (
+                      {selectedSubCategory?.name && (
                         <div>
                           <h3 className="text-[0.9rem] font-bold mb-4 p-1 border-b w-fit">
                             {currentLocale === "ar"

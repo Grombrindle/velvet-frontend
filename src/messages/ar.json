@@ -479,7 +479,9 @@
         "remove_from_favorites": "إزالة من المفضلة",
         "payment_method": "طريقة الدفع",
         "no_payment_methods": "لا توجد طرق دفع متاحة",
-        "adding_to_cart": "جاري الإضافة إلى السلة..."
+        "adding_to_cart": "جاري الإضافة إلى السلة...",
+        "please_login_to_favorite": "يرجى تسجيل الدخول لإضافة المنتجات إلى المفضلة",
+        "please_login_to_add_cart": "يرجى تسجيل الدخول لإضافة المنتجات إلى السلة"
     },
     "sort_by": {
         "newest": "الأحدث",
