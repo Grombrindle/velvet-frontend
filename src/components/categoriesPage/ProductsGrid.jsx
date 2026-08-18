@@ -9,15 +9,14 @@ function ProductsGrid({ clothingItems }) {
   const viewMode = useCategoryPageStore((s) => s.viewMode);
 
   return (
-    <div className="overflow-hidden w-full">
+    <div className="w-full overflow-hidden">
       <motion.div
-        className={`grid w-full transition-all duration-500 ease-in-out ${
-          isFilterOpen ? "translate-x-[0%]" : ""
-        } ${getGridClasses(viewMode)}`}
+        className={`grid w-full ${getGridClasses(viewMode, isFilterOpen)}`}
+        layout
+        transition={{ duration: 0.3 }}
       >
         <AnimatePresence>
           {clothingItems.map((item, index) => {
-            // Fallback to a safe unique composite key if item.id is missing
             const uniqueKey = item.id ?? `product-${index}-${item.slug || 'item'}`;
             const isFull = viewMode === 1 && index % 3 === 0;
             
@@ -37,7 +36,7 @@ function ProductsGrid({ clothingItems }) {
                   <ProductCard
                     item={item}
                     layout={isFull ? "featured" : "standard"}
-                    isMini={viewMode === 4}
+                    viewMode={viewMode} // Pass viewMode to ProductCard
                   />
                 </motion.div>
               </Suspense>
@@ -49,11 +48,26 @@ function ProductsGrid({ clothingItems }) {
   );
 }
 
-function getGridClasses(viewMode) {
+function getGridClasses(viewMode, isFilterOpen) {
   if (viewMode === 1) return "md:grid-cols-2 grid-cols-1 place-items-center gap-y-20";
   if (viewMode === 2) return "md:grid-cols-2 grid-cols-1 place-items-center px-52 gap-y-16";
-  if (viewMode === 3) return "md:grid-cols-4 grid-cols-1 place-items-center px-1 gap-x-4 gap-y-10";
-  if (viewMode === 4) return "md:grid-cols-8 grid-cols-1 gap-x-4 gap-y-[2rem] w-full"; 
+  
+  if (viewMode === 3) {
+    if (isFilterOpen) {
+      return "md:grid-cols-2 lg:grid-cols-3 grid-cols-1 place-items-center px-4 gap-4 gap-y-10";
+    }
+    return "md:grid-cols-4 grid-cols-1 place-items-center px-4 gap-4 gap-y-10";
+  }
+  
+  if (viewMode === 4) {
+    if (isFilterOpen) {
+      return "md:grid-cols-4 lg:grid-cols-6 grid-cols-1 gap-x-4 gap-y-[2rem] w-full";
+    }
+    return "md:grid-cols-8 grid-cols-1 gap-x-4 gap-y-[2rem] w-full";
+  }
+  
+  // Default fallback
+  return "grid-cols-1 md:grid-cols-4 gap-4";
 }
 
 export default ProductsGrid;

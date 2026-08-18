@@ -110,7 +110,7 @@ function HeroSection({ gender }) {
                         {item.description}
                       </motion.p>
                     )}
-                    {item.button_text.trim() && (
+                    {/* {item.button_text.trim() && (
                       <motion.button
                         initial={{ y: 30, opacity: 0 }}
                         animate={{ y: 0, opacity: 1 }}
@@ -121,7 +121,7 @@ function HeroSection({ gender }) {
                       >
                         {item.button_text}
                       </motion.button>
-                    )}
+                    )} */}
                   </div>
                 )}
               </AnimatePresence>

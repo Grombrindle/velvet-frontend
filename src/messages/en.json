@@ -480,7 +480,9 @@
         "remove_from_favorites": "Remove from favorites",
         "payment_method": "Payment Method",
         "no_payment_methods": "No payment methods available",
-        "adding_to_cart": "Adding to cart..."
+        "adding_to_cart": "Adding to cart...",
+        "please_login_to_favorite": "Please login to add items to favorites",
+        "please_login_to_add_cart": "Please login to add items to cart"
     },
     "sort_by": {
         "newest": "Newest",

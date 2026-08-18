@@ -2,7 +2,7 @@ import { getToken } from "./auth";
 import { defaultLocale, getLocaleFromPathname } from "./locale";
 //const BASE_URL = "https://velvet.e-solutionsgroup.org/api";
 // Use environment variable for API URL, fallback to localhost for development
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://velvet.e-solutionsgroup.org/api";
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://app.velvet-leaf.com/api";
 
 function appendLangQuery(endpoint, lang) {
     if (!lang) return endpoint;

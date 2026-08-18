@@ -7,7 +7,7 @@
 //     remotePatterns: [
 //       {
 //         protocol: "https",
-//         hostname: "velvet.e-solutionsgroup.org",
+//         hostname: "vet.e-solutionsgroup.org",
 //         port: "",
 //         pathname: "/**",
 //       },

@@ -308,40 +308,46 @@ function NavBar() {
             )}
           </div>
 
-          <Link
-            href={`${localePrefix}/dashboard/favorite`}
-            className="hover:opacity-70 transition-opacity"
-          >
-            <Image
-              src="/images/heart.svg"
-              alt="Wishlist"
-              width={20}
-              height={20}
-            />
-          </Link>
+          {/* Wishlist Heart - Only show when authenticated */}
+          {isAuthenticated && (
+            <Link
+              href={`${localePrefix}/dashboard/favorite`}
+              className="hover:opacity-70 transition-opacity"
+            >
+              <Image
+                src="/images/heart.svg"
+                alt="Wishlist"
+                width={20}
+                height={20}
+              />
+            </Link>
+          )}
 
-          {/* Notifications Bell */}
-          <NotificationsBell />
+          {/* Notifications Bell - Only show when authenticated */}
+          {isAuthenticated && <NotificationsBell />}
 
-          <div
-            onMouseEnter={() => setCartOpen(true)}
-            onMouseLeave={() => setCartOpen(false)}
-            className="relative"
-          >
-            <Image
-              src="/images/bag.svg"
-              alt="Cart"
-              width={20}
-              height={20}
-              className="cursor-pointer hover:opacity-70 transition-opacity"
-            />
-            {cartCount > 0 && (
-              <span className="absolute -top-2 -right-2 min-w-5 h-5 px-1 rounded-full bg-black text-white text-[10px] font-bold flex items-center justify-center">
-                {cartCount}
-              </span>
-            )}
-            <CartMenu isOpen={cartOpen} onClose={() => setCartOpen(false)} />
-          </div>
+          {/* Cart - Only show when authenticated */}
+          {isAuthenticated && (
+            <div
+              onMouseEnter={() => setCartOpen(true)}
+              onMouseLeave={() => setCartOpen(false)}
+              className="relative"
+            >
+              <Image
+                src="/images/bag.svg"
+                alt="Cart"
+                width={20}
+                height={20}
+                className="cursor-pointer hover:opacity-70 transition-opacity"
+              />
+              {cartCount > 0 && (
+                <span className="absolute -top-2 -right-2 min-w-5 h-5 px-1 rounded-full bg-black text-white text-[10px] font-bold flex items-center justify-center">
+                  {cartCount}
+                </span>
+              )}
+              <CartMenu isOpen={cartOpen} onClose={() => setCartOpen(false)} />
+            </div>
+          )}
         </div>
       </div>
 
