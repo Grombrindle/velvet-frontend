@@ -54,7 +54,18 @@
         "clearFilters": "Clear filters",
         "pageLabel": "Page {page}",
         "previous": "Previous",
-        "next": "Next"
+        "next": "Next",
+        "includeDefault": "Include...",
+        "sortDefault": "Sort by...",
+        "perPageDefault": "Per page...",
+        "loadErrorTitle": "Failed to load filters",
+        "loadErrorDescription": "Something went wrong while loading filters. Please try again.",
+        "searchErrorTitle": "Search Error",
+        "searchErrorDescription": "Something went wrong while searching. Please try again.",
+        "noResultsTitle": "No products found",
+        "noResultsDescription": "We couldn't find any products matching your filters. Try adjusting your search criteria.",
+        "retry": "Try Again",
+        "clear_and_retry": "Clear & Retry"
     },
     "dashboardMenu": {
         "myProfile": "My Profile",
@@ -266,7 +277,9 @@
         "Dashboard": "Dashboard",
         "Wishlist": "Wishlist",
         "Cart": "Cart",
-        "Logout": "Logout"
+        "Logout": "Logout",
+        "Search": "Search",
+        "Profile": "Profile"
     },
     "cart": {
         "myBag": "My Bag",
@@ -482,7 +495,14 @@
         "no_payment_methods": "No payment methods available",
         "adding_to_cart": "Adding to cart...",
         "please_login_to_favorite": "Please login to add items to favorites",
-        "please_login_to_add_cart": "Please login to add items to cart"
+        "please_login_to_add_cart": "Please login to add items to cart",
+        "login_to_add_cart_title": "Login to Add to Cart",
+        "login_to_add_cart_message": "Please login to add items to your cart and continue shopping.",
+        "login_to_favorite_title": "Login to Save Favorites",
+        "login_to_favorite_message": "Please login to save items to your favorites list.",
+        "login_now": "Login Now",
+        "continue_browsing": "Continue Browsing",
+        "close": "Close"
     },
     "sort_by": {
         "newest": "Newest",

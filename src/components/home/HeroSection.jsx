@@ -45,7 +45,7 @@ function HeroSection({ gender }) {
 
   return (
     <div
-      className="relative w-full h-[22rem] md:h-[36rem] overflow-hidden bg-gray-100"
+      className="relative w-full h-[35rem] md:h-[36rem] overflow-hidden bg-gray-100"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >

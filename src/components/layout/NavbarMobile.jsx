@@ -175,7 +175,7 @@ function NavbarMobile() {
         {/* Top Action Icons */}
         <div className="py-4 px-6 border-b border-gray-200">
           <div className="flex gap-x-6">
-            {/* Search Icon */}
+            {/* Search Icon - Always visible */}
             <Link
               href={`${localePrefix}/${encodeURIComponent(activeGender)}/search`}
               onClick={handleNavigation}
@@ -190,10 +190,10 @@ function NavbarMobile() {
                   className="cursor-pointer"
                 />
               </div>
-              <span className="text-xs text-gray-600 mt-1">Search</span>
+              {/* <span className="text-xs text-gray-600 mt-1">{t("Search")}</span> */}
             </Link>
 
-            {/* Profile/Login */}
+            {/* Profile/Login - Always visible */}
             {!isAuthenticated ? (
               <Link
                 href={`${localePrefix}/login`}
@@ -209,7 +209,7 @@ function NavbarMobile() {
                     className="cursor-pointer"
                   />
                 </div>
-                <span className="text-xs text-gray-600 mt-1">Login</span>
+                <span className="text-xs text-gray-600 mt-1">{t("login")}</span>
               </Link>
             ) : (
               <div className="relative flex flex-col items-center">
@@ -222,7 +222,7 @@ function NavbarMobile() {
                       {user?.name?.charAt(0)?.toUpperCase() || "U"}
                     </span>
                   </div>
-                  <span className="text-xs text-gray-600 mt-1">Profile</span>
+                  {/* <span className="text-xs text-gray-600 mt-1">{t("Profile")}</span> */}
                 </button>
 
                 {userMenuOpen && (
@@ -253,14 +253,14 @@ function NavbarMobile() {
                         className="flex items-center gap-3 px-4 py-3 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
                       >
                         <IoIosSettings className="text-lg text-slate-400" />
-                        Dashboard
+                        {t("Dashboard")}
                       </Link>
                       <button
                         onClick={handleLogout}
                         className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-600 hover:bg-red-50 transition-colors border-t border-slate-50"
                       >
                         <IoIosLogOut className="text-lg" />
-                        Logout
+                        {t("Logout")}
                       </button>
                     </div>
                   </>
@@ -268,102 +268,127 @@ function NavbarMobile() {
               </div>
             )}
 
-            {/* Wishlist */}
-            <Link
-              href={`${localePrefix}/dashboard/favorite`}
-              onClick={handleNavigation}
-              className="flex flex-col items-center justify-center group"
-            >
-              <div className="w-10 h-10 rounded-full bg-gray-100 group-hover:bg-gray-200 transition-colors flex items-center justify-center">
-                <Image
-                  src="/images/heart.svg"
-                  alt="Wishlist"
-                  width={20}
-                  height={20}
-                  className="cursor-pointer"
-                />
-              </div>
-              <span className="text-xs text-gray-600 mt-1">Wishlist</span>
-            </Link>
-
-            {/* Notifications Bell */}
-            <NotificationsBell variant="mobile" />
-
-            {/* Cart */}
-            <Link
-              href={`${localePrefix}/cart`}
-              onClick={handleNavigation}
-              className="flex flex-col items-center justify-center group relative"
-            >
-              <div className="relative">
+            {/* Wishlist - Only show when authenticated */}
+            {isAuthenticated && (
+              <Link
+                href={`${localePrefix}/dashboard/favorite`}
+                onClick={handleNavigation}
+                className="flex flex-col items-center justify-center group"
+              >
                 <div className="w-10 h-10 rounded-full bg-gray-100 group-hover:bg-gray-200 transition-colors flex items-center justify-center">
                   <Image
-                    src="/images/bag.svg"
-                    alt="Cart"
+                    src="/images/heart.svg"
+                    alt="Wishlist"
                     width={20}
                     height={20}
                     className="cursor-pointer"
                   />
                 </div>
-                {cartCount > 0 && (
-                  <span className="absolute -top-1 -right-1 min-w-5 h-5 px-1 rounded-full bg-black text-white text-[10px] font-bold flex items-center justify-center">
-                    {cartCount}
-                  </span>
-                )}
-              </div>
-              <span className="text-xs text-gray-600 mt-1">Cart</span>
-            </Link>
+                {/* <span className="text-xs text-gray-600 mt-1">{t("Wishlist")}</span> */}
+              </Link>
+            )}
+
+            {/* Notifications Bell - Only show when authenticated */}
+            {isAuthenticated && <NotificationsBell variant="mobile" />}
+
+            {/* Cart - Only show when authenticated */}
+            {isAuthenticated && (
+              <Link
+                href={`${localePrefix}/cart`}
+                onClick={handleNavigation}
+                className="flex flex-col items-center justify-center group relative"
+              >
+                <div className="relative">
+                  <div className="w-10 h-10 rounded-full bg-gray-100 group-hover:bg-gray-200 transition-colors flex items-center justify-center">
+                    <Image
+                      src="/images/bag.svg"
+                      alt="Cart"
+                      width={20}
+                      height={20}
+                      className="cursor-pointer"
+                    />
+                  </div>
+                  {cartCount > 0 && (
+                    <span className="absolute -top-1 -right-1 min-w-5 h-5 px-1 rounded-full bg-black text-white text-[10px] font-bold flex items-center justify-center">
+                      {cartCount}
+                    </span>
+                  )}
+                </div>
+                {/* <span className="text-xs text-gray-600 mt-1">{t("Cart")}</span> */}
+              </Link>
+            )}
           </div>
         </div>
 
         {/* Navigation Items */}
         <div className="flex flex-col py-4">
-          {navItems.map((item) => (
-            <div key={item.id} className="border-b border-gray-200">
-              <div
-                className={`flex justify-between items-center py-4 px-6 text-[#000000] text-[1rem] cursor-pointer transition-colors hover:bg-gray-50 ${
-                  isCategoryBold(item.name?.en) ? "font-bold" : "font-light"
-                }`}
-                onClick={() => toggleDropdown(item.name?.en)}
-              >
-                <span>
-                  {currentLocale === "ar" ? item.name?.ar : item.name?.en}
-                </span>
-                {currentLocale === "en" ? (
-                  <MdArrowForwardIos
-                    className={`text-[#333333] text-[0.9rem] transition-transform duration-300 ${
-                      expandedSections[item.name?.en] ? "rotate-90" : "rotate-0"
-                    }`}
-                  />
-                ) : (
-                  <MdArrowBackIos
-                    className={`text-[#333333] text-[0.9rem] transition-transform duration-300 ${
-                      expandedSections[item.name?.en] ? "rotate-90" : "rotate-0"
-                    }`}
-                  />
+          {navItems.map((item) => {
+            const genderName = item.name?.en;
+            const displayName =
+              currentLocale === "ar" ? item.name?.ar : item.name?.en;
+            const isExpanded = !!expandedSections[genderName];
+
+            return (
+              <div key={item.id} className="border-b border-gray-200">
+                <div
+                  className={`flex justify-between items-center py-4 px-6 text-[#000000] text-[1rem] transition-colors hover:bg-gray-50 ${
+                    isCategoryBold(genderName) ? "font-bold" : "font-light"
+                  }`}
+                >
+                  {/* Clicking the gender name/text navigates directly to its page */}
+                  <Link
+                    href={`${localePrefix}/${encodeURIComponent(genderName)}`}
+                    onClick={handleNavigation}
+                    className="flex-1"
+                  >
+                    <span>{displayName}</span>
+                  </Link>
+
+                  {/* Clicking the arrow toggles the dropdown section without triggering navigation */}
+                  <div
+                    className="cursor-pointer p-2 flex items-center justify-center"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleDropdown(genderName);
+                    }}
+                  >
+                    {currentLocale === "en" ? (
+                      <MdArrowForwardIos
+                        className={`text-[#333333] text-[0.9rem] transition-transform duration-300 ${
+                          isExpanded ? "rotate-90" : "rotate-0"
+                        }`}
+                      />
+                    ) : (
+                      <MdArrowBackIos
+                        className={`text-[#333333] text-[0.9rem] transition-transform duration-300 ${
+                          isExpanded ? "rotate-90" : "rotate-0"
+                        }`}
+                      />
+                    )}
+                  </div>
+                </div>
+
+                {/* Mobile Category Dropdown */}
+                {isExpanded && (
+                  <div className="px-4 pb-4">
+                    <CategoryDropdownMobile
+                      isOpen={isExpanded}
+                      onClose={() => {
+                        setExpandedSections((prev) => ({
+                          ...prev,
+                          [genderName]: false,
+                        }));
+                        setSelectedMobileCategory(null);
+                      }}
+                      handleNavigation={handleNavigation}
+                      activeGender={genderName}
+                      localePrefix={localePrefix}
+                    />
+                  </div>
                 )}
               </div>
-
-              {/* Mobile Category Dropdown */}
-              {expandedSections[item.name?.en] && (
-                <div className="px-4 pb-4">
-                  <CategoryDropdownMobile
-                    isOpen={expandedSections[item.name?.en]}
-                    onClose={() => {
-                      setExpandedSections((prev) => ({
-                        ...prev,
-                        [item.name?.en]: false,
-                      }));
-                      setSelectedMobileCategory(null);
-                    }}
-                    handleNavigation={handleNavigation}
-                    activeGender={item.name?.en}
-                    localePrefix={localePrefix}
-                  />
-                </div>
-              )}
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </div>

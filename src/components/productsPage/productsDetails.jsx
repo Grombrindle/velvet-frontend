@@ -14,6 +14,7 @@ import { usePaymentMethods } from "./hook/usePaymentMethod";
 import { useDeliveryMethods } from "./hook/useDeliveryOption";
 import { useAuthStore } from "@/lib/store";
 import { useRouter } from "next/navigation";
+import LoginPopup from "../auth/loginPopup";
 
 const ProductsDetails = ({ productData: initialProductData }) => {
   const t = useTranslations("product");
@@ -22,6 +23,10 @@ const ProductsDetails = ({ productData: initialProductData }) => {
 
   // Get auth state
   const { isAuthenticated } = useAuthStore();
+
+  // State for login popup
+  const [showLoginPopup, setShowLoginPopup] = useState(false);
+  const [pendingAction, setPendingAction] = useState(null); // 'cart' or 'favorite'
 
   // Get product ID
   const productId = initialProductData?.result?.id || initialProductData?.id;
@@ -224,10 +229,8 @@ const ProductsDetails = ({ productData: initialProductData }) => {
   const handleToggleFavorite = () => {
     // Check if user is authenticated
     if (!isAuthenticated) {
-      toast.error(t("please_login_to_favorite") || "Please login to add items to favorites");
-      setTimeout(() => {
-        router.push(`/${locale}/login`);
-      }, 1500);
+      setPendingAction('favorite');
+      setShowLoginPopup(true);
       return;
     }
 
@@ -329,10 +332,8 @@ const ProductsDetails = ({ productData: initialProductData }) => {
   const handleAddToCart = () => {
     // Check if user is authenticated
     if (!isAuthenticated) {
-      toast.error(t("please_login_to_add_cart") || "Please login to add items to cart");
-      setTimeout(() => {
-        router.push(`/${locale}/login`);
-      }, 1500);
+      setPendingAction('cart');
+      setShowLoginPopup(true);
       return;
     }
 
@@ -465,6 +466,13 @@ const ProductsDetails = ({ productData: initialProductData }) => {
 
   return (
     <div className="lg:pl-[2.3rem] relative">
+      {/* Login Popup */}
+      <LoginPopup
+        isOpen={showLoginPopup}
+        onClose={() => setShowLoginPopup(false)}
+        action={pendingAction}
+      />
+
       <div className="flex flex-col lg:space-y-6 space-y-4 lg:mt-0 mt-[1rem]">
         <h1 className="font-bold text-[0.95rem] text-[#000000]">
           {product.name}

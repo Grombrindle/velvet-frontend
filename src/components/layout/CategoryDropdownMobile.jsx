@@ -1,7 +1,11 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
-import { IoIosArrowBack, IoIosArrowForward, IoIosArrowDown } from "react-icons/io";
+import {
+  IoIosArrowBack,
+  IoIosArrowForward,
+  IoIosArrowDown,
+} from "react-icons/io";
 import { motion, AnimatePresence } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import { apiGet } from "@/lib/api";
@@ -9,12 +13,12 @@ import { useLocale } from "next-intl";
 import Link from "next/link";
 import LottieAnimationPlayer from "@/loader/LottieAnimationPlayer";
 
-const CategoryDropdownMobile = ({ 
-  isOpen, 
-  onClose, 
+const CategoryDropdownMobile = ({
+  isOpen,
+  onClose,
   handleNavigation,
   activeGender,
-  localePrefix 
+  localePrefix,
 }) => {
   const [mobileExpandedSub, setMobileExpandedSub] = useState(null);
   const [hoveredProduct, setHoveredProduct] = useState(null);
@@ -48,10 +52,11 @@ const CategoryDropdownMobile = ({
     }
   }, [isOpen]);
 
-  const toggleMobileSubCategory = (categoryId) => {
+  const toggleMobileSubCategory = (categoryId, e) => {
+    e.stopPropagation(); // Prevent triggering parent Link click
     setMobileExpandedSub(mobileExpandedSub === categoryId ? null : categoryId);
     // Find and set selected category
-    const category = categories.find(cat => cat.id === categoryId);
+    const category = categories.find((cat) => cat.id === categoryId);
     if (category) {
       setSelectedCategory(category);
     }
@@ -100,31 +105,49 @@ const CategoryDropdownMobile = ({
             </div>
           ) : error ? (
             <div className="text-center py-4 text-red-500">
-              {currentLocale === "ar" ? "حدث خطأ في تحميل البيانات" : "Error loading categories"}
+              {currentLocale === "ar"
+                ? "حدث خطأ في تحميل البيانات"
+                : "Error loading categories"}
             </div>
           ) : categories.length === 0 ? (
             <div className="text-center py-4 text-gray-500">
-              {currentLocale === "ar" ? "لا توجد فئات" : "No categories available"}
+              {currentLocale === "ar"
+                ? "لا توجد فئات"
+                : "No categories available"}
             </div>
           ) : (
             <div className="space-y-2">
               {categories.map((category) => (
                 <div key={category.id} className="border-b border-gray-100">
                   {/* Category Header */}
-                  <div
-                    className="flex justify-between items-center py-3 px-2 cursor-pointer"
-                    onClick={() => toggleMobileSubCategory(category.id)}
-                  >
-                    <span className={`text-[#000000] font-medium ${
-                      selectedCategory?.id === category.id ? "font-bold" : ""
-                    }`}>
+                  <div className="flex justify-between items-center py-3 px-2">
+                    {/* Clicking text takes user to the category/gender page */}
+                    <Link
+                      href={`/${currentLocale}/${activeGender}/category/${category.id}`}
+                      onClick={() => {
+                        handleClose();
+                        if (handleNavigation) handleNavigation();
+                      }}
+                      className={`text-[#000000] font-medium flex-1 ${
+                        selectedCategory?.id === category.id ? "font-bold" : ""
+                      }`}
+                    >
                       {category.name}
-                    </span>
-                    {mobileExpandedSub === category.id ? (
-                      <IoIosArrowDown className="text-gray-600" />
-                    ) : (
-                      <IoIosArrowForward className="text-gray-600" />
-                    )}
+                    </Link>
+
+                    {/* Clicking arrow expands/collapses the sub-dropdown */}
+                    <div
+                      className="cursor-pointer p-2"
+                      onClick={(e) => toggleMobileSubCategory(category.id, e)}
+                    >
+                      {mobileExpandedSub === category.id ? (
+                        <IoIosArrowDown className="text-gray-600" />
+                      ) : currentLocale === "ar" ? (
+                        <IoIosArrowBack className="text-gray-600" />
+                      ) : (
+                        <IoIosArrowForward className="text-gray-600" />
+                      )}
+                    </div>
                   </div>
 
                   {/* Expanded Content */}
@@ -135,7 +158,7 @@ const CategoryDropdownMobile = ({
                         animate={{ height: "auto", opacity: 1 }}
                         exit={{ height: 0, opacity: 0 }}
                         transition={{ duration: 0.3 }}
-                        className="overflow-hidden px-2"
+                        className="overflow-hidden px-2 pb-2"
                       >
                         {/* Display Images (Latest & Trending) */}
                         {displayImages.length > 0 && (
@@ -168,7 +191,9 @@ const CategoryDropdownMobile = ({
                         {selectedSubCategory?.products?.length > 0 && (
                           <div className="mb-4">
                             <h3 className="text-[0.9rem] font-semibold mb-2">
-                              {currentLocale === "ar" ? "كل المنتجات" : "All Products"}
+                              {currentLocale === "ar"
+                                ? "كل المنتجات"
+                                : "All Products"}
                             </h3>
                             <div className="grid grid-cols-2 gap-2">
                               {selectedSubCategory.products.map((product) => (
@@ -180,14 +205,20 @@ const CategoryDropdownMobile = ({
                                     if (handleNavigation) handleNavigation();
                                   }}
                                 >
-                                  <div 
+                                  <div
                                     className="bg-gray-50 p-2 rounded-lg hover:bg-gray-100 transition-colors"
-                                    onMouseEnter={() => setHoveredProduct(product.id)}
+                                    onMouseEnter={() =>
+                                      setHoveredProduct(product.id)
+                                    }
                                     onMouseLeave={() => setHoveredProduct(null)}
                                   >
-                                    <p className={`text-[#000000] text-[0.75rem] ${
-                                      hoveredProduct === product.id ? "font-bold" : ""
-                                    }`}>
+                                    <p
+                                      className={`text-[#000000] text-[0.75rem] ${
+                                        hoveredProduct === product.id
+                                          ? "font-bold"
+                                          : ""
+                                      }`}
+                                    >
                                       {product.name}
                                     </p>
                                   </div>

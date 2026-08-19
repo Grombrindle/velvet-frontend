@@ -7,59 +7,71 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { useLocale } from "next-intl";
+import { useAuthStore } from "@/lib/store"; // Import your auth store
 
 export default function DashboardNav() {
   const pathname = usePathname();
   const localePrefix = getLocalePrefix(pathname);
   const currentLocale = useLocale();
   const isRTL = currentLocale === "ar";
+  
+  // Get authentication state
+  const { isAuthenticated } = useAuthStore();
 
   const [isOpen, setIsOpen] = useState(false);
   const [showLogoutPopup, setShowLogoutPopup] = useState(false);
   const t = useTranslations("dashboardMenu");
 
-  const items = [
+  // Define all items
+  const allItems = [
     {
       id: 1,
       image: "/images/profile.svg",
       desc: t("myProfile"),
       path: `${localePrefix}/dashboard/profile`,
+      requiresAuth: true, // Mark as requiring authentication
     },
     {
       id: 2,
       image: "/images/order.svg",
       desc: t("myOrders"),
       path: `${localePrefix}/dashboard/orders`,
+      requiresAuth: true,
     },
     {
       id: 3,
       image: "/images/address.svg",
       desc: t("myAddresses"),
       path: `${localePrefix}/dashboard/address`,
+      requiresAuth: true,
     },
     {
       id: 4,
       image: "/images/heart-dash.svg",
       desc: t("myFavorites"),
       path: `${localePrefix}/dashboard/favorite`,
+      requiresAuth: true,
     },
     {
       id: 6,
       image: "/images/email-dash.svg",
       desc: t("faq"),
       path: `${localePrefix}/dashboard/faq`,
+      requiresAuth: false, // Public
     },
     {
       id: 7,
       image: "/images/privacy.svg",
       desc: t("privacy policy"),
       path: `${localePrefix}/dashboard/privacy-policy`,
+      requiresAuth: false, // Public
     },
     {
       id: 8,
       image: "/images/currency.svg",
       desc: t("currency"),
       path: `${localePrefix}/dashboard/currency`,
+      requiresAuth: true, // Public
     },
     {
       id: 9,
@@ -67,8 +79,18 @@ export default function DashboardNav() {
       desc: t("Logout"),
       path: `${localePrefix}/dashboard/logout`,
       isLogout: true,
+      requiresAuth: true, // Only show when logged in
     },
   ];
+
+  // Filter items based on authentication
+  const items = allItems.filter(item => {
+    // If item requires auth and user is not authenticated, hide it
+    if (item.requiresAuth && !isAuthenticated) {
+      return false;
+    }
+    return true;
+  });
 
   const handleItemClick = (item) => {
     if (item.isLogout) {

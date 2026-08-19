@@ -6,7 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { apiGet } from "@/lib/api";
 import { useLocale, useTranslations } from "next-intl";
 import { getLocalePrefix } from "@/lib/locale";
-import Link from "next/link"; // Add this import
+import Link from "next/link";
 
 const TextLink = ({ children, href }) => (
   <Link
@@ -127,19 +127,6 @@ function Footer() {
     return flat;
   }, [categoriesData, genders, locale]);
 
-  const SOCIAL_MEDIA = [
-    {
-      icon: "/images/facebook.svg",
-      alt: "Facebook",
-      href: "https://facebook.com/velvet",
-    },
-    {
-      icon: "/images/instagram.svg",
-      alt: "Instagram",
-      href: "https://instagram.com/velvet",
-    },
-  ];
-
   const APP_STORES = [
     {
       src: "/images/app-store.png",
@@ -158,6 +145,23 @@ function Footer() {
   };
 
   const isLoading = gendersLoading || categoriesLoading;
+
+  // Define footer links with locale prefix
+  const footerLinks = [
+    { 
+      label: locale === "ar" ? "الأسئلة الشائعة" : "FAQ", 
+      href: `/${locale}/dashboard/faq` 
+    },
+    { 
+      label: locale === "ar" ? "سياسة الخصوصية" : "Privacy Policy", 
+      href: `/${locale}/dashboard/privacy-policy` 
+    },
+  ];
+
+  // Split categories into two halves
+  const halfCount = Math.ceil(allCategories.length / 2);
+  const firstHalfCategories = allCategories.slice(0, halfCount);
+  const secondHalfCategories = allCategories.slice(halfCount);
 
   return (
     <div>
@@ -184,8 +188,8 @@ function Footer() {
         <div className="container1 mx-auto">
           <div className="grid lg:grid-cols-12 lg:gap-y-0 gap-y-[2rem] grid-cols-1 gap-x-[1rem] mt-[1rem]">
             {/* Left Section - Genders */}
-            <div className="lg:col-span-5 col-span-1">
-              <div className="grid grid-cols-3 gap-4">
+            <div className="lg:col-span-6 col-span-1">
+              <div className="grid grid-cols-2 gap-4">
                 {isLoading ? (
                   <>
                     <div>
@@ -234,44 +238,70 @@ function Footer() {
               </div>
             </div>
 
-            {/* Middle Section - All Categories */}
-            <div className="lg:col-span-7 col-span-1">
-              <div className="grid lg:grid-cols-5 md:grid-cols-3 grid-cols-2 gap-1">
-                <SectionTitle>
-                  {locale === "ar" ? "جميع الفئات" : "All Categories"}
-                </SectionTitle>
-                {isLoading
-                  ? Array(10)
-                      .fill(0)
-                      .map((_, i) => (
-                        <div
-                          key={i}
-                          className="h-4 w-20 bg-gray-200 rounded animate-pulse"
-                        ></div>
-                      ))
-                  : allCategories.slice(0, 25).map((category) => (
-                      <CategoryItem
-                        key={category.uniqueKey}
-                        href={`/${locale}/${category.gender}/category/${category.id}`}
-                      >
-                        {category.name}
-                      </CategoryItem>
-                    ))}
+            {/* Middle Section - All Categories & FAQ/Privacy */}
+            <div className="lg:col-span-6 col-span-1">
+              <div className="grid lg:grid-cols-3 grid-cols-2 gap-4">
+                {/* Categories Column 1 - First Half */}
+                <div>
+                  <SectionTitle>
+                    {locale === "ar" ? "جميع الفئات" : "All Categories"}
+                  </SectionTitle>
+                  {isLoading
+                    ? Array(8)
+                        .fill(0)
+                        .map((_, i) => (
+                          <div
+                            key={i}
+                            className="h-4 w-20 bg-gray-200 rounded animate-pulse mb-2"
+                          ></div>
+                        ))
+                    : firstHalfCategories.map((category) => (
+                        <CategoryItem
+                          key={category.uniqueKey}
+                          href={`/${locale}/${category.gender}/category/${category.id}`}
+                        >
+                          {category.name}
+                        </CategoryItem>
+                      ))}
+                </div>
+
+                {/* Categories Column 2 - Second Half */}
+                <div>
+                  {isLoading
+                    ? Array(8)
+                        .fill(0)
+                        .map((_, i) => (
+                          <div
+                            key={i}
+                            className="h-4 w-20 bg-gray-200 rounded animate-pulse mb-2"
+                          ></div>
+                        ))
+                    : secondHalfCategories.map((category) => (
+                        <CategoryItem
+                          key={category.uniqueKey}
+                          href={`/${locale}/${category.gender}/category/${category.id}`}
+                        >
+                          {category.name}
+                        </CategoryItem>
+                      ))}
+                </div>
+
+                {/* Column 3 - FAQ & Privacy Policy */}
+                <div>
+                  <SectionTitle>
+                    {locale === "ar" ? "معلومات" : "Information"}
+                  </SectionTitle>
+                  {footerLinks.map((link, index) => (
+                    <TextLink key={index} href={link.href}>
+                      {link.label}
+                    </TextLink>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
 
           {/* Social Media Icons - Moved below */}
-          <div className="flex justify-center gap-x-5 mt-8">
-            {SOCIAL_MEDIA.map((social, index) => (
-              <SocialMediaIcon
-                key={index}
-                icon={social.icon}
-                alt={social.alt}
-                href={social.href}
-              />
-            ))}
-          </div>
         </div>
       </div>
 

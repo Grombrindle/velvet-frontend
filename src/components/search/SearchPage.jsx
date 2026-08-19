@@ -7,6 +7,9 @@ import { apiGet } from "@/lib/api";
 import SearchInput from "./SearchInput";
 import SearchResults from "./SearchResults";
 import SearchFilterSidebar from "./SearchFilterSidebar";
+import ErrorState from "../ui/errorMessage";
+import LottieAnimationPlayer from "@/loader/LottieAnimationPlayer";
+import MobileFilterSidebar from "./MobileSearchView";
 
 export default function SearchPage({ currentGender }) {
   const [searchQuery, setSearchQuery] = useState("");
@@ -17,12 +20,13 @@ export default function SearchPage({ currentGender }) {
   const [priceMin, setPriceMin] = useState("");
   const [priceMax, setPriceMax] = useState("");
   const [inStock, setInStock] = useState(false);
-  const [includeOption, setIncludeOption] = useState("variants");
-  const [sortBy, setSortBy] = useState("price_low");
-  const [perPage, setPerPage] = useState(12);
+  const [sortBy, setSortBy] = useState("");
+  const [perPage, setPerPage] = useState("");
   const [page, setPage] = useState(1);
   const [submittedFilters, setSubmittedFilters] = useState(null);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const [hasUserInteracted, setHasUserInteracted] = useState(false);
+  const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
 
   const loc = useLocale();
   const t = useTranslations("searchPage");
@@ -58,16 +62,9 @@ export default function SearchPage({ currentGender }) {
     item.id.startsWith("spec_"),
   );
 
-  // ⭐ NEW: Auto-submit initial search with ONLY gender
+  // Auto-submit initial search with ONLY gender
   useEffect(() => {
     if (currentGender && isInitialLoad) {
-      // Set default price range values in the UI
-      if (priceFilter) {
-        setPriceMin(String(Math.floor(priceFilter.range.min)));
-        setPriceMax(String(Math.ceil(priceFilter.range.max)));
-      }
-      
-      // ⭐ CRITICAL: Submit with NO filters, just gender
       setSubmittedFilters({
         searchQuery: "",
         selectedCategories: [],
@@ -77,67 +74,90 @@ export default function SearchPage({ currentGender }) {
         priceMin: "",
         priceMax: "",
         inStock: false,
-        includeOption: "",
-        isInitialLoad: true, // Flag for initial load
+        isInitialLoad: true,
       });
       setIsInitialLoad(false);
     }
-  }, [currentGender, priceFilter]);
+  }, [currentGender]);
+
+  // Auto-submit for FILTERS ONLY when user interacts
+  useEffect(() => {
+    if (isInitialLoad) return;
+    if (!submittedFilters) return;
+    if (!hasUserInteracted) return;
+
+    const timer = setTimeout(() => {
+      setPage(1);
+      setSubmittedFilters({
+        searchQuery,
+        selectedCategories,
+        selectedColors,
+        selectedSizes,
+        selectedSpecs,
+        priceMin: priceMin || "",
+        priceMax: priceMax || "",
+        inStock,
+        isInitialLoad: false,
+      });
+      if (isMobileFilterOpen) {
+        setIsMobileFilterOpen(false);
+        document.body.style.overflow = "unset";
+      }
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [
+    selectedCategories,
+    selectedColors,
+    selectedSizes,
+    selectedSpecs,
+    priceMin,
+    priceMax,
+    inStock,
+    hasUserInteracted,
+  ]);
 
   const params = useMemo(() => {
     if (!submittedFilters) return null;
 
     const p = {};
 
-    // ⭐ CRITICAL: Only add parameters if this is NOT initial load
     if (!submittedFilters.isInitialLoad) {
-      // Add pagination and sorting for non-initial loads
-      p.include = submittedFilters.includeOption || "variants";
-      p.page = page;
-      p.per_page = perPage;
-      p.sort_by = sortBy;
-      
-      if (submittedFilters.inStock) {
-        p.in_stock = 1;
-      }
-      
-      if (submittedFilters.searchQuery) {
+      if (page) p.page = page;
+      if (perPage) p.per_page = Number(perPage);
+      if (sortBy) p.sort_by = sortBy;
+      if (submittedFilters.inStock) p.in_stock = 1;
+      if (submittedFilters.searchQuery)
         p.search_query = submittedFilters.searchQuery;
-      }
-      
-      if (submittedFilters.selectedCategories && submittedFilters.selectedCategories.length > 0) {
+
+      if (submittedFilters.selectedCategories?.length > 0) {
         submittedFilters.selectedCategories.forEach((categoryId) => {
           p["categories[]"] = p["categories[]"] || [];
           p["categories[]"].push(categoryId);
         });
       }
-      
-      if (submittedFilters.selectedColors && submittedFilters.selectedColors.length > 0) {
+
+      if (submittedFilters.selectedColors?.length > 0) {
         submittedFilters.selectedColors.forEach((colorId) => {
           p["colors[]"] = p["colors[]"] || [];
           p["colors[]"].push(colorId);
         });
       }
-      
-      if (submittedFilters.selectedSizes && submittedFilters.selectedSizes.length > 0) {
+
+      if (submittedFilters.selectedSizes?.length > 0) {
         submittedFilters.selectedSizes.forEach((sizeId) => {
           p["sizes[]"] = p["sizes[]"] || [];
           p["sizes[]"].push(sizeId);
         });
       }
-      
-      if (submittedFilters.priceMin && submittedFilters.priceMin !== "") {
+
+      if (submittedFilters.priceMin !== "")
         p.price_range_min = Number(submittedFilters.priceMin);
-      }
-      if (submittedFilters.priceMax && submittedFilters.priceMax !== "") {
+      if (submittedFilters.priceMax !== "")
         p.price_range_max = Number(submittedFilters.priceMax);
-      }
     }
 
-    // ⭐ ALWAYS add gender to all requests
-    if (currentGender) {
-      p["gender[]"] = currentGender;
-    }
+    if (currentGender) p["gender[]"] = currentGender;
 
     return p;
   }, [submittedFilters, currentGender, sortBy, page, perPage]);
@@ -148,16 +168,28 @@ export default function SearchPage({ currentGender }) {
     data: searchData,
     isLoading: isLoadingResults,
     error: searchError,
+    refetch: refetchSearch,
   } = useQuery({
     queryKey: ["search-results", params],
     queryFn: () => apiGet("/filter/search", { params }),
     enabled: Boolean(currentGender && params),
     keepPreviousData: true,
     staleTime: 1000 * 10,
+    retry: 2,
   });
 
   const products = searchData?.result || [];
   const total = searchData?.result?.length ?? 0;
+
+  const isEmptyResults =
+    hasFilters &&
+    !submittedFilters?.isInitialLoad &&
+    products.length === 0 &&
+    !isLoadingResults;
+
+  const markUserInteracted = () => {
+    if (!hasUserInteracted) setHasUserInteracted(true);
+  };
 
   const resetFilters = () => {
     setSelectedCategories([]);
@@ -167,10 +199,14 @@ export default function SearchPage({ currentGender }) {
     setPriceMin("");
     setPriceMax("");
     setInStock(false);
-    setIncludeOption("variants");
     setSearchQuery("");
+    setSortBy("");
+    setPerPage("");
     setPage(1);
-    // ⭐ Reset to show all - only gender
+    setHasUserInteracted(false);
+    setIsMobileFilterOpen(false);
+    document.body.style.overflow = "unset";
+
     setSubmittedFilters({
       searchQuery: "",
       selectedCategories: [],
@@ -180,12 +216,12 @@ export default function SearchPage({ currentGender }) {
       priceMin: "",
       priceMax: "",
       inStock: false,
-      includeOption: "",
-      isInitialLoad: true, // ⭐ This will trigger the clean API call
+      isInitialLoad: true,
     });
   };
 
   const handleSearch = () => {
+    markUserInteracted();
     setPage(1);
     setSubmittedFilters({
       searchQuery,
@@ -196,120 +232,300 @@ export default function SearchPage({ currentGender }) {
       priceMin: priceMin || "",
       priceMax: priceMax || "",
       inStock,
-      includeOption: includeOption || "variants",
-      isInitialLoad: false, // ⭐ NOT initial load - include all params
+      isInitialLoad: false,
     });
+    if (isMobileFilterOpen) {
+      setIsMobileFilterOpen(false);
+      document.body.style.overflow = "unset";
+    }
   };
+
+  const handleSortChange = (e) => {
+    const newSort = e.target.value;
+    setSortBy(newSort);
+    markUserInteracted();
+    if (submittedFilters && !submittedFilters.isInitialLoad) {
+      setPage(1);
+      setSubmittedFilters({
+        searchQuery,
+        selectedCategories,
+        selectedColors,
+        selectedSizes,
+        selectedSpecs,
+        priceMin: priceMin || "",
+        priceMax: priceMax || "",
+        inStock,
+        isInitialLoad: false,
+      });
+    }
+    // Add this to close the mobile sidebar if it's open
+    if (isMobileFilterOpen) {
+      setIsMobileFilterOpen(false);
+      document.body.style.overflow = "unset";
+    }
+  
+  };
+
+  const handleToggleCategory = (id) => {
+    markUserInteracted();
+    setSelectedCategories((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id],
+    );
+  };
+
+  const handleToggleColor = (id) => {
+    markUserInteracted();
+    setSelectedColors((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id],
+    );
+  };
+
+  const handleToggleSize = (id) => {
+    markUserInteracted();
+    setSelectedSizes((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id],
+    );
+  };
+
+  const handleToggleSpec = (id) => {
+    markUserInteracted();
+    setSelectedSpecs((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id],
+    );
+  };
+
+  const handlePriceMinChange = (value) => {
+    markUserInteracted();
+    setPriceMin(value.replace(/[^0-9]/g, ""));
+  };
+
+  const handlePriceMaxChange = (value) => {
+    markUserInteracted();
+    setPriceMax(value.replace(/[^0-9]/g, ""));
+  };
+
+  const handleToggleInStock = () => {
+    markUserInteracted();
+    setInStock((prev) => !prev);
+  };
+
+  const handlePerPageChange = (e) => {
+    const newPerPage = e.target.value;
+    setPerPage(newPerPage);
+    markUserInteracted();
+    if (submittedFilters && !submittedFilters.isInitialLoad) {
+      setPage(1);
+      setSubmittedFilters({
+        searchQuery,
+        selectedCategories,
+        selectedColors,
+        selectedSizes,
+        selectedSpecs,
+        priceMin: priceMin || "",
+        priceMax: priceMax || "",
+        inStock,
+        isInitialLoad: false,
+      });
+    }
+    // Add this to close the mobile sidebar if it's open
+    if (isMobileFilterOpen) {
+      setIsMobileFilterOpen(false);
+      document.body.style.overflow = "unset";
+    }
+  };
+
+  const handleRetry = () => {
+    if (searchError) refetchSearch();
+  };
+
+  const toggleMobileFilter = () => {
+    setIsMobileFilterOpen(!isMobileFilterOpen);
+    document.body.style.overflow = !isMobileFilterOpen ? "hidden" : "unset";
+  };
+
+  useEffect(() => {
+    const handleEscape = (e) => {
+      if (e.key === "Escape" && isMobileFilterOpen) {
+        setIsMobileFilterOpen(false);
+        document.body.style.overflow = "unset";
+      }
+    };
+    window.addEventListener("keydown", handleEscape);
+    return () => window.removeEventListener("keydown", handleEscape);
+  }, [isMobileFilterOpen]);
+
+  if (isLoadingOptions || isLoadingCategories) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh] w-full px-4">
+        <div className="w-32 h-32 lg:w-48 lg:h-48">
+          <LottieAnimationPlayer />
+        </div>
+      </div>
+    );
+  }
+
+  if (optionsError || categoriesError) {
+    return (
+      <ErrorState
+        title={t("loadErrorTitle") || "Failed to load filters"}
+        description={
+          t("loadErrorDescription") ||
+          "Something went wrong while loading filters. Please try again."
+        }
+        onRetry={() => window.location.reload()}
+        retryText={t("retry") || "Try Again"}
+      />
+    );
+  }
 
   return (
     <div className="container1 mx-auto px-4 py-8">
-      <div className="mb-6 rounded-3xl border border-slate-200 bg-white p-6 lg:mt-0 mt-[5rem] shadow-sm">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+      {/* Called Mobile Component */}
+      <MobileFilterSidebar
+        isOpen={isMobileFilterOpen}
+        onClose={() => {
+          setIsMobileFilterOpen(false);
+          document.body.style.overflow = "unset";
+        }}
+        t={t}
+        sortBy={sortBy}
+        perPage={perPage}
+        handleSortChange={handleSortChange}
+        handlePerPageChange={handlePerPageChange}
+        gender={currentGender}
+        categories={categories}
+        colors={colorFilter?.options || []}
+        sizes={sizeFilter?.options || []}
+        specs={specFilters}
+        priceRange={priceFilter?.range}
+        selectedCategories={selectedCategories}
+        onToggleCategory={handleToggleCategory}
+        selectedColors={selectedColors}
+        onToggleColor={handleToggleColor}
+        selectedSizes={selectedSizes}
+        onToggleSize={handleToggleSize}
+        selectedSpecs={selectedSpecs}
+        onToggleSpec={handleToggleSpec}
+        priceMin={priceMin}
+        priceMax={priceMax}
+        onChangePriceMin={handlePriceMinChange}
+        onChangePriceMax={handlePriceMaxChange}
+        inStock={inStock}
+        onToggleInStock={handleToggleInStock}
+        onResetFilters={() => {
+          resetFilters();
+          setIsMobileFilterOpen(false);
+          document.body.style.overflow = "unset";
+        }}
+        onApplyFilters={() => {
+          setPage(1);
+          setSubmittedFilters({
+            searchQuery,
+            selectedCategories,
+            selectedColors,
+            selectedSizes,
+            selectedSpecs,
+            priceMin: priceMin || "",
+            priceMax: priceMax || "",
+            inStock,
+            isInitialLoad: false,
+          });
+          setIsMobileFilterOpen(false);
+          document.body.style.overflow = "unset";
+        }}
+      />
+
+      {/* Header Section */}
+      <div className="mb-6 rounded-3xl border border-slate-200 bg-white p-4 lg:p-6 lg:mt-0 mt-[3rem] shadow-sm">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <h1 className="text-3xl font-semibold text-slate-900">
+            <h1 className="text-md lg:text-3xl font-semibold text-slate-900">
               {t("title")}
             </h1>
-            <p className="mt-2 max-w-2xl text-sm text-slate-500">
+            <p className="hidden lg:block mt-2 max-w-2xl text-sm text-slate-500">
               {t("description")}
             </p>
           </div>
-          <div className="w-full max-w-lg">
-            <SearchInput
-              value={searchQuery}
-              onChange={setSearchQuery}
-              onSubmit={handleSearch}
-              placeholder={t("searchPlaceholder")}
-            />
+
+          <div className="flex items-center gap-2 lg:gap-3 w-full lg:max-w-lg">
+            <div className="flex-1">
+              <SearchInput
+                value={searchQuery}
+                onChange={(value) => setSearchQuery(value)}
+                onSubmit={handleSearch}
+                placeholder={t("searchPlaceholder")}
+                className="text-sm lg:text-base"
+              />
+            </div>
+            <button
+              onClick={toggleMobileFilter}
+              className="lg:hidden p-2.5 lg:p-3 border border-slate-200 rounded-full hover:bg-slate-50 transition flex-shrink-0"
+              aria-label="Toggle filters"
+            >
+              <svg
+                className="w-4 h-4 lg:w-5 lg:h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
+                />
+              </svg>
+            </button>
           </div>
         </div>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[25rem_minmax(0,1fr)]">
-        <SearchFilterSidebar
-          gender={currentGender}
-          categories={categories}
-          colors={colorFilter?.options || []}
-          sizes={sizeFilter?.options || []}
-          specs={specFilters}
-          priceRange={priceFilter?.range}
-          selectedCategories={selectedCategories}
-          onToggleCategory={(id) =>
-            setSelectedCategories((prev) =>
-              prev.includes(id)
-                ? prev.filter((item) => item !== id)
-                : [...prev, id],
-            )
-          }
-          selectedColors={selectedColors}
-          onToggleColor={(id) =>
-            setSelectedColors((prev) =>
-              prev.includes(id)
-                ? prev.filter((item) => item !== id)
-                : [...prev, id],
-            )
-          }
-          selectedSizes={selectedSizes}
-          onToggleSize={(id) =>
-            setSelectedSizes((prev) =>
-              prev.includes(id)
-                ? prev.filter((item) => item !== id)
-                : [...prev, id],
-            )
-          }
-          selectedSpecs={selectedSpecs}
-          onToggleSpec={(id) =>
-            setSelectedSpecs((prev) =>
-              prev.includes(id)
-                ? prev.filter((item) => item !== id)
-                : [...prev, id],
-            )
-          }
-          priceMin={priceMin}
-          priceMax={priceMax}
-          onChangePriceMin={(value) =>
-            setPriceMin(value.replace(/[^0-9]/g, ""))
-          }
-          onChangePriceMax={(value) =>
-            setPriceMax(value.replace(/[^0-9]/g, ""))
-          }
-          inStock={inStock}
-          onToggleInStock={() => setInStock((prev) => !prev)}
-          onResetFilters={resetFilters}
-        />
+        {/* Desktop Sidebar */}
+        <div className="hidden lg:block">
+          <SearchFilterSidebar
+            gender={currentGender}
+            categories={categories}
+            colors={colorFilter?.options || []}
+            sizes={sizeFilter?.options || []}
+            specs={specFilters}
+            priceRange={priceFilter?.range}
+            selectedCategories={selectedCategories}
+            onToggleCategory={handleToggleCategory}
+            selectedColors={selectedColors}
+            onToggleColor={handleToggleColor}
+            selectedSizes={selectedSizes}
+            onToggleSize={handleToggleSize}
+            selectedSpecs={selectedSpecs}
+            onToggleSpec={handleToggleSpec}
+            priceMin={priceMin}
+            priceMax={priceMax}
+            onChangePriceMin={handlePriceMinChange}
+            onChangePriceMax={handlePriceMaxChange}
+            inStock={inStock}
+            onToggleInStock={handleToggleInStock}
+            onResetFilters={resetFilters}
+          />
+        </div>
 
         <main className="space-y-6">
-          <div className="rounded-3xl border border-slate-200 bg-slate-50 p-6">
-            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div className="rounded-3xl border border-slate-200 bg-slate-50 p-4 lg:p-6 p-2">
+            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
               <div>
-                <p className="text-sm text-slate-500">{t("resultsLabel")}</p>
-                <h2 className="text-xl font-semibold text-slate-900">
+                <p className="text-xs lg:text-sm text-slate-500">
+                  {t("resultsLabel")}
+                </p>
+                <h2 className="text-base lg:text-xl font-semibold text-slate-900">
                   {t("productsFound", { count: total })}
                 </h2>
               </div>
-              <div className="flex flex-wrap items-center gap-3">
-                <select
-                  value={includeOption}
-                  onChange={(e) => {
-                    setIncludeOption(e.target.value);
-                    if (submittedFilters && !submittedFilters.isInitialLoad) {
-                      handleSearch();
-                    }
-                  }}
-                  className="rounded-3xl border border-slate-200 bg-white px-4 py-2 text-sm"
-                >
-                  <option value="variants">{t("includeVariants")}</option>
-                  <option value="minimal">{t("includeMinimal")}</option>
-                </select>
+              <div className="hidden lg:flex flex-wrap items-center gap-3">
                 <select
                   value={sortBy}
-                  onChange={(e) => {
-                    setSortBy(e.target.value);
-                    if (submittedFilters && !submittedFilters.isInitialLoad) {
-                      handleSearch();
-                    }
-                  }}
+                  onChange={handleSortChange}
                   className="rounded-3xl border border-slate-200 bg-white px-4 py-2 text-sm"
                 >
+                  <option value="">{t("sortDefault") || "Sort by..."}</option>
                   <option value="price_low">{t("sortPriceLow")}</option>
                   <option value="price_high">{t("sortPriceHigh")}</option>
                   <option value="newest">{t("sortNewest")}</option>
@@ -318,14 +534,12 @@ export default function SearchPage({ currentGender }) {
                 </select>
                 <select
                   value={perPage}
-                  onChange={(e) => {
-                    setPerPage(Number(e.target.value));
-                    if (submittedFilters && !submittedFilters.isInitialLoad) {
-                      handleSearch();
-                    }
-                  }}
+                  onChange={handlePerPageChange}
                   className="rounded-3xl border border-slate-200 bg-white px-4 py-2 text-sm"
                 >
+                  <option value="">
+                    {t("perPageDefault") || "Per page..."}
+                  </option>
                   <option value={6}>{t("perPage", { count: 6 })}</option>
                   <option value={9}>{t("perPage", { count: 9 })}</option>
                   <option value={12}>{t("perPage", { count: 12 })}</option>
@@ -335,49 +549,93 @@ export default function SearchPage({ currentGender }) {
             </div>
           </div>
 
-          {isLoadingOptions || isLoadingCategories ? (
-            <div className="rounded-3xl border border-slate-200 bg-white p-6 text-center text-slate-500">
-              {t("loadingFilters")}
-            </div>
-          ) : optionsError || categoriesError ? (
-            <div className="rounded-3xl border border-red-200 bg-red-50 p-6 text-center text-red-700">
-              {t("loadError")}
-            </div>
-          ) : null}
-
-          {hasFilters ? (
-            <SearchResults
-              results={products}
-              isLoading={isLoadingResults}
-              error={searchError}
-            />
-          ) : (
-            <div className="rounded-3xl border border-slate-200 bg-white p-8 text-center text-slate-500">
-              {t("startMessage")}
-            </div>
-          )}
-
-          {hasFilters && !submittedFilters?.isInitialLoad && products.length > 0 && (
-            <div className="flex items-center justify-between gap-4 rounded-3xl border border-slate-200 bg-white p-4 text-sm text-slate-600">
-              <span>{t("pageLabel", { page })}</span>
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  disabled={page <= 1}
-                  onClick={() => setPage((value) => Math.max(1, value - 1))}
-                  className="rounded-3xl border border-slate-200 px-4 py-2 text-sm transition disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  {t("previous")}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setPage((value) => value + 1)}
-                  className="rounded-3xl border border-slate-200 px-4 py-2 text-sm transition"
-                >
-                  {t("next")}
-                </button>
+          {isLoadingResults ? (
+            <div className="rounded-3xl border border-slate-200 bg-white p-8 lg:p-12 text-center flex flex-col items-center justify-center">
+              {/* Responsive Wrapper for Lottie */}
+              <div className="w-32 h-32 lg:w-48 lg:h-48 flex items-center justify-center">
+                <LottieAnimationPlayer />
               </div>
+              <p className="mt-4 text-sm lg:text-base text-slate-500">
+                {t("loadingResults") || "Loading results..."}
+              </p>
             </div>
+          ) : searchError ? (
+            <ErrorState
+              title={t("searchErrorTitle") || "Search Error"}
+              description={
+                t("searchErrorDescription") ||
+                "Something went wrong while searching. Please try again."
+              }
+              onRetry={handleRetry}
+              retryText={t("retry") || "Try Again"}
+              secondaryAction={{
+                label: t("clear_and_retry") || "Clear & Retry",
+                onClick: () => {
+                  resetFilters();
+                  handleRetry();
+                },
+              }}
+            />
+          ) : isEmptyResults ? (
+            <div className="flex flex-col items-center justify-center py-16 px-4 text-center bg-white rounded-3xl border border-slate-200">
+              <div className="relative w-48 h-48 mb-6">
+                <img
+                  src="https://cdn-icons-png.flaticon.com/512/2748/2748558.png"
+                  alt="No results found"
+                  width={200}
+                  height={200}
+                  className="object-contain"
+                />
+              </div>
+              <h3 className="md:text-xl text-md font-semibold text-gray-800 mb-2">
+                {t("noResultsTitle") || "No products found"}
+              </h3>
+              <p className="text-gray-500 max-w-md">
+                {t("noResultsDescription") ||
+                  "We couldn't find any products matching your filters. Try adjusting your search criteria."}
+              </p>
+              <button
+                onClick={resetFilters}
+                className="mt-6 px-6 py-2.5 cursor-pointer bg-black text-white rounded-full hover:bg-gray-800 transition-colors"
+              >
+                {t("clearFilters") || "Clear Filters"}
+              </button>
+            </div>
+          ) : (
+            <>
+              <SearchResults
+                results={products}
+                isLoading={isLoadingResults}
+                error={searchError}
+              />
+
+              {hasFilters &&
+                !submittedFilters?.isInitialLoad &&
+                products.length > 0 && (
+                  <div className="flex items-center justify-between gap-4 rounded-3xl border border-slate-200 bg-white p-4 text-sm text-slate-600">
+                    <span>{t("pageLabel", { page })}</span>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        disabled={page <= 1}
+                        onClick={() =>
+                          setPage((value) => Math.max(1, value - 1))
+                        }
+                        className="rounded-3xl border border-slate-200 px-4 py-2 text-sm transition disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        {t("previous")}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setPage((value) => value + 1)}
+                        className="rounded-3xl border border-slate-200 px-4 py-2 text-sm transition"
+                      >
+                        {t("next")}
+                      </button>
+                    </div>
+                  </div>
+                )}
+            </>
           )}
         </main>
       </div>

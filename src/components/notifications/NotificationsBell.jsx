@@ -67,9 +67,9 @@ export default function NotificationsBell({ variant = "desktop" }) {
         )}
       </button>
 
-      {variant === "mobile" && (
+      {/* {variant === "mobile" && (
         <span className="text-xs text-gray-600 mt-1">Notifications</span>
-      )}
+      )} */}
 
       {open && (
         <>

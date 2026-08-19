@@ -54,7 +54,18 @@
         "clearFilters": "مسح الفلاتر",
         "pageLabel": "الصفحة {page}",
         "previous": "السابق",
-        "next": "التالي"
+        "next": "التالي",
+        "includeDefault": "تضمين...",
+        "sortDefault": "ترتيب حسب...",
+        "perPageDefault": "لكل صفحة...",
+        "loadErrorTitle": "فشل تحميل الفلاتر",
+        "loadErrorDescription": "حدث خطأ أثناء تحميل الفلاتر. يرجى المحاولة مرة أخرى.",
+        "searchErrorTitle": "خطأ في البحث",
+        "searchErrorDescription": "حدث خطأ أثناء البحث. يرجى المحاولة مرة أخرى.",
+        "noResultsTitle": "لا توجد منتجات",
+        "noResultsDescription": "لم نعثر على أي منتجات تطابق الفلاتر الخاصة بك. حاول تعديل معايير البحث.",
+        "retry": "حاول مرة أخرى",
+        "clear_and_retry": "مسح وإعادة المحاولة"
     },
     "dashboardMenu": {
         "myProfile": "ملفي الشخصي",
@@ -266,7 +277,9 @@
         "Dashboard": "لوحة التحكم",
         "Wishlist": "المفضلة",
         "Cart": "سلة التسوق",
-        "Logout": "تسجيل الخروج"
+        "Logout": "تسجيل الخروج",
+        "Search": "البحث",
+        "Profile": "حسابي"
     },
     "cart": {
         "myBag": "حقيبتي",
@@ -481,7 +494,15 @@
         "no_payment_methods": "لا توجد طرق دفع متاحة",
         "adding_to_cart": "جاري الإضافة إلى السلة...",
         "please_login_to_favorite": "يرجى تسجيل الدخول لإضافة المنتجات إلى المفضلة",
-        "please_login_to_add_cart": "يرجى تسجيل الدخول لإضافة المنتجات إلى السلة"
+        "please_login_to_add_cart": "يرجى تسجيل الدخول لإضافة المنتجات إلى السلة",
+        "login_to_add_cart_title": "تسجيل الدخول للإضافة إلى السلة",
+        "login_to_add_cart_message": "يرجى تسجيل الدخول لإضافة المنتجات إلى سلة التسوق الخاصة بك ومتابعة التسوق.",
+        "login_to_favorite_title": "تسجيل الدخول لحفظ المفضلة",
+        "login_to_favorite_message": "يرجى تسجيل الدخول لحفظ المنتجات في قائمة المفضلة الخاصة بك.",
+        "login_now": "تسجيل الدخول الآن",
+        "continue_browsing": "مواصلة التصفح",
+        "close": "إغلاق"
+
     },
     "sort_by": {
         "newest": "الأحدث",

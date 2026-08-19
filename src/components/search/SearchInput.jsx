@@ -22,11 +22,11 @@ export default function SearchInput({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder ?? t("searchPlaceholder")}
-        className="w-full px-4 py-3 border  focus:outline-none"
+        className="w-full md:text-md text-sm px-4 md:py-3 py-2 border  focus:outline-none"
       />
       <button
         type="submit"
-        className="bg-black text-white px-4 py-[0.91rem]  text-sm"
+        className="bg-black text-white px-4 md:py-[0.91rem] py-2.5  text-sm"
       >
         {t("searchButton")}
       </button>
