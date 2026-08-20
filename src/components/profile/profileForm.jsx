@@ -92,7 +92,7 @@ const ProfileForm = () => {
     }
 
     await updateProfile.mutateAsync(formattedData);
-    toast.success("Profile updated successfully");
+    toast.success(t("Profile updated successfully"));
     reset(data);
   } catch (err) {
     // Improved error handling

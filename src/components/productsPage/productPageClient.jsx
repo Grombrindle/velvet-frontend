@@ -51,7 +51,7 @@ export default function ProductPageClient() {
   }
   return (
     <div className="container3 mx-auto lg:mt-[2rem] mt-[5rem]">
-      <div className="grid lg:grid-cols-12">
+      <div className="grid lg:grid-cols-12 gap-[2rem]">
         <div className="lg:col-span-8 col-span-1">
           <ProductsGrid productData={productData} />
         </div>

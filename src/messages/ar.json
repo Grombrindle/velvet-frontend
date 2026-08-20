@@ -103,7 +103,8 @@
         "nothing_to_edit": "لا توجد تغييرات لتعديلها",
         "Loading_profile": "تحميل الملف الشخصي...",
         "CHANGE_MY_PASSWORD": "تغيير كلمه السر",
-        "CHANGING": "جاري التغيير..."
+        "CHANGING": "جاري التغيير...",
+        "Profile updated successfully": "تم تحديث ملفك الشخصي بنجاح"
     },
     "notifications": {
         "title": "الإشعارات",
@@ -529,6 +530,10 @@
         "Gender": "الجنس",
         "products": "المنتجات",
         "All Genders": "جميع الأجناس"
+    },
+    "emptyProduct": {
+        "no_product": "لا توجد منتجات متاحة",
+        "product_not_found": "لا يمكننا العثور على أي منتجات في هذه الفئة في الوقت الحالي. يُرجى العودة لاحقاً أو استكشاف فئات أخرى."
     }
 
 }

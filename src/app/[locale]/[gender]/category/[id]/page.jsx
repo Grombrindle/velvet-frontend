@@ -2,6 +2,7 @@ import React from "react";
 import CategoryContent from "@/components/categoriesPage/CategoryContent";
 import { apiGet } from "@/lib/api";
 import ScrollToTop from "@/components/scrollToTop/ScrollToTop";
+import { getTranslations } from 'next-intl/server'; // ✅ ADD THIS
 
 export const dynamic = "force-dynamic";
 
@@ -44,13 +45,15 @@ export async function generateMetadata({ params }) {
   };
 }
 
-// inside your page component
 async function page({ params }) {
   const { id, gender, locale } = await params;
+  
+  const t = await getTranslations({ locale, namespace: 'emptyProduct' }); // ✅ ADD THIS
 
   let totalProducts = 0;
   let categoryName = null;
   let genderOptions = [];
+  let products = [];
 
   try {
     const [productsRes, categoryRes, genderRes] = await Promise.all([
@@ -64,26 +67,25 @@ async function page({ params }) {
       }).catch(() => ({ result: null })),
       apiGet(`/genders`, {
         params: { lang: locale || "en" },
-        next: { revalidate: 3600 }, // Cache for 1 hour
+        next: { revalidate: 3600 },
       }).catch(() => ({ result: [] })),
     ]);
 
+    products = productsRes?.result?.data || [];
     totalProducts = productsRes?.result?.meta?.total || 0;
     categoryName = categoryRes?.result;
     genderOptions = genderRes?.result || [];
 
-    // Console log the genderOptions
     console.log("Gender Options from API:", genderOptions);
     console.log("Gender Options length:", genderOptions.length);
-
-    // If you want to see the raw response
     console.log("Gender API Response:", genderRes);
   } catch (error) {
     console.error("Error fetching data:", error);
-    // Server-side fetch failed — client will fetch its own data
   }
 
   if (!gender) return null;
+
+  const hasProducts = products.length > 0;
 
   return (
     <>
@@ -93,13 +95,39 @@ async function page({ params }) {
           {categoryName?.name}
         </h1>
 
-        {/* Pass genderOptions to CategoryContent */}
-        <CategoryContent
-          categoryId={id}
-          gender={gender}
-          totalProducts={totalProducts}
-          genderOptions={genderOptions}
-        />
+        {hasProducts ? (
+          <CategoryContent
+            categoryId={id}
+            gender={gender}
+            totalProducts={totalProducts}
+            genderOptions={genderOptions}
+          />
+        ) : (
+          <div className="flex flex-col items-center justify-center min-h-[50vh] text-center">
+            <div className="mb-4">
+              <svg
+                className="w-16 h-16 text-gray-400 mx-auto"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
+                />
+              </svg>
+            </div>
+            <h2 className="text-2xl font-semibold text-gray-700 mb-2">
+              {t('no_product')} {/* ✅ CHANGED THIS */}
+            </h2>
+            <p className="text-gray-500 max-w-md">
+              {t('product_not_found')} {/* ✅ CHANGED THIS */}
+            </p>
+          </div>
+        )}
       </div>
     </>
   );

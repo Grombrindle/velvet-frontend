@@ -103,7 +103,8 @@
         "nothing_to_edit": "There's nothing to edit",
         "Loading_profile": "Loading profile...",
         "CHANGE_MY_PASSWORD": "CHANGE MY PASSWORD",
-        "CHANGING": "CHANGING..."
+        "CHANGING": "CHANGING...",
+        "Profile updated successfully": "Profile updated successfully"
     },
     "notifications": {
         "title": "Notifications",
@@ -529,5 +530,9 @@
         "Gender": "Gender",
         "products": "products",
         "All Genders": "All Genders"
+    },
+    "emptyProduct": {
+        "no_product": "No Products Available",
+        "product_not_found": "We couldn't find any products in this category at the moment. Please check back later or explore other categories"
     }
 }

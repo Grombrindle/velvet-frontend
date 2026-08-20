@@ -15,5 +15,6 @@ export const useProfileSchema = () => {
             .max(15, t("phone_max"))
             .regex(/^[0-9+\-\s]+$/, t("phone_invalid")),
         birthdate: z.string().min(1, t("birthdate_req")),
+        gender: z.string().min(1, t("gender_req")), // <-- Add this line
     });
 };

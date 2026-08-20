@@ -1,5 +1,5 @@
 "use client";
-import React, { Suspense, useState } from "react";
+import React, { Suspense, useState, useEffect } from "react";
 import Image from "next/image";
 import { IoIosLogOut, IoIosSettings } from "react-icons/io";
 import { FaUserCircle } from "react-icons/fa";
@@ -23,13 +23,24 @@ function NavBar() {
   const searchParams = useSearchParams();
   const localePrefix = getLocalePrefix(pathname);
 
-  const currentGender = getGenderFromPathname(pathname, searchParams);
+  const currentGenderFromPath = getGenderFromPathname(pathname, searchParams);
 
   const t = useTranslations("navbar");
 
   const [hoveredCategory, setHoveredCategory] = useState(null);
   const [cartOpen, setCartOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  
+  // State to hold fallback gender from localStorage when URL lacks gender (e.g. /product/99)
+  const [savedGender, setSavedGender] = useState(null);
+
+  // Load saved gender from localStorage on initial client load
+  useEffect(() => {
+    const lastGender = localStorage.getItem("activeGender");
+    if (lastGender) {
+      setSavedGender(lastGender);
+    }
+  }, []);
 
   const { user, isAuthenticated, clear } = useAuthStore();
 
@@ -58,6 +69,14 @@ function NavBar() {
     [gendersData],
   );
 
+  // Save gender to localStorage whenever path changes to a valid gender page
+  useEffect(() => {
+    if (currentGenderFromPath) {
+      localStorage.setItem("activeGender", currentGenderFromPath);
+      setSavedGender(currentGenderFromPath);
+    }
+  }, [currentGenderFromPath]);
+
   if (pathname?.startsWith(`${localePrefix}/dashboard`)) {
     return <NavbarDashboard />;
   }
@@ -66,7 +85,8 @@ function NavBar() {
     console.error(gendersError);
   }
 
-  const activeGender = currentGender || navItems[0]?.name.en;
+  // Determine active gender: Path -> LocalStorage -> Fallback to first nav item
+  const activeGender = currentGenderFromPath || savedGender || navItems[0]?.name.en;
 
   // Get user initials
   const getUserInitials = () => {
@@ -78,12 +98,41 @@ function NavBar() {
     return user.name.charAt(0).toUpperCase();
   };
 
+  // Helper function to navigate with gender change while staying on current page
+  const handleGenderNavigation = (newGender) => {
+    localStorage.setItem("activeGender", newGender);
+    setSavedGender(newGender);
+
+    // Get the path without the locale prefix
+    const pathWithoutLocale = pathname.replace(localePrefix, '');
+    
+    // Check if we're on a category page (pattern: /gender/category/[id])
+    const categoryMatch = pathWithoutLocale.match(/^\/([^/]+)\/category\/(.+)$/);
+    if (categoryMatch) {
+      const [, , categoryId] = categoryMatch;
+      router.push(`${localePrefix}/${newGender}/category/${categoryId}`);
+      return;
+    }
+
+    // Check if we're on a search page (pattern: /gender/search)
+    const searchMatch = pathWithoutLocale.match(/^\/([^/]+)\/search$/);
+    if (searchMatch) {
+      const searchParamsString = searchParams.toString();
+      const queryString = searchParamsString ? `?${searchParamsString}` : '';
+      router.push(`${localePrefix}/${newGender}/search${queryString}`);
+      return;
+    }
+
+    // Default: navigate to gender homepage
+    router.push(`${localePrefix}/${newGender}`);
+  };
+
   return (
     <header className="sticky bg-white top-0 z-50 h-fit w-full bg-transparent transition-colors duration-150 hover:bg-white shadow-sm lg:block hidden">
       <div className="flex relative py-3 justify-between navbar-container mx-auto items-center">
         <Link
           className=" flex items-center"
-          href={`${localePrefix}/${activeGender}`}
+          href={`${localePrefix}/${activeGender || ""}`}
         >
           <div className="flex items-center absolute ">
             <div className={`${currentLocale === "ar" ? "rotate-180" : ""}  `}>
@@ -127,17 +176,16 @@ function NavBar() {
                 onMouseEnter={() => setHoveredCategory(item.name.en)}
                 onMouseLeave={() => setHoveredCategory(null)}
               >
-                <Link href={`${localePrefix}/${item.name.en}`}>
-                  <p
-                    className={` text-sm rounded w-full px-8 cursor-pointer py-1 ${
-                      activeGender === item.name.en
-                        ? "font-bold bg-black text-white"
-                        : "font-light text-[#000000]"
-                    }`}
-                  >
-                    {currentLocale === "ar" ? item.name.ar : item.name.en}
-                  </p>
-                </Link>
+                <button
+                  onClick={() => handleGenderNavigation(item.name.en)}
+                  className={`text-sm rounded w-full px-8 cursor-pointer py-1 ${
+                    activeGender?.toLowerCase() === item.name.en.toLowerCase()
+                      ? "font-bold bg-black text-white"
+                      : "font-light text-[#000000]"
+                  }`}
+                >
+                  {currentLocale === "ar" ? item.name.ar : item.name.en}
+                </button>
               </div>
             ))}
           </div>
@@ -160,7 +208,7 @@ function NavBar() {
 
           {/* Search Icon */}
           <Link
-            href={`${localePrefix}/${encodeURIComponent(activeGender)}/search`}
+            href={`${localePrefix}/${encodeURIComponent(activeGender || "")}/search`}
             className="hover:opacity-70 transition-opacity"
           >
             <Image
@@ -180,19 +228,16 @@ function NavBar() {
               </Link>
             ) : (
               <div className="relative flex items-center gap-3">
-                {/* Welcome Message with Avatar */}
                 <div className="flex items-center gap-3 pr-3 border-r border-gray-200">
                   <div className="relative group">
                     <button
                       onClick={() => setUserMenuOpen(!userMenuOpen)}
                       className="flex items-center gap-3 hover:bg-gray-50 rounded-full pl-1 pr-3 py-1 transition-all duration-200"
                     >
-                      {/* Avatar */}
                       <div className="w-9 h-9 rounded-full bg-gradient-to-br from-gray-800 to-black flex items-center justify-center text-white font-bold text-sm ring-2 ring-offset-2 ring-gray-200 hover:ring-black transition-all duration-200">
                         {getUserInitials()}
                       </div>
 
-                      {/* User Info */}
                       <div className="flex flex-col items-start">
                         <span className="text-xs text-gray-500 font-medium">
                           {t("welcome")}
@@ -212,7 +257,6 @@ function NavBar() {
                       onClick={() => setUserMenuOpen(false)}
                     />
                     <div className="absolute right-0 top-full mt-3 w-64 bg-white border border-slate-100 shadow-xl rounded-2xl py-2 z-20 overflow-hidden">
-                      {/* User Info Header */}
                       <div className="px-4 py-4 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white">
                         <div className="flex items-center gap-3">
                           <div className="w-12 h-12 rounded-full bg-gradient-to-br from-gray-800 to-black flex items-center justify-center text-white font-bold text-lg ring-2 ring-gray-200">
@@ -229,7 +273,6 @@ function NavBar() {
                         </div>
                       </div>
 
-                      {/* Menu Items */}
                       <Link
                         href={`${localePrefix}/dashboard/profile`}
                         onClick={() => setUserMenuOpen(false)}
@@ -308,7 +351,6 @@ function NavBar() {
             )}
           </div>
 
-          {/* Wishlist Heart - Only show when authenticated */}
           {isAuthenticated && (
             <Link
               href={`${localePrefix}/dashboard/favorite`}
@@ -323,10 +365,8 @@ function NavBar() {
             </Link>
           )}
 
-          {/* Notifications Bell - Only show when authenticated */}
           {isAuthenticated && <NotificationsBell />}
 
-          {/* Cart - Only show when authenticated */}
           {isAuthenticated && (
             <div
               onMouseEnter={() => setCartOpen(true)}
