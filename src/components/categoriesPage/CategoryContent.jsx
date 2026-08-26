@@ -82,7 +82,6 @@ export default function CategoryContent({
 
   const params = useMemo(() => {
     const p = {
-      include: "variants",
       page: 1,
       per_page: 24,
       "gender[]": [String(gender)],

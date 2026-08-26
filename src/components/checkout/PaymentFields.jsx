@@ -39,16 +39,22 @@ function PaymentFields({ paymentMethod, fields, onChange }) {
       <div key={li} className="space-y-3">
         {(layout.fields || []).map((field) => {
           const value = fields[field.key] || "";
+          const isEmpty = !value || value.trim() === '';
+          const isRequired = field.required !== false;
+          
           return (
             <div key={field.id ?? field.key}>
               {field.title && (
                 <label className="block text-sm font-semibold text-gray-700 mb-1">
                   {field.title}
+                  {isRequired && <span className="text-red-500 ml-1">*</span>}
                 </label>
               )}
               <input
                 type="text"
-                className="w-full border rounded px-3 py-2 text-sm"
+                className={`w-full border rounded px-3 py-2 text-sm ${
+                  isEmpty && fields[field.key] !== undefined ? 'border-red-500' : 'border-gray-300'
+                } focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent`}
                 placeholder={field.hint || ""}
                 value={value}
                 maxLength={field.configs?.max_length}
@@ -56,6 +62,9 @@ function PaymentFields({ paymentMethod, fields, onChange }) {
                   onChange({ ...fields, [field.key]: e.target.value })
                 }
               />
+              {isEmpty && fields[field.key] !== undefined && (
+                <p className="text-xs text-red-500 mt-1">{t("field_required") || "This field is required"}</p>
+              )}
             </div>
           );
         })}
@@ -104,15 +113,17 @@ function PaymentFields({ paymentMethod, fields, onChange }) {
       }
     };
 
+    const hasReceipt = !!fields.transfer_receipt;
+
     return (
       <div className="space-y-4 border-t pt-4 mt-3">
         {renderHints()}
         <div>
           <p className="text-sm font-semibold text-gray-700 mb-1">
-            {t("upload_receipt")}
+            {t("upload_receipt")} <span className="text-red-500">*</span>
           </p>
-          {fields.transfer_receipt ? (
-            <div className="flex items-center justify-between gap-2 p-2 border rounded-lg bg-gray-50">
+          {hasReceipt ? (
+            <div className="flex items-center justify-between gap-2 p-2 border border-green-500 rounded-lg bg-green-50">
               <span className="text-xs text-gray-600 truncate">
                 {t("receipt_uploaded")}
               </span>
@@ -134,22 +145,29 @@ function PaymentFields({ paymentMethod, fields, onChange }) {
               </div>
             </div>
           ) : (
-            <label className="flex flex-col items-center justify-center gap-1 p-4 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-gray-400 bg-gray-50">
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/jpeg,image/png,application/pdf"
-                className="hidden"
-                onChange={handleFile}
-                disabled={uploading}
-              />
-              <span className="text-sm text-gray-600">
-                {uploading ? t("uploading_receipt") : t("upload_receipt")}
-              </span>
-              <span className="text-xs text-gray-400">
-                JPG, PNG or PDF (max 5MB)
-              </span>
-            </label>
+            <>
+              <label className={`flex flex-col items-center justify-center gap-1 p-4 border-2 border-dashed rounded-lg cursor-pointer hover:border-gray-400 bg-gray-50 ${
+                fields.transfer_receipt !== undefined ? 'border-red-500' : 'border-gray-300'
+              }`}>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,application/pdf"
+                  className="hidden"
+                  onChange={handleFile}
+                  disabled={uploading}
+                />
+                <span className="text-sm text-gray-600">
+                  {uploading ? t("uploading_receipt") : t("upload_receipt")}
+                </span>
+                <span className="text-xs text-gray-400">
+                  JPG, PNG or PDF (max 5MB)
+                </span>
+              </label>
+              {fields.transfer_receipt !== undefined && !hasReceipt && (
+                <p className="text-xs text-red-500 mt-1">{t("field_required") || "Receipt is required"}</p>
+              )}
+            </>
           )}
         </div>
       </div>
@@ -157,20 +175,28 @@ function PaymentFields({ paymentMethod, fields, onChange }) {
   }
 
   if (type === "phone_otp") {
+    const value = fields.phone || "";
+    const isEmpty = !value || value.trim() === '';
+
     return (
       <div className="space-y-3 border-t pt-4 mt-3">
         {renderHints()}
         <div>
           <label className="text-sm font-semibold text-gray-700">
-            {t("phone_for_otp")}
+            {t("phone_for_otp")} <span className="text-red-500">*</span>
           </label>
           <input
             type="tel"
-            className="w-full border rounded px-3 py-2 text-sm"
+            className={`w-full border rounded px-3 py-2 text-sm ${
+              isEmpty && fields.phone !== undefined ? 'border-red-500' : 'border-gray-300'
+            } focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent`}
             placeholder="09XX XXX XXX"
-            value={fields.phone || ""}
+            value={value}
             onChange={(e) => onChange({ ...fields, phone: e.target.value })}
           />
+          {isEmpty && fields.phone !== undefined && (
+            <p className="text-xs text-red-500 mt-1">{t("field_required") || "Phone number is required"}</p>
+          )}
         </div>
       </div>
     );

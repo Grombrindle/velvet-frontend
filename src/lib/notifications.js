@@ -1,3 +1,5 @@
+// lib/services/notificationService.js
+
 import { apiGet, apiPost, apiPut } from "./api";
 
 /**
@@ -19,21 +21,48 @@ export async function updateDeviceToken(fcmToken) {
 }
 
 export async function fetchNotifications({ page = 1, size = 20 } = {}) {
-    const response = await apiGet("/notifications/paginate", {
-        params: { page, size },
-    });
-    if (response ? .success && response ? .result) {
-        return response.result; // { data, pagination }
+    try {
+        const response = await apiGet("/notifications/paginate", {
+            params: { page, size },
+        });
+
+        // Log the response to debug
+        console.log("Full API Response:", response);
+
+        // Check if response has the expected structure
+        if (response && response.result) {
+            // If response.result exists, return it
+            return response.result;
+        } else if (response && response.data) {
+            // If response has data directly
+            return {
+                data: response.data || [],
+                pagination: response.pagination || null
+            };
+        } else {
+            // If response is already the data structure
+            return {
+                data: response ? .data || [],
+                pagination: response ? .pagination || null
+            };
+        }
+    } catch (error) {
+        console.error("Error fetching notifications:", error);
+        return { data: [], pagination: null };
     }
-    return { data: [], pagination: null };
 }
 
 export async function fetchNotificationPreferences() {
-    const response = await apiGet("/notifications/preferences");
-    if (response ? .success && response ? .result) {
-        return response.result;
+    try {
+        const response = await apiGet("/notifications/preferences");
+        if (response && response.result) {
+            return response.result;
+        }
+        return response || { notification_enabled: true, notification_sound_enabled: true };
+    } catch (error) {
+        console.error("Error fetching preferences:", error);
+        return { notification_enabled: true, notification_sound_enabled: true };
     }
-    return { notification_enabled: true, notification_sound_enabled: true };
 }
 
 export async function updateNotificationPreferences(payload) {

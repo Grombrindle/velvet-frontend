@@ -16,6 +16,11 @@ import { apiGet } from "@/lib/api";
 import { useAuthStore } from "@/lib/store";
 import { useCart } from "@/components/cart/hooks/useCart";
 import { useLocale, useTranslations } from "next-intl";
+import {
+  useChangeCurrency,
+  useCurrencies,
+} from "../currency/hooks/useCurrencies";
+import { toast } from "react-hot-toast";
 
 function NavbarMobile() {
   const searchParams = useSearchParams();
@@ -25,15 +30,41 @@ function NavbarMobile() {
   const currentGender = getGenderFromPathname(pathname, searchParams);
   const currentLocale = useLocale();
   const t = useTranslations("navbar");
+  const tCurrencies = useTranslations("currencies");
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [expandedSections, setExpandedSections] = useState({});
   const [selectedMobileCategory, setSelectedMobileCategory] = useState(null);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [currencyMenuOpen, setCurrencyMenuOpen] = useState(false); // ✅ State for mobile currency dropdown
 
   const { user, isAuthenticated, clear } = useAuthStore();
   const { data: cart } = useCart({ enabled: isAuthenticated });
   const cartCount = cart?.totalCount || 0;
+
+  // ✅ Currency hooks
+  const { data: currenciesData } = useCurrencies();
+  const changeCurrencyMutation = useChangeCurrency();
+  const currencies = currenciesData?.currencies || [];
+  const currentCurrency = currenciesData?.user_currency;
+
+  const handleCurrencySelect = async (currencyId) => {
+    if (currencyId === currentCurrency?.id) {
+      setCurrencyMenuOpen(false);
+      return;
+    }
+
+    try {
+      await changeCurrencyMutation.mutateAsync(currencyId);
+      toast.success(tCurrencies("currency_changed_successfully!"));
+      setCurrencyMenuOpen(false);
+
+      // ✅ Forces full browser refresh so all mobile pages/components instantly update prices
+      window.location.reload();
+    } catch (error) {
+      toast.error(error?.message || tCurrencies("Failed_to_change_currency"));
+    }
+  };
 
   const {
     data: gendersData,
@@ -62,6 +93,7 @@ function NavbarMobile() {
       setExpandedSections({});
       setSelectedMobileCategory(null);
       setUserMenuOpen(false);
+      setCurrencyMenuOpen(false);
     }
   };
 
@@ -82,16 +114,20 @@ function NavbarMobile() {
     setIsMobileMenuOpen(false);
     setSelectedMobileCategory(null);
     setUserMenuOpen(false);
+    setCurrencyMenuOpen(false);
     setExpandedSections({});
   };
 
   const handleLogout = () => {
     clear();
     setUserMenuOpen(false);
-    handleNavigation();
-    router.push(`${localePrefix}/login`);
+    // Navigate to home with active gender if available
+    const homePath = activeGender
+      ? `${localePrefix}/${activeGender}`
+      : `${localePrefix}/`;
+    router.push(homePath);
+    window.location.href = homePath;
   };
-
   useEffect(() => {
     document.body.classList.toggle("overflow-hidden", isMobileMenuOpen);
     return () => document.body.classList.remove("overflow-hidden");
@@ -128,8 +164,51 @@ function NavbarMobile() {
           </div>
         </Link>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
           <LanguageSwitcher />
+
+          {/* ✅ Mobile Currency Dropdown Switcher */}
+          <div className="relative">
+            <button
+              onClick={() => setCurrencyMenuOpen(!currencyMenuOpen)}
+              className="flex items-center gap-1 text-xs font-semibold px-2 py-1.5 rounded-md border border-gray-200 bg-white hover:bg-gray-50 transition-all cursor-pointer"
+            >
+              <span>{currentCurrency?.code || "USD"}</span>
+              <span className="text-gray-400">
+                ({currentCurrency?.symbol || "$"})
+              </span>
+            </button>
+
+            {currencyMenuOpen && (
+              <>
+                <div
+                  className="fixed inset-0 z-10"
+                  onClick={() => setCurrencyMenuOpen(false)}
+                />
+                <div className="absolute right-0 top-full mt-2 w-36 bg-white border border-slate-100 shadow-xl rounded-xl py-2 z-20">
+                  <div className="px-3 py-1.5 text-[11px] font-bold text-gray-400 uppercase tracking-wider border-b border-gray-100">
+                    {tCurrencies("currency_selection")}
+                  </div>
+                  <div className="max-h-48 overflow-y-auto">
+                    {currencies.map((currency) => (
+                      <button
+                        key={currency.id}
+                        onClick={() => handleCurrencySelect(currency.id)}
+                        className={`w-full ${currentLocale == "en" ? "text-left" : "text-right"} px-3 py-2 text-xs flex items-center justify-between hover:bg-gray-50 transition-colors ${
+                          currentCurrency?.id === currency.id
+                            ? "font-bold bg-gray-50 text-black"
+                            : "text-gray-700"
+                        }`}
+                      >
+                        <span>{currency.code}</span>
+                        <span className="text-gray-500">{currency.symbol}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
 
           {/* Menu Toggle Button */}
           <button
@@ -190,7 +269,6 @@ function NavbarMobile() {
                   className="cursor-pointer"
                 />
               </div>
-              {/* <span className="text-xs text-gray-600 mt-1">{t("Search")}</span> */}
             </Link>
 
             {/* Profile/Login - Always visible */}
@@ -222,7 +300,6 @@ function NavbarMobile() {
                       {user?.name?.charAt(0)?.toUpperCase() || "U"}
                     </span>
                   </div>
-                  {/* <span className="text-xs text-gray-600 mt-1">{t("Profile")}</span> */}
                 </button>
 
                 {userMenuOpen && (
@@ -284,7 +361,6 @@ function NavbarMobile() {
                     className="cursor-pointer"
                   />
                 </div>
-                {/* <span className="text-xs text-gray-600 mt-1">{t("Wishlist")}</span> */}
               </Link>
             )}
 
@@ -314,7 +390,6 @@ function NavbarMobile() {
                     </span>
                   )}
                 </div>
-                {/* <span className="text-xs text-gray-600 mt-1">{t("Cart")}</span> */}
               </Link>
             )}
           </div>
@@ -335,7 +410,6 @@ function NavbarMobile() {
                     isCategoryBold(genderName) ? "font-bold" : "font-light"
                   }`}
                 >
-                  {/* Clicking the gender name/text navigates directly to its page */}
                   <Link
                     href={`${localePrefix}/${encodeURIComponent(genderName)}`}
                     onClick={handleNavigation}
@@ -344,7 +418,6 @@ function NavbarMobile() {
                     <span>{displayName}</span>
                   </Link>
 
-                  {/* Clicking the arrow toggles the dropdown section without triggering navigation */}
                   <div
                     className="cursor-pointer p-2 flex items-center justify-center"
                     onClick={(e) => {

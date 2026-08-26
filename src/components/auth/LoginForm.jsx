@@ -95,7 +95,7 @@ export default function LoginForm({ onSuccess: onSuccessProp }) {
           onSuccessProp();
         } else {
           // Navigate using the English gender name (like NavBar logo)
-          router.push(`${localePrefix}/${activeGender}`);
+        window.location.href = `${localePrefix}/${activeGender}`;
         }
       } else if (data?.error === "EMAIL_NOT_VERIFIED") {
         toast.error(t("verify_email_required"));

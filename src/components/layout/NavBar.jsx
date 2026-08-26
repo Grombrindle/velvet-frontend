@@ -1,7 +1,7 @@
 "use client";
 import React, { Suspense, useState, useEffect } from "react";
 import Image from "next/image";
-import { IoIosLogOut, IoIosSettings } from "react-icons/io";
+import { IoIosLogOut, IoIosSettings, IoIosCash } from "react-icons/io";
 import { FaUserCircle } from "react-icons/fa";
 import Link from "next/link";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
@@ -16,6 +16,8 @@ import { apiGet } from "@/lib/api";
 import { getGenderFromPathname, getLocalePrefix } from "@/lib/locale";
 import { useLocale, useTranslations } from "next-intl";
 import { useCart } from "@/components/cart/hooks/useCart";
+import { toast } from "react-hot-toast";
+import { useChangeCurrency, useCurrencies } from "../currency/hooks/useCurrencies";
 
 function NavBar() {
   const router = useRouter();
@@ -26,10 +28,12 @@ function NavBar() {
   const currentGenderFromPath = getGenderFromPathname(pathname, searchParams);
 
   const t = useTranslations("navbar");
+  const tCurrencies = useTranslations("currencies");
 
   const [hoveredCategory, setHoveredCategory] = useState(null);
   const [cartOpen, setCartOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [currencyMenuOpen, setCurrencyMenuOpen] = useState(false); // ✅ State for currency dropdown
   
   // State to hold fallback gender from localStorage when URL lacks gender (e.g. /product/99)
   const [savedGender, setSavedGender] = useState(null);
@@ -48,11 +52,41 @@ function NavBar() {
   const { data: cart } = useCart({ enabled: isAuthenticated });
   const cartCount = cart?.totalCount || 0;
 
+  // ✅ Currency hooks
+  const { data: currenciesData } = useCurrencies();
+  const changeCurrencyMutation = useChangeCurrency();
+  const currencies = currenciesData?.currencies || [];
+  const currentCurrency = currenciesData?.user_currency;
+
+const handleCurrencySelect = async (currencyId) => {
+    if (currencyId === currentCurrency?.id) {
+      setCurrencyMenuOpen(false);
+      return;
+    }
+
+    try {
+      await changeCurrencyMutation.mutateAsync(currencyId);
+      toast.success(tCurrencies("currency_changed_successfully!"));
+      setCurrencyMenuOpen(false);
+      
+      // ✅ Forces a full page reload so every page and component updates instantly with the new currency
+      window.location.reload(); 
+    } catch (error) {
+      toast.error(error?.message || tCurrencies("Failed_to_change_currency"));
+    }
+  };
+
   const handleLogout = () => {
     clear();
     setUserMenuOpen(false);
-    router.push(`${localePrefix}/login`);
-  };
+    // Navigate to home with active gender if available
+     const homePath = activeGender
+      ? `${localePrefix}/${activeGender}`
+      : `${localePrefix}/`;
+    router.push(homePath); 
+      window.location.href = homePath;
+
+   };
 
   const {
     data: gendersData,
@@ -103,10 +137,8 @@ function NavBar() {
     localStorage.setItem("activeGender", newGender);
     setSavedGender(newGender);
 
-    // Get the path without the locale prefix
     const pathWithoutLocale = pathname.replace(localePrefix, '');
     
-    // Check if we're on a category page (pattern: /gender/category/[id])
     const categoryMatch = pathWithoutLocale.match(/^\/([^/]+)\/category\/(.+)$/);
     if (categoryMatch) {
       const [, , categoryId] = categoryMatch;
@@ -114,7 +146,6 @@ function NavBar() {
       return;
     }
 
-    // Check if we're on a search page (pattern: /gender/search)
     const searchMatch = pathWithoutLocale.match(/^\/([^/]+)\/search$/);
     if (searchMatch) {
       const searchParamsString = searchParams.toString();
@@ -123,7 +154,6 @@ function NavBar() {
       return;
     }
 
-    // Default: navigate to gender homepage
     router.push(`${localePrefix}/${newGender}`);
   };
 
@@ -144,7 +174,6 @@ function NavBar() {
               />
             </div>
 
-            {/* glass banner */}
             <div
               className={`-mx-5 ${currentLocale === "ar" ? "rotate-180" : ""} `}
             >
@@ -206,6 +235,47 @@ function NavBar() {
             <LanguageSwitcher />
           </Suspense>
 
+          {/* ✅ Currency Dropdown Switcher */}
+          <div className="relative">
+            <button
+              onClick={() => setCurrencyMenuOpen(!currencyMenuOpen)}
+              className="flex items-center gap-1 text-xs font-semibold px-2.5 py-1.5 rounded-md border border-gray-200 hover:bg-gray-50 transition-all cursor-pointer"
+            >
+              <span>{currentCurrency?.code || "USD"}</span>
+              <span className="text-gray-400">({currentCurrency?.symbol || "$"})</span>
+            </button>
+
+            {currencyMenuOpen && (
+              <>
+                <div
+                  className="fixed inset-0 z-10"
+                  onClick={() => setCurrencyMenuOpen(false)}
+                />
+                <div className="absolute right-0 top-full mt-2 w-36 bg-white border border-slate-100 shadow-xl rounded-xl py-2 z-20">
+                  <div className="px-3 py-1.5 text-[11px] font-bold text-gray-400 uppercase tracking-wider border-b border-gray-100">
+                    {tCurrencies("currency_selection")}
+                  </div>
+                  <div className="max-h-48 overflow-y-auto">
+                    {currencies.map((currency) => (
+                      <button
+                        key={currency.id}
+                        onClick={() => handleCurrencySelect(currency.id)}
+                        className={`w-full text-left px-3 py-2 text-xs flex items-center justify-between hover:bg-gray-50 transition-colors ${
+                          currentCurrency?.id === currency.id
+                            ? "font-bold bg-gray-50 text-black"
+                            : "text-gray-700"
+                        }`}
+                      >
+                        <span>{currency.code}</span>
+                        <span className="text-gray-500">{currency.symbol}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+
           {/* Search Icon */}
           <Link
             href={`${localePrefix}/${encodeURIComponent(activeGender || "")}/search`}
@@ -232,7 +302,7 @@ function NavBar() {
                   <div className="relative group">
                     <button
                       onClick={() => setUserMenuOpen(!userMenuOpen)}
-                      className="flex items-center gap-3 hover:bg-gray-50 rounded-full pl-1 pr-3 py-1 transition-all duration-200"
+                      className="flex items-center gap-3 hover:bg-gray-50 rounded-full pl-1 pr-3 py-1 transition-all duration-200 cursor-pointer"
                     >
                       <div className="w-9 h-9 rounded-full bg-gradient-to-br from-gray-800 to-black flex items-center justify-center text-white font-bold text-sm ring-2 ring-offset-2 ring-gray-200 hover:ring-black transition-all duration-200">
                         {getUserInitials()}
@@ -337,7 +407,7 @@ function NavBar() {
 
                       <button
                         onClick={handleLogout}
-                        className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-600 hover:bg-red-50 transition-colors border-t border-slate-50"
+                        className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-600 hover:bg-red-50 transition-colors border-t border-slate-50 cursor-pointer"
                       >
                         <div className="w-8 h-8 rounded-full bg-red-50 flex items-center justify-center">
                           <IoIosLogOut className="text-lg text-red-500" />

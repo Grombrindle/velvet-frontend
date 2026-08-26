@@ -2,7 +2,7 @@ import React from "react";
 import CategoryContent from "@/components/categoriesPage/CategoryContent";
 import { apiGet } from "@/lib/api";
 import ScrollToTop from "@/components/scrollToTop/ScrollToTop";
-import { getTranslations } from 'next-intl/server'; // ✅ ADD THIS
+import { getTranslations } from 'next-intl/server';
 
 export const dynamic = "force-dynamic";
 
@@ -48,7 +48,7 @@ export async function generateMetadata({ params }) {
 async function page({ params }) {
   const { id, gender, locale } = await params;
   
-  const t = await getTranslations({ locale, namespace: 'emptyProduct' }); // ✅ ADD THIS
+  const t = await getTranslations({ locale, namespace: 'emptyProduct' });
 
   let totalProducts = 0;
   let categoryName = null;
@@ -65,7 +65,8 @@ async function page({ params }) {
         locale,
         next: { revalidate: 300 },
       }).catch(() => ({ result: null })),
-      apiGet(`/genders`, {
+      // ✅ UPDATED: Using web/genders endpoint
+      apiGet(`/web/genders`, {
         params: { lang: locale || "en" },
         next: { revalidate: 3600 },
       }).catch(() => ({ result: [] })),
@@ -121,10 +122,10 @@ async function page({ params }) {
               </svg>
             </div>
             <h2 className="text-2xl font-semibold text-gray-700 mb-2">
-              {t('no_product')} {/* ✅ CHANGED THIS */}
+              {t('no_product')}
             </h2>
             <p className="text-gray-500 max-w-md">
-              {t('product_not_found')} {/* ✅ CHANGED THIS */}
+              {t('product_not_found')}
             </p>
           </div>
         )}

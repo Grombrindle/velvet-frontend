@@ -19,6 +19,7 @@ export default function FilterBar({
   onFilterChange,
   genderOptions,
 }) {
+  console.log("gender",gender)
   const { toggleFilter, viewMode, setViewMode, isFilterOpen } =
     useCategoryPageStore();
   const t = useTranslations("filterBar");
@@ -27,6 +28,16 @@ export default function FilterBar({
   const [hasAppliedFilters, setHasAppliedFilters] = useState(false);
   const prevFiltersRef = useRef(selectedFilters);
   const initialLoadRef = useRef(true);
+
+  // Get current locale
+  const [locale, setLocale] = useState("en");
+  
+  useEffect(() => {
+    // Get locale from URL or document
+    const pathLocale = window.location.pathname.split('/')[1];
+    const validLocales = ['en', 'ar', 'fr']; // Add your supported locales
+    setLocale(validLocales.includes(pathLocale) ? pathLocale : 'en');
+  }, []);
 
   // Check for mobile on mount and resize
   useEffect(() => {
@@ -219,6 +230,36 @@ export default function FilterBar({
     setSelectedGender("");
   };
 
+  // Helper function to get localized gender name
+  const getLocalizedGenderName = (option) => {
+    if (!option) return "";
+    
+    // If option has name object with locale
+    if (option.name && typeof option.name === 'object') {
+      // Try to get the name in current locale
+      if (option.name[locale]) {
+        return option.name[locale];
+      }
+      // Fallback to English if available
+      if (option.name.en) {
+        return option.name.en;
+      }
+      // Get first available language
+      const firstKey = Object.keys(option.name)[0];
+      if (firstKey) {
+        return option.name[firstKey];
+      }
+    }
+    
+    // If option.name is a string
+    if (typeof option.name === 'string') {
+      return option.name;
+    }
+    
+    // Fallback to option.value or empty string
+    return option.value || option.id || "";
+  };
+
   // Filter content
   const filterContent = (
     <div className="h-full overflow-y-auto">
@@ -235,7 +276,7 @@ export default function FilterBar({
         </div>
 
         <div className="flex justify-between items-center mb-4">
-          <div className="text-sm text-gray-600">{totalProducts} {t("products")}A</div>
+          <div className="text-sm text-gray-600">{totalProducts} {t("products")}</div>
           {hasActiveFilters && (
             <button
               onClick={clearAllFilters}
@@ -256,8 +297,9 @@ export default function FilterBar({
               onChange={handleGenderChange}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
             >
+              <option value="">{t("all_genders") || "All Genders"}</option>
               {genderOptionsList.map((option) => {
-                const genderName = option?.name?.en || option?.name || "";
+                const genderName = getLocalizedGenderName(option);
                 const genderValue = genderName.toLowerCase();
                 return (
                   <option key={option.id} value={genderValue}>

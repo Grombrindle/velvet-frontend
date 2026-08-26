@@ -71,7 +71,7 @@ export default function DashboardNav() {
       image: "/images/currency.svg",
       desc: t("currency"),
       path: `${localePrefix}/dashboard/currency`,
-      requiresAuth: true, // Public
+      // requiresAuth: true, // Public
     },
     {
       id: 9,

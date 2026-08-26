@@ -356,7 +356,9 @@
         "payment_complete_manually": "I've completed payment",
         "retry": "Try Again",
         "section_loading": "Loading...",
-        "section_error": "Failed to load. Please try again."
+        "section_error": "Failed to load. Please try again.",
+        "fill_all_fields": "Please fill in all required fields",
+        "field_required": "This field is required"
     },
     "auth": {
         "email": "Email",

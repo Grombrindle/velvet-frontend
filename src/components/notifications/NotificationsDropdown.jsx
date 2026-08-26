@@ -57,8 +57,9 @@ export default function NotificationsDropdown({ open, onClose }) {
 
   if (!open) return null;
 
-const items = data || [];
-  const pagination = data?.pagination;
+  // ✅ FIXED: Access data directly since fetchNotifications already returns result
+  const items = data?.data || [];
+  const pagination = data?.pagination || null;
   const unreadCount = items.filter((n) => !n.isRead).length;
 
   const handleOpenNotification = (n) => {

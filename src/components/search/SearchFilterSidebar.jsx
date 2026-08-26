@@ -68,7 +68,7 @@ export default function SearchFilterSidebar({
         </div>
 
         <div className="space-y-4 rounded-3xl bg-slate-50 p-4">
-          <div className="flex items-center justify-between gap-4">
+          {/* <div className="flex items-center justify-between gap-4">
             <div>
               <p className="text-sm font-medium">{t("genderLabel")}</p>
               <p className="text-xs text-slate-500">{t("genderContext")}</p>
@@ -76,7 +76,7 @@ export default function SearchFilterSidebar({
             <span className="rounded-full bg-black px-3 py-1 text-xs font-semibold text-white">
               {gender}
             </span>
-          </div>
+          </div> */}
           <label className="flex items-center gap-2 text-sm text-slate-700">
             <input
               type="checkbox"
