@@ -128,6 +128,35 @@ const CancelButton = ({ t, onClick, status }) => {
 
 // Message for non-cancelable orders
 const NonCancelableMessage = ({ t, status, statusMessage, needsPaymentAction, retryPaymentUrl }) => {
+  // Helper to translate status
+  const translateStatus = (status) => {
+    if (!status) return "";
+    
+    const statusKey = status.toLowerCase();
+    const statusMap = {
+      "approved": "status_approved",
+      "pending": "status_pending",
+      "completed": "status_completed",
+      "cancelled": "status_cancelled",
+      "paid": "status_paid",
+      "payment_failed": "status_payment_failed",
+      "processing": "status_processing",
+      "shipped": "status_shipped",
+      "delivered": "status_delivered",
+      "refunded": "status_refunded",
+      "failed": "status_failed"
+    };
+    
+    const translationKey = statusMap[statusKey] || statusKey;
+    const translated = t(translationKey);
+    
+    if (translated === translationKey) {
+      return status.charAt(0).toUpperCase() + status.slice(1);
+    }
+    
+    return translated;
+  };
+
   // If there's a status message from API, use it
   if (statusMessage) {
     return (
@@ -180,25 +209,58 @@ const NonCancelableMessage = ({ t, status, statusMessage, needsPaymentAction, re
   );
 };
 
-// Status badge component
-const StatusBadge = ({ status }) => {
+// Status badge component with translation
+const StatusBadge = ({ status, t }) => {
+  // Translate status
+  const translateStatus = (status) => {
+    if (!status) return "";
+    
+    const statusKey = status.toLowerCase();
+    const statusMap = {
+      "approved": "status_approved",
+      "pending": "status_pending",
+      "completed": "status_completed",
+      "cancelled": "status_cancelled",
+      "paid": "status_paid",
+      "payment_failed": "status_payment_failed",
+      "processing": "status_processing",
+      "shipped": "status_shipped",
+      "delivered": "status_delivered",
+      "refunded": "status_refunded",
+      "failed": "status_failed",
+      "shipping": "status_shipping"
+    };
+    
+    const translationKey = statusMap[statusKey] || statusKey;
+    const translated = t(translationKey);
+    
+    if (translated === translationKey) {
+      return status.replace('_', ' ').toUpperCase();
+    }
+    
+    return translated;
+  };
+
   const statusColors = {
     'pending': 'bg-yellow-100 text-yellow-800',
     'paid': 'bg-green-100 text-green-800',
     'payment_failed': 'bg-red-100 text-red-800',
     'approved': 'bg-green-100 text-green-800',
     'shipping': 'bg-blue-100 text-blue-800',
+    'shipped': 'bg-blue-100 text-blue-800',
     'delivered': 'bg-purple-100 text-purple-800',
     'completed': 'bg-gray-100 text-gray-800',
     'cancelled': 'bg-red-100 text-red-800',
-    'refunded': 'bg-red-100 text-red-800'
+    'refunded': 'bg-red-100 text-red-800',
+    'processing': 'bg-blue-100 text-blue-800',
+    'failed': 'bg-red-100 text-red-800'
   };
   
   const colorClass = statusColors[status?.toLowerCase()] || 'bg-gray-100 text-gray-800';
   
   return (
     <span className={`px-3 py-1 rounded-full text-sm font-medium ${colorClass}`}>
-      {status?.replace('_', ' ').toUpperCase()}
+      {translateStatus(status)}
     </span>
   );
 };
@@ -276,14 +338,9 @@ const OrderDetailsClient = ({ orderId }) => {
       <InfoRow label={t("order_no")} value={mappedOrderData.orderNo} />
       <InfoRow label={t("order_date")} value={mappedOrderData.orderDate} />
       
-      {/* Status Badge */}
+      {/* Status Badge - Pass t prop for translation */}
       <div className="mt-4">
-        <StatusBadge status={mappedOrderData.status} />
-        {mappedOrderData.deliveryStatus && mappedOrderData.deliveryStatus !== mappedOrderData.status && (
-          <span className="ml-2 text-sm text-gray-500">
-            {t('delivery')}: {mappedOrderData.deliveryStatus}
-          </span>
-        )}
+        <StatusBadge status={mappedOrderData.status} t={t} />
       </div>
 
       {/* Status Message */}

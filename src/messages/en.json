@@ -170,7 +170,18 @@
         "cancel_messgae": "The products for your order number are listed below. Please select a reason for returning the products you wish to return.",
         "order_payment_failed": "Payment failed. Please try again or use a different payment method.",
         "order_paid": "This order has been paid and cannot be cancelled.",
-        "order_approved": "This order has been approved and cannot be cancelled."
+        "order_approved": "This order has been approved and cannot be cancelled.",
+        "status_approved": "Approved",
+        "status_pending": "Pending",
+        "status_completed": "Completed",
+        "status_cancelled": "Cancelled",
+        "status_paid": "Paid",
+        "status_payment_failed": "Payment Failed",
+        "status_processing": "Processing",
+        "status_shipped": "Shipped",
+        "status_delivered": "Delivered",
+        "status_refunded": "Refunded",
+        "status_failed": "Failed"
 
     },
     "favorite": {
@@ -505,7 +516,10 @@
         "login_to_favorite_message": "Please login to save items to your favorites list.",
         "login_now": "Login Now",
         "continue_browsing": "Continue Browsing",
-        "close": "Close"
+        "close": "Close",
+        "OFF ON THIS CATEGORY": "OFF ON THIS CATEGORY",
+        "off": "OFF",
+        "bundle": "bundle"
     },
     "sort_by": {
         "newest": "Newest",
@@ -531,7 +545,8 @@
         "clear_all": "Clear All",
         "Gender": "Gender",
         "products": "products",
-        "All Genders": "All Genders"
+        "All Genders": "All Genders",
+        "select_gender": "Select Gender"
     },
     "emptyProduct": {
         "no_product": "No Products Available",

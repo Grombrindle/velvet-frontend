@@ -170,7 +170,18 @@
         "cancel_messgae": "لمنتجات التابعة لرقم طلبك مدرجة أدناه. الرجاء تحديد سبب إرجاع للمنتجات التي تريد إرجاعها.",
         "order_payment_failed": "فشل الدفع. يرجى المحاولة مرة أخرى أو استخدام طريقة دفع مختلفة.",
         "order_paid": "تم دفع هذا الطلب ولا يمكن إلغاؤه.",
-        "order_approved": "تم الموافقة على هذا الطلب ولا يمكن إلغاؤه."
+        "order_approved": "تم الموافقة على هذا الطلب ولا يمكن إلغاؤه.",
+        "status_approved": "موافق عليه",
+        "status_pending": "قيد الانتظار",
+        "status_completed": "مكتمل",
+        "status_cancelled": "ملغي",
+        "status_paid": "مدفوع",
+        "status_payment_failed": "فشل الدفع",
+        "status_processing": "قيد المعالجة",
+        "status_shipped": "تم الشحن",
+        "status_delivered": "تم التوصيل",
+        "status_refunded": "مسترد",
+        "status_failed": "فشل"
 
     },
     "favorite": {
@@ -504,8 +515,10 @@
         "login_to_favorite_message": "يرجى تسجيل الدخول لحفظ المنتجات في قائمة المفضلة الخاصة بك.",
         "login_now": "تسجيل الدخول الآن",
         "continue_browsing": "مواصلة التصفح",
-        "close": "إغلاق"
-
+        "close": "إغلاق",
+        "OFF ON THIS CATEGORY": "خصم  على هذه الفئة",
+        "off": "خصم",
+        "bundle": "حزمة"
     },
     "sort_by": {
         "newest": "الأحدث",
@@ -531,7 +544,8 @@
         "clear_all": "إلغاء جميع التصفيات",
         "Gender": "الجنس",
         "products": "المنتجات",
-        "All Genders": "جميع الأجناس"
+        "All Genders": "جميع الأجناس",
+        "select_gender": "اختر الجنس"
     },
     "emptyProduct": {
         "no_product": "لا توجد منتجات متاحة",

@@ -17,7 +17,7 @@ function ProductCard({ item, isMini }) {
   const pathname = usePathname();
   const localePrefix = getLocalePrefix(pathname);
   const [isLoading, setIsLoading] = useState(true);
-  const isBundle = item?.type === 'bundle' || item?.is_bundle === true;
+  const isBundle = item?.type === "bundle" || item?.is_bundle === true;
 
   // Auth state
   const { isAuthenticated } = useAuthStore();
@@ -28,11 +28,16 @@ function ProductCard({ item, isMini }) {
 
   // Favorite functionality
   const { mutate: toggleFavoriteApi, isPending } = useToggleFavorite();
-  const { isFavorite, setFavorite, toggleFavorite: toggleFavoriteStore } = useFavoriteStore();
+  const {
+    isFavorite,
+    setFavorite,
+    toggleFavorite: toggleFavoriteStore,
+  } = useFavoriteStore();
   const productId = item?.id;
 
   // Get current favorite state from store or item
-  const currentFavoriteState = isFavorite(productId) || item?.is_favorite || false;
+  const currentFavoriteState =
+    isFavorite(productId) || item?.is_favorite || false;
 
   // Fixed dimensions in rem
   const imageWidth = isMini ? "md:10rem 20rem" : "20rem";
@@ -40,15 +45,23 @@ function ProductCard({ item, isMini }) {
 
   // Helper function to get display price
   const getDisplayPrice = () => {
-    if (item?.discount?.has_discount && item.discount.category_discount_details) {
+    if (
+      item?.discount?.has_discount &&
+      item.discount.category_discount_details
+    ) {
       return item.discount.category_discount_details.discounted_price.formatted;
     }
-    return item?.price?.formatted || `${item?.price?.symbol}${item?.price?.amount}`;
+    return (
+      item?.price?.formatted || `${item?.price?.symbol}${item?.price?.amount}`
+    );
   };
 
   // Helper function to get original price (for strikethrough)
   const getOriginalPrice = () => {
-    if (item?.discount?.has_discount && item.discount.category_discount_details) {
+    if (
+      item?.discount?.has_discount &&
+      item.discount.category_discount_details
+    ) {
       return item.discount.category_discount_details.original_price.formatted;
     }
     return null;
@@ -57,7 +70,10 @@ function ProductCard({ item, isMini }) {
   // Helper function to get bundle original price
   const getBundleOriginalPrice = () => {
     if (isBundle && item.original_price) {
-      return item.original_price.formatted || `${item.original_price.symbol}${item.original_price.amount}`;
+      return (
+        item.original_price.formatted ||
+        `${item.original_price.symbol}${item.original_price.amount}`
+      );
     }
     return null;
   };
@@ -65,7 +81,10 @@ function ProductCard({ item, isMini }) {
   // Helper function to get discount label
   const getDiscountLabel = () => {
     if (item?.discount?.has_discount) {
-      if (item.discount.type === "category_percentage" && item.discount.category_discount_details?.label) {
+      if (
+        item.discount.type === "category_percentage" &&
+        item.discount.category_discount_details?.label
+      ) {
         return item.discount.category_discount_details.label;
       }
     }
@@ -81,15 +100,17 @@ function ProductCard({ item, isMini }) {
 
     // Check if user is authenticated
     if (!isAuthenticated) {
-      setPendingAction('favorite');
+      setPendingAction("favorite");
       setShowLoginPopup(true);
       return;
     }
 
     const newFavoriteState = !currentFavoriteState;
-    
+
     // Optimistic update
-    toast.success(newFavoriteState ? t("favorite_added") : t("favorite_removed"));
+    toast.success(
+      newFavoriteState ? t("favorite_added") : t("favorite_removed"),
+    );
     toggleFavoriteStore(productId);
 
     // Call API
@@ -129,7 +150,7 @@ function ProductCard({ item, isMini }) {
           className="relative overflow-hidden w-full"
           onClick={(e) => {
             // If the click target is the heart button, prevent navigation
-            if (e.target.closest('.favorite-button')) {
+            if (e.target.closest(".favorite-button")) {
               e.preventDefault();
             }
           }}
@@ -159,28 +180,32 @@ function ProductCard({ item, isMini }) {
             )}
 
             {/* Favorite Heart Icon Overlay - with stopPropagation */}
-          {/* Favorite Heart Icon Overlay - only show when authenticated */}
-{/* Favorite Heart Icon Overlay */}
-<div 
-  className="absolute bottom-3 right-3 z-20 bg-white/80 backdrop-blur-sm p-2 rounded-full shadow-md flex items-center justify-center favorite-button"
-  onClick={(e) => {
-    e.stopPropagation();
-    e.preventDefault();
-  }}
->
-  <button
-    onClick={handleToggleFavorite}
-    disabled={isPending}
-    className="favorite-button"
-    aria-label={currentFavoriteState ? "Remove from favorites" : "Add to favorites"}
-  >
-    {isAuthenticated && currentFavoriteState ? (
-      <FaHeart className="text-red-500 text-xl" />
-    ) : (
-      <FaRegHeart className="text-black text-xl" />
-    )}
-  </button>
-</div>
+            {/* Favorite Heart Icon Overlay - only show when authenticated */}
+            {/* Favorite Heart Icon Overlay */}
+            <div
+              className="absolute bottom-3 right-3 z-20 bg-white/80 backdrop-blur-sm p-2 rounded-full shadow-md flex items-center justify-center favorite-button"
+              onClick={(e) => {
+                e.stopPropagation();
+                e.preventDefault();
+              }}
+            >
+              <button
+                onClick={handleToggleFavorite}
+                disabled={isPending}
+                className="favorite-button"
+                aria-label={
+                  currentFavoriteState
+                    ? "Remove from favorites"
+                    : "Add to favorites"
+                }
+              >
+                {isAuthenticated && currentFavoriteState ? (
+                  <FaHeart className="text-red-500 text-xl" />
+                ) : (
+                  <FaRegHeart className="text-black text-xl" />
+                )}
+              </button>
+            </div>
 
             <NextImage
               fill
@@ -223,20 +248,24 @@ function ProductCard({ item, isMini }) {
               <div className="flex items-center gap-2">
                 <p className="font-bold text-base">{displayPrice}</p>
                 {originalPrice && (
-                  <p className="text-sm text-[#333333] line-through">{originalPrice}</p>
+                  <p className="text-sm text-[#333333] line-through">
+                    {originalPrice}
+                  </p>
                 )}
               </div>
 
               {/* Discount Badge matching your screenshot layout */}
               {discountLabel && (
                 <span className="bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded">
-                  {discountLabel}
+                  {discountLabel.replace("OFF", t("off"))}
                 </span>
               )}
             </div>
 
             {isBundle && bundleOriginalPrice && (
-              <p className="text-sm text-[#333333] line-through">{bundleOriginalPrice}</p>
+              <p className="text-sm text-[#333333] line-through">
+                {bundleOriginalPrice}
+              </p>
             )}
           </div>
         )}

@@ -29,32 +29,31 @@ export async function fetchNotifications({ page = 1, size = 20 } = {}) {
         // Log the response to debug
         console.log("Full API Response:", response);
 
-        // Check if response has the expected structure
-        if (response && response.result) {
-            // If response.result exists, return it
-            return response.result;
-        } else if (response && response.data) {
-            // If response has data directly
-            return {
-                data: response.data || [],
-                pagination: response.pagination || null
-            };
-        } else {
-            // If response is already the data structure
-            return {
-                data: response ? .data || [],
-                pagination: response ? .pagination || null
-            };
-        }
+        // ✅ Return the full response with both result and pagination
+        // The response should have this structure:
+        // {
+        //   success: true,
+        //   result: [...],
+        //   pagination: { ... }
+        // }
+        return response;
+
     } catch (error) {
         console.error("Error fetching notifications:", error);
-        return { data: [], pagination: null };
+        // Return a fallback response structure
+        return {
+            success: false,
+            result: [],
+            pagination: null,
+            error: error.message
+        };
     }
 }
 
 export async function fetchNotificationPreferences() {
     try {
         const response = await apiGet("/notifications/preferences");
+        // ✅ Return the full response or just the preferences object
         if (response && response.result) {
             return response.result;
         }

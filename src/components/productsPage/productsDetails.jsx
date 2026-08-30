@@ -71,18 +71,19 @@ const ProductsDetails = ({ productData: initialProductData }) => {
   const [isProductDetailsOpen, setIsProductDetailsOpen] = useState(false);
   const [isPaymentMethodsOpen, setIsPaymentMethodsOpen] = useState(false);
   const [isDeliveryOpen, setIsDeliveryOpen] = useState(false);
-  
+
   // Local loading state for add to cart
   const [isAddingToCart, setIsAddingToCart] = useState(false);
 
   // Use API is_favorite first, then store, with override taking precedence
   const product = {
     ...baseProduct,
-    is_favorite: favoriteOverride !== null 
-      ? favoriteOverride 
-      : (baseProduct?.is_favorite || isFavorite(productId) || false),
+    is_favorite:
+      favoriteOverride !== null
+        ? favoriteOverride
+        : baseProduct?.is_favorite || isFavorite(productId) || false,
   };
-  
+
   const isBundle = product?.type === "bundle" || product?.is_bundle === true;
   const activeColor = selectedColor || product?.available_colors?.[0] || null;
   const selectionKey = `${activeColor?.id || ""}-${selectedSize?.id || ""}`;
@@ -229,7 +230,7 @@ const ProductsDetails = ({ productData: initialProductData }) => {
   const handleToggleFavorite = () => {
     // Check if user is authenticated
     if (!isAuthenticated) {
-      setPendingAction('favorite');
+      setPendingAction("favorite");
       setShowLoginPopup(true);
       return;
     }
@@ -243,7 +244,7 @@ const ProductsDetails = ({ productData: initialProductData }) => {
       ? t("favorite_added")
       : t("favorite_removed");
     toast.success(action);
-    
+
     // Set override for optimistic UI
     setFavoriteOverride(newFavoriteState);
 
@@ -289,8 +290,10 @@ const ProductsDetails = ({ productData: initialProductData }) => {
               {discountDetails.original_price.formatted}
             </span>
             <span className="bg-red-100 text-red-600 text-xs font-semibold px-2 py-1 rounded">
-              {discountDetails.label}
-            </span>
+  {discountDetails.label.includes('%') 
+    ? discountDetails.label.replace('OFF', t('off')) 
+    : discountDetails.label}
+</span>
           </div>
           <p className="text-xs text-green-600">
             {t("you_save", { amount: discountDetails.savings.formatted })}
@@ -332,7 +335,7 @@ const ProductsDetails = ({ productData: initialProductData }) => {
   const handleAddToCart = () => {
     // Check if user is authenticated
     if (!isAuthenticated) {
-      setPendingAction('cart');
+      setPendingAction("cart");
       setShowLoginPopup(true);
       return;
     }
@@ -410,10 +413,10 @@ const ProductsDetails = ({ productData: initialProductData }) => {
             toast.error(
               locale === "en"
                 ? error?.response?.message || "Failed to add bundle to cart"
-                : error?.response?.message || "فشل إضافة الباقة إلى السلة"
+                : error?.response?.message || "فشل إضافة الباقة إلى السلة",
             );
           },
-        }
+        },
       );
 
       return;
@@ -457,10 +460,10 @@ const ProductsDetails = ({ productData: initialProductData }) => {
           toast.error(
             locale === "en"
               ? error?.response?.message || "Failed to add item to cart"
-              : error?.response?.message || "فشل إضافة المنتج إلى السلة"
+              : error?.response?.message || "فشل إضافة المنتج إلى السلة",
           );
         },
-      }
+      },
     );
   };
 
@@ -511,7 +514,9 @@ const ProductsDetails = ({ productData: initialProductData }) => {
                 <p className="font-bold text-[0.9rem] text-[#EB5757]">
                   {product.discount.type === "category_percentage"
                     ? (product.discount.category_discount_details?.percentage ||
-                        "") + "% OFF ON THIS CATEGORY"
+                        "") +
+                      `% ` +
+                      t("OFF ON THIS CATEGORY")
                     : product.discount.buy_x_get_y_details?.label ||
                       t("special_offer")}
                 </p>

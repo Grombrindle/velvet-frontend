@@ -326,7 +326,7 @@ const handleCurrencySelect = async (currencyId) => {
                       className="fixed inset-0 z-10"
                       onClick={() => setUserMenuOpen(false)}
                     />
-                    <div className="absolute right-0 top-full mt-3 w-64 bg-white border border-slate-100 shadow-xl rounded-2xl py-2 z-20 overflow-hidden">
+                    <div className="absolute right-0 top-full mt-3 w-fit bg-white border border-slate-100 shadow-xl rounded-2xl py-2 z-20 overflow-hidden">
                       <div className="px-4 py-4 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white">
                         <div className="flex items-center gap-3">
                           <div className="w-12 h-12 rounded-full bg-gradient-to-br from-gray-800 to-black flex items-center justify-center text-white font-bold text-lg ring-2 ring-gray-200">

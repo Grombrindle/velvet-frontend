@@ -47,6 +47,11 @@ export default function NotificationsDropdown({ open, onClose }) {
   const updatePrefs = useUpdateNotificationPreferences();
   const markRead = useMarkNotificationsRead();
 
+  // 🔍 DEBUG: Log what data you're getting
+  console.log("Notifications data:", data);
+  console.log("Is loading:", isLoading);
+  console.log("Error:", error);
+
   // Close on Escape
   useEffect(() => {
     if (!open) return;
@@ -57,10 +62,14 @@ export default function NotificationsDropdown({ open, onClose }) {
 
   if (!open) return null;
 
-  // ✅ FIXED: Access data directly since fetchNotifications already returns result
-  const items = data?.data || [];
+  // Try multiple ways to access the data
+  const items = data?.result || data?.data || data?.notifications || [];
   const pagination = data?.pagination || null;
   const unreadCount = items.filter((n) => !n.isRead).length;
+
+  // 🔍 DEBUG: Log what you're trying to display
+  console.log("Items to display:", items);
+  console.log("Unread count:", unreadCount);
 
   const handleOpenNotification = (n) => {
     if (!n.isRead) markRead.mutate([n.id]);
@@ -110,7 +119,9 @@ export default function NotificationsDropdown({ open, onClose }) {
             <Loader text={t("loading")} />
           </div>
         ) : error ? (
-          <p className="text-center text-sm text-red-500 py-10">{t("load_error")}</p>
+          <p className="text-center text-sm text-red-500 py-10">
+            {t("load_error")}: {error.message}
+          </p>
         ) : items.length === 0 ? (
           <p className="text-center text-sm text-gray-500 py-10">{t("empty")}</p>
         ) : (

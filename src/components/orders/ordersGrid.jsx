@@ -31,14 +31,14 @@ const ImageSlider = ({ images, orderCode }) => {
   const goToPrevious = (e) => {
     e.stopPropagation();
     setCurrentIndex((prevIndex) =>
-      prevIndex === 0 ? images.length - 1 : prevIndex - 1
+      prevIndex === 0 ? images.length - 1 : prevIndex - 1,
     );
   };
 
   const goToNext = (e) => {
     e.stopPropagation();
     setCurrentIndex((prevIndex) =>
-      prevIndex === images.length - 1 ? 0 : prevIndex + 1
+      prevIndex === images.length - 1 ? 0 : prevIndex + 1,
     );
   };
 
@@ -120,7 +120,7 @@ const OrdersGrid = () => {
           <div className="relative" style={{ width: "15rem", height: "15rem" }}>
             <Image src="/images/no order.png" fill alt="no order" />
           </div>
-          <p className="text-xl text-[#525252] mb-40">{t('order_not_found')}</p>
+          <p className="text-xl text-[#525252] mb-40">{t("order_not_found")}</p>
         </div>
       </div>
     );
@@ -136,6 +136,42 @@ const OrdersGrid = () => {
     });
   };
 
+  // Helper function to translate status
+  const translateStatus = (status) => {
+    if (!status) return "";
+    
+    // Convert status to lowercase for consistent mapping
+    const statusKey = status.toLowerCase();
+    
+    // Map API status to translation keys
+    const statusMap = {
+      "approved": "status_approved",
+      "pending": "status_pending",
+      "completed": "status_completed",
+      "cancelled": "status_cancelled",
+      "paid": "status_paid",
+      "payment_failed": "status_payment_failed",
+      "processing": "status_processing",
+      "shipped": "status_shipped",
+      "delivered": "status_delivered",
+      "refunded": "status_refunded",
+      "failed": "status_failed"
+    };
+    
+    // Get the translation key, fallback to the original status if not found
+    const translationKey = statusMap[statusKey] || statusKey;
+    
+    // Try to get translation, fallback to original status
+    const translated = t(translationKey);
+    
+    // If translation returns the key itself (no translation found), return formatted original
+    if (translated === translationKey) {
+      return status.charAt(0).toUpperCase() + status.slice(1);
+    }
+    
+    return translated;
+  };
+
   // Get status color
   const getStatusColor = (status) => {
     switch (status.toLowerCase()) {
@@ -146,6 +182,20 @@ const OrdersGrid = () => {
       case "completed":
         return "text-blue-600";
       case "cancelled":
+        return "text-red-600";
+      case "paid":
+        return "text-green-600";
+      case "payment_failed":
+        return "text-red-600";
+      case "processing":
+        return "text-blue-600";
+      case "shipped":
+        return "text-purple-600";
+      case "delivered":
+        return "text-green-600";
+      case "refunded":
+        return "text-gray-600";
+      case "failed":
         return "text-red-600";
       default:
         return "text-gray-600";
@@ -169,7 +219,7 @@ const OrdersGrid = () => {
               />
               <OrderField
                 label={t("product_quantity")}
-                value={`${order.items_count} ${order.items_count === 1 ? t("piece" ): t("pieces")}`}
+                value={`${order.items_count} ${order.items_count === 1 ? t("piece") : t("pieces")}`}
               />
               <OrderField
                 label={t("Total")}
@@ -179,7 +229,7 @@ const OrdersGrid = () => {
                 <p
                   className={`font-semibold text-sm ${getStatusColor(order.status)}`}
                 >
-                  {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                  {translateStatus(order.status)}
                 </p>
               </div>
 
