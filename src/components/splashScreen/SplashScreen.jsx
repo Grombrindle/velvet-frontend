@@ -66,8 +66,7 @@ export default function SplashScreen() {
               alt="V Logo"
               width={150}
               height={150}
-              priority
-            />
+           />
           </motion.div>
 
           {/* 2. Full Velvet Logo */}
@@ -81,12 +80,12 @@ export default function SplashScreen() {
             }}
             className="flex flex-col items-center"
           >
-            <Image
+            <img
               src="/images/logo/velvet-logo-typo-big.svg"
               alt="Velvet Full Logo"
               width={250}
               height={100}
-              priority
+              // fetchPriority="high" 
             />
 
             <motion.div

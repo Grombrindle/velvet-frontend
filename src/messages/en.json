@@ -276,7 +276,8 @@
         "Password_letter": "Password must contain at least one uppercase letter",
         "password_numbe": "Password must contain at least one number",
         "password_charachter": "Password must contain at least one special character",
-        "passwords_do_not_match": "Passwords do not match"
+        "passwords_do_not_match": "Passwords do not match",
+        "gender_req": "gender is required"
     },
     "faq": {
         "Loading_faq": "Loading faq...",

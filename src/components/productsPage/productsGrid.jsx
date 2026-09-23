@@ -13,10 +13,10 @@ const ProductsGrid = ({ productData }) => {
       setSelectedColor(event.detail);
     };
 
-    window.addEventListener('colorChanged', handleColorChange);
-    
+    window.addEventListener("colorChanged", handleColorChange);
+
     return () => {
-      window.removeEventListener('colorChanged', handleColorChange);
+      window.removeEventListener("colorChanged", handleColorChange);
     };
   }, [productData]);
 
@@ -27,19 +27,17 @@ const ProductsGrid = ({ productData }) => {
     if (activeColor?.images?.length > 0) {
       return activeColor.images;
     }
-    
+
     // Fallback to primary color images
     if (productData?.result?.primary_color?.images?.length > 0) {
       return productData.result.primary_color.images;
     }
-    
+
     // Last fallback to the main product images array
     return productData?.result?.images || [];
   };
 
   const imagesToDisplay = getImagesToDisplay();
-
-
 
   return (
     <div>
@@ -55,7 +53,7 @@ const ProductsGrid = ({ productData }) => {
               className="object-cover"
               alt={`product image ${index + 1}`}
               sizes="(max-width: 768px) 100vw, 50vw"
-              priority={index === 0}
+              loading={index === 0 ? "eager" : "lazy"} // 👈 أول صورة eager، الباقي lazy
             />
           </div>
         ))}

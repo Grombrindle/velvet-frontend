@@ -19,7 +19,6 @@ export default function FilterBar({
   onFilterChange,
   genderOptions,
 }) {
-  console.log("gender",gender)
   const { toggleFilter, viewMode, setViewMode, isFilterOpen } =
     useCategoryPageStore();
   const t = useTranslations("filterBar");

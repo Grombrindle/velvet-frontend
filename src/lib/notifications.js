@@ -27,7 +27,6 @@ export async function fetchNotifications({ page = 1, size = 20 } = {}) {
         });
 
         // Log the response to debug
-        console.log("Full API Response:", response);
 
         // ✅ Return the full response with both result and pagination
         // The response should have this structure:
@@ -39,7 +38,6 @@ export async function fetchNotifications({ page = 1, size = 20 } = {}) {
         return response;
 
     } catch (error) {
-        console.error("Error fetching notifications:", error);
         // Return a fallback response structure
         return {
             success: false,
@@ -59,7 +57,6 @@ export async function fetchNotificationPreferences() {
         }
         return response || { notification_enabled: true, notification_sound_enabled: true };
     } catch (error) {
-        console.error("Error fetching preferences:", error);
         return { notification_enabled: true, notification_sound_enabled: true };
     }
 }

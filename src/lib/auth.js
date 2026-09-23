@@ -7,9 +7,7 @@ export function saveAuth(result) {
         if (result.token)
             Cookies.set("token", result.token, { expires: 7, secure: true });
         Cookies.set("user", JSON.stringify(result), { expires: 7, secure: true });
-    } catch (e) {
-        console.error("saveAuth error", e);
-    }
+    } catch (e) {}
 }
 
 
@@ -32,9 +30,7 @@ export function getToken() {
             const parsed = JSON.parse(authStorage);
             if (parsed.state ? .token) return parsed.state.token;
         }
-    } catch (e) {
-        console.error("Error parsing auth cookie", e);
-    }
+    } catch (e) {}
 
     // 3. Fallback to separate token cookie or guest token cookie
     const directToken = Cookies.get("token");

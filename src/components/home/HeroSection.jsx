@@ -22,7 +22,6 @@ function HeroSection({ gender }) {
     enabled: !!gender,
     staleTime: 24 * 60 * 60 * 1000,
   });
-  console.log("home-sliders", data);
   const result = data?.result;
   
   const paginate = useCallback(
@@ -38,7 +37,6 @@ function HeroSection({ gender }) {
   );
 
   const handleShowMore = (categoryId) => {
-    console.log("Category ID:", categoryId); // Debug log
     if (categoryId) {
       router.push(`/${loc}/${gender}/category/${categoryId}`);
     }
@@ -91,7 +89,7 @@ function HeroSection({ gender }) {
             alt={item.title || "Hero Image"}
             src={item.banner}
             fill
-            priority={index === 0}
+            // priority={index === 0}
             className="object-cover pointer-events-none" // Prevent image from blocking clicks
           />
 
@@ -125,7 +123,6 @@ function HeroSection({ gender }) {
                     )}
                     <motion.button 
                       onClick={() => {
-                        console.log("Button clicked!", item.category_id);
                         handleShowMore(item.category_id);
                       }}
                       initial={{ y: 30, opacity: 0 }}

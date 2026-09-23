@@ -259,7 +259,6 @@ const ProductsDetails = ({ productData: initialProductData }) => {
         // Revert store
         setFavorite(productId, currentFavoriteState);
         toast.error(t("favorite_error"));
-        console.error("Failed to toggle favorite:", error);
       },
       onSuccess: (data) => {
         // If API returns success but with different value, sync it

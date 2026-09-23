@@ -23,7 +23,6 @@ async function ensureGuestToken() {
             return token;
         }
     } catch (error) {
-        console.error("Failed to generate guest token", error);
     }
     return null;
 }

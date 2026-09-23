@@ -21,7 +21,7 @@ const NavbarDashboard = () => {
             width={500}
             height={500}
             className="w-full h-auto"
-            priority
+            // priority
           />
         </div>
       </Link>

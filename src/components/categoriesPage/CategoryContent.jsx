@@ -136,7 +136,6 @@ export default function CategoryContent({
   } = useQuery({
     queryKey: ["category-search", categoryId, gender, params],
     queryFn: () => {
-      console.log("Fetching filtered results with params:", params);
       return apiGet("/filter/search", { params });
     },
     enabled: true,
@@ -153,7 +152,6 @@ export default function CategoryContent({
   } = useQuery({
     queryKey: ["category-count", categoryId, gender, params],
     queryFn: () => {
-      console.log("Fetching count with params:", params);
       return apiGet("/filter/count", { params });
     },
     enabled: true,

@@ -25,7 +25,7 @@ function FeaturesStrip() {
               <span className="md:absolute right-0 top-6 bottom-6 w-px bg-[#959595]" />
             )}
 
-            <Image src={item.image} alt={item.desc} width={40} height={40} />
+            <img src={item.image} alt={item.desc} width={40} height={40} />
             <p className="mt-2 text-[#000000] text-sm font-normal text-nowrap">
               {item.desc}
             </p>

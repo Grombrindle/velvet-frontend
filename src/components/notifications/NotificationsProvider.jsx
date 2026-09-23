@@ -79,7 +79,6 @@ export function NotificationsProvider({ children }) {
         }
       } catch (e) {
         localStorage.removeItem(key); // allow a retry next time
-        console.error("Push self-test failed", e);
       }
     },
     [t]
@@ -179,11 +178,9 @@ export function NotificationsProvider({ children }) {
               queryClient.invalidateQueries({ queryKey: ["notifications", "list"] });
             }
           } catch (e) {
-            console.error("FCM re-registration after unregister failed", e);
           }
         });
       } catch (e) {
-        console.error("FCM token registration failed", e);
       }
     })();
     return () => {
@@ -211,7 +208,6 @@ export function NotificationsProvider({ children }) {
       }
       return "granted";
     } catch (e) {
-      console.error("FCM permission request failed", e);
       return "denied";
     }
   };

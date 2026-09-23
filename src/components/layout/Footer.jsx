@@ -44,11 +44,12 @@ const SocialMediaIcon = ({ icon, alt, href }) => (
 
 const AppStoreIcon = ({ src, alt, href }) => (
   <Link href={href || "#"} target="_blank" rel="noopener noreferrer">
-    <Image
+    <img
       src={src}
       alt={alt}
       width={80}
       height={80}
+
       className="cursor-pointer hover:opacity-70 transition-opacity"
     />
   </Link>

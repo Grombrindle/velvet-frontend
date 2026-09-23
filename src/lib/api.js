@@ -28,9 +28,7 @@ async function apiFetch(
     const token = getToken();
     // Debug: Log token status
     // console.log("Token present:", token);
-    if (token) {
-        // console.log("Token first 20 chars:", token.substring(0, 20) + "...");
-    }
+    if (token) {}
 
     const clientLocale =
         typeof window !== "undefined" ?

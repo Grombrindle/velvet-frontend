@@ -137,7 +137,6 @@ function NavbarMobile() {
     return null;
   }
   if (gendersError) {
-    console.error(gendersError);
   }
 
   if (pathname?.startsWith(`${localePrefix}/dashboard`)) {
@@ -185,7 +184,7 @@ function NavbarMobile() {
                   className="fixed inset-0 z-10"
                   onClick={() => setCurrencyMenuOpen(false)}
                 />
-                <div className="absolute right-0 top-full mt-2 w-36 bg-white border border-slate-100 shadow-xl rounded-xl py-2 z-20">
+                <div className={`absolute ${currentLocale == "ar"?' left-0':'right-0'} top-full mt-2 w-36 bg-white border border-slate-100 shadow-xl rounded-xl py-2 z-20`}>
                   <div className="px-3 py-1.5 text-[11px] font-bold text-gray-400 uppercase tracking-wider border-b border-gray-100">
                     {tCurrencies("currency_selection")}
                   </div>

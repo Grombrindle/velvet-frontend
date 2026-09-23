@@ -6,9 +6,6 @@ export const dynamic = "force-dynamic";
 async function ProductPage({ params }) {
   // 1. Await params to properly unwrap the promise in Next.js App Router
   const resolvedParams = await params;
-  
-  console.log("resolvedParams", resolvedParams);
-
   return (
     <>
       <ScrollToTop/>

@@ -76,12 +76,7 @@ async function page({ params }) {
     totalProducts = productsRes?.result?.meta?.total || 0;
     categoryName = categoryRes?.result;
     genderOptions = genderRes?.result || [];
-
-    console.log("Gender Options from API:", genderOptions);
-    console.log("Gender Options length:", genderOptions.length);
-    console.log("Gender API Response:", genderRes);
   } catch (error) {
-    console.error("Error fetching data:", error);
   }
 
   if (!gender) return null;

@@ -119,7 +119,6 @@ function ProductCard({ item, isMini }) {
         // Revert on error
         setFavorite(productId, currentFavoriteState);
         toast.error(t("favorite_error"));
-        console.error("Failed to toggle favorite:", error);
       },
       onSuccess: (data) => {
         // Sync with API response

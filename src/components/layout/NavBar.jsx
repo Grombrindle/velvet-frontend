@@ -1,3 +1,477 @@
+// "use client";
+// import React, { Suspense, useState, useEffect } from "react";
+// import Image from "next/image";
+// import { IoIosLogOut, IoIosSettings, IoIosCash } from "react-icons/io";
+// import { FaUserCircle } from "react-icons/fa";
+// import Link from "next/link";
+// import { useSearchParams, useRouter, usePathname } from "next/navigation";
+// import CategoryDropdown from "./CategoryDropdown";
+// import CartMenu from "./CartMenu";
+// import LanguageSwitcher from "./LanguageSwitcher";
+// import NotificationsBell from "../notifications/NotificationsBell";
+// import { useAuthStore } from "@/lib/store";
+// import NavbarDashboard from "./Navbar-dashboard";
+// import { useQuery } from "@tanstack/react-query";
+// import { apiGet } from "@/lib/api";
+// import { getGenderFromPathname, getLocalePrefix } from "@/lib/locale";
+// import { useLocale, useTranslations } from "next-intl";
+// import { useCart } from "@/components/cart/hooks/useCart";
+// import { toast } from "react-hot-toast";
+// import { useChangeCurrency, useCurrencies } from "../currency/hooks/useCurrencies";
+
+// function NavBar() {
+//   const router = useRouter();
+//   const pathname = usePathname();
+//   const searchParams = useSearchParams();
+//   const localePrefix = getLocalePrefix(pathname);
+
+//   const currentGenderFromPath = getGenderFromPathname(pathname, searchParams);
+
+//   const t = useTranslations("navbar");
+//   const tCurrencies = useTranslations("currencies");
+
+//   const [hoveredCategory, setHoveredCategory] = useState(null);
+//   const [cartOpen, setCartOpen] = useState(false);
+//   const [userMenuOpen, setUserMenuOpen] = useState(false);
+//   const [currencyMenuOpen, setCurrencyMenuOpen] = useState(false); // ✅ State for currency dropdown
+  
+//   // State to hold fallback gender from localStorage when URL lacks gender (e.g. /product/99)
+//   const [savedGender, setSavedGender] = useState(null);
+
+//   // Load saved gender from localStorage on initial client load
+//   useEffect(() => {
+//     const lastGender = localStorage.getItem("activeGender");
+//     if (lastGender) {
+//       setSavedGender(lastGender);
+//     }
+//   }, []);
+
+//   const { user, isAuthenticated, clear } = useAuthStore();
+
+//   const currentLocale = useLocale();
+//   const { data: cart } = useCart({ enabled: isAuthenticated });
+//   const cartCount = cart?.totalCount || 0;
+
+//   // ✅ Currency hooks
+//   const { data: currenciesData } = useCurrencies();
+//   const changeCurrencyMutation = useChangeCurrency();
+//   const currencies = currenciesData?.currencies || [];
+//   const currentCurrency = currenciesData?.user_currency;
+
+// const handleCurrencySelect = async (currencyId) => {
+//     if (currencyId === currentCurrency?.id) {
+//       setCurrencyMenuOpen(false);
+//       return;
+//     }
+
+//     try {
+//       await changeCurrencyMutation.mutateAsync(currencyId);
+//       toast.success(tCurrencies("currency_changed_successfully!"));
+//       setCurrencyMenuOpen(false);
+      
+//       // ✅ Forces a full page reload so every page and component updates instantly with the new currency
+//       window.location.reload(); 
+//     } catch (error) {
+//       toast.error(error?.message || tCurrencies("Failed_to_change_currency"));
+//     }
+//   };
+
+//   const handleLogout = () => {
+//     clear();
+//     setUserMenuOpen(false);
+//     // Navigate to home with active gender if available
+//      const homePath = activeGender
+//       ? `${localePrefix}/${activeGender}`
+//       : `${localePrefix}/`;
+//     router.push(homePath); 
+//       window.location.href = homePath;
+
+//    };
+
+//   const {
+//     data: gendersData,
+//     isLoading: gendersLoading,
+//     error: gendersError,
+//   } = useQuery({
+//     queryKey: ["genders-web"],
+//     queryFn: () => apiGet("/web/genders"),
+//     staleTime: 10 * 60 * 3600 * 24, // 24 hours
+//   });
+
+//   const navItems = React.useMemo(
+//     () => gendersData?.result || [],
+//     [gendersData],
+//   );
+
+//   // Save gender to localStorage whenever path changes to a valid gender page
+//   useEffect(() => {
+//     if (currentGenderFromPath) {
+//       localStorage.setItem("activeGender", currentGenderFromPath);
+//       setSavedGender(currentGenderFromPath);
+//     }
+//   }, [currentGenderFromPath]);
+
+//   if (pathname?.startsWith(`${localePrefix}/dashboard`)) {
+//     return <NavbarDashboard />;
+//   }
+
+//   if (gendersError) {
+//   }
+
+//   // Determine active gender: Path -> LocalStorage -> Fallback to first nav item
+//   const activeGender = currentGenderFromPath || savedGender || navItems[0]?.name.en;
+
+//   // Get user initials
+//   const getUserInitials = () => {
+//     if (!user?.name) return "U";
+//     const names = user.name.split(" ");
+//     if (names.length >= 2) {
+//       return `${names[0].charAt(0)}${names[1].charAt(0)}`.toUpperCase();
+//     }
+//     return user.name.charAt(0).toUpperCase();
+//   };
+
+//   // Helper function to navigate with gender change while staying on current page
+//   const handleGenderNavigation = (newGender) => {
+//     localStorage.setItem("activeGender", newGender);
+//     setSavedGender(newGender);
+
+//     const pathWithoutLocale = pathname.replace(localePrefix, '');
+    
+//     const categoryMatch = pathWithoutLocale.match(/^\/([^/]+)\/category\/(.+)$/);
+//     if (categoryMatch) {
+//       const [, , categoryId] = categoryMatch;
+//       router.push(`${localePrefix}/${newGender}/category/${categoryId}`);
+//       return;
+//     }
+
+//     const searchMatch = pathWithoutLocale.match(/^\/([^/]+)\/search$/);
+//     if (searchMatch) {
+//       const searchParamsString = searchParams.toString();
+//       const queryString = searchParamsString ? `?${searchParamsString}` : '';
+//       router.push(`${localePrefix}/${newGender}/search${queryString}`);
+//       return;
+//     }
+
+//     router.push(`${localePrefix}/${newGender}`);
+//   };
+
+//   return (
+//     <header className="sticky py-3 bg-white top-0 z-50 h-fit w-full bg-transparent transition-colors duration-150 hover:bg-white shadow-sm lg:block hidden">
+//       <div className="flex relative py-3 justify-between navbar-container mx-auto items-center">
+//         <Link
+//           className=" flex items-center"
+//           href={`${localePrefix}/${activeGender || ""}`}
+//         >
+//           <div className="flex items-center absolute ">
+//             <div className={`${currentLocale === "ar" ? "rotate-180" : ""}  `}>
+//               <img
+//                 src="/images/banner2.png"
+//                 alt="banner2"
+//                 width={20}
+//                 height={20}
+//               />
+//             </div>
+
+//             <div
+//               className={`-mx-5 ${currentLocale === "ar" ? "rotate-180" : ""} `}
+//             >
+//               <img
+//                 src="/images/glass-banner2.png"
+//                 alt="glass banner2"
+//                 width={25}
+//                 height={25}
+//               />
+//             </div>
+//           </div>
+//           <div className="w-56 mx-7">
+//             <img
+//               src="/images/logo/velvet-logo-typo-big.svg"
+//               alt="Velvet Logo"
+//               width={500}
+//               height={500}
+//               // priority
+//             />
+//           </div>
+//         </Link>
+
+//         {!gendersLoading && (
+//           <div className="flex gap-x-3">
+//             {navItems.map((item) => (
+//               <div
+//                 key={item.id}
+//                 className="relative"
+//                 onMouseEnter={() => setHoveredCategory(item.name.en)}
+//                 onMouseLeave={() => setHoveredCategory(null)}
+//               >
+//                 <button
+//                   onClick={() => handleGenderNavigation(item.name.en)}
+//                   className={`text-sm rounded w-full px-8 cursor-pointer py-1 ${
+//                     activeGender?.toLowerCase() === item.name.en.toLowerCase()
+//                       ? "font-bold bg-black text-white"
+//                       : "font-light text-[#000000]"
+//                   }`}
+//                 >
+//                   {currentLocale === "ar" ? item.name.ar : item.name.en}
+//                 </button>
+//               </div>
+//             ))}
+//           </div>
+//         )}
+
+//         {gendersLoading && (
+//           <div className="flex gap-x-5">
+//             <span className="bg-gray-300 w-20 h-4 rounded-lg animate-pulse"></span>
+//             <span className="bg-gray-300 w-20 h-4 rounded-lg animate-pulse"></span>
+//             <span className="bg-gray-300 w-20 h-4 rounded-lg animate-pulse"></span>
+//             <span className="bg-gray-300 w-20 h-4 rounded-lg animate-pulse"></span>
+//           </div>
+//         )}
+
+//         {/* Right Section */}
+//         <div className="flex items-center gap-x-3">
+//           <Suspense>
+//             <LanguageSwitcher />
+//           </Suspense>
+
+//           {/* ✅ Currency Dropdown Switcher */}
+//           <div className="relative">
+//             <button
+//               onClick={() => setCurrencyMenuOpen(!currencyMenuOpen)}
+//               className="flex items-center gap-1 text-xs font-semibold px-2.5 py-1.5 rounded-md border border-gray-200 hover:bg-gray-50 transition-all cursor-pointer"
+//             >
+//               <span>{currentCurrency?.code || "USD"}</span>
+//               <span className="text-gray-400">({currentCurrency?.symbol || "$"})</span>
+//             </button>
+
+//             {currencyMenuOpen && (
+//               <>
+//                 <div
+//                   className="fixed inset-0 z-10"
+//                   onClick={() => setCurrencyMenuOpen(false)}
+//                 />
+//                 <div className="absolute right-0 top-full mt-2 w-36 bg-white border border-slate-100 shadow-xl rounded-xl py-2 z-20">
+//                   <div className="px-3 py-1.5 text-[11px] font-bold text-gray-400 uppercase tracking-wider border-b border-gray-100">
+//                     {tCurrencies("currency_selection")}
+//                   </div>
+//                   <div className="max-h-48 overflow-y-auto">
+//                     {currencies.map((currency) => (
+//                       <button
+//                         key={currency.id}
+//                         onClick={() => handleCurrencySelect(currency.id)}
+//                         className={`w-full text-left px-3 py-2 text-xs flex items-center justify-between hover:bg-gray-50 transition-colors ${
+//                           currentCurrency?.id === currency.id
+//                             ? "font-bold bg-gray-50 text-black"
+//                             : "text-gray-700"
+//                         }`}
+//                       >
+//                         <span>{currency.code}</span>
+//                         <span className="text-gray-500">{currency.symbol}</span>
+//                       </button>
+//                     ))}
+//                   </div>
+//                 </div>
+//               </>
+//             )}
+//           </div>
+
+//           {/* Search Icon */}
+//           <Link
+//             href={`${localePrefix}/${encodeURIComponent(activeGender || "")}/search`}
+//             className="hover:opacity-70 transition-opacity"
+//           >
+//             <img
+//               src="/images/search.svg"
+//               alt="Search"
+//               width={28}
+//               height={28}
+//             />
+//           </Link>
+
+//           <div className="relative">
+//             {!isAuthenticated ? (
+//               <Link href={`${localePrefix}/login`}>
+//                 <button className="flex items-center bg-black cursor-pointer text-white px-5 py-2 text-sm font-bold hover:bg-gray-800 transition-all">
+//                   {t("login")}
+//                 </button>
+//               </Link>
+//             ) : (
+//               <div className="relative flex items-center gap-3">
+//                 <div className="flex items-center gap-3 pr-3 border-r border-gray-200">
+//                   <div className="relative group">
+//                     <button
+//                       onClick={() => setUserMenuOpen(!userMenuOpen)}
+//                       className="flex items-center gap-3 hover:bg-gray-50 rounded-full pl-1 pr-3 py-1 transition-all duration-200 cursor-pointer"
+//                     >
+//                       <div className="w-9 h-9 rounded-full bg-gradient-to-br from-gray-800 to-black flex items-center justify-center text-white font-bold text-sm ring-2 ring-offset-2 ring-gray-200 hover:ring-black transition-all duration-200">
+//                         {getUserInitials()}
+//                       </div>
+
+//                       <div className="flex flex-col items-start">
+//                         <span className="text-xs text-gray-500 font-medium">
+//                           {t("welcome")}
+//                         </span>
+//                         <span className="text-sm font-semibold text-gray-900 leading-none">
+//                           {user?.name || "User"}
+//                         </span>
+//                       </div>
+//                     </button>
+//                   </div>
+//                 </div>
+
+//                 {userMenuOpen && (
+//                   <>
+//                     <div
+//                       className="fixed inset-0 z-10"
+//                       onClick={() => setUserMenuOpen(false)}
+//                     />
+//                     <div className="absolute right-0 top-full mt-3 w-fit bg-white border border-slate-100 shadow-xl rounded-2xl py-2 z-20 overflow-hidden">
+//                       <div className="px-4 py-4 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white">
+//                         <div className="flex items-center gap-3">
+//                           <div className="w-12 h-12 rounded-full bg-gradient-to-br from-gray-800 to-black flex items-center justify-center text-white font-bold text-lg ring-2 ring-gray-200">
+//                             {getUserInitials()}
+//                           </div>
+//                           <div className="flex-1 min-w-0">
+//                             <p className="text-sm font-semibold text-gray-900 truncate">
+//                               {user?.name}
+//                             </p>
+//                             <p className="text-xs text-gray-500 truncate">
+//                               {user?.email}
+//                             </p>
+//                           </div>
+//                         </div>
+//                       </div>
+
+//                       <Link
+//                         href={`${localePrefix}/dashboard/profile`}
+//                         onClick={() => setUserMenuOpen(false)}
+//                         className="flex items-center gap-3 px-4 py-3 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
+//                       >
+//                         <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
+//                           <IoIosSettings className="text-lg text-slate-600" />
+//                         </div>
+//                         <span>{t("Dashboard")}</span>
+//                       </Link>
+
+//                       <Link
+//                         href={`${localePrefix}/dashboard/favorite`}
+//                         onClick={() => setUserMenuOpen(false)}
+//                         className="flex items-center gap-3 px-4 py-3 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
+//                       >
+//                         <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
+//                           <svg
+//                             className="w-4 h-4 text-slate-600"
+//                             fill="none"
+//                             stroke="currentColor"
+//                             viewBox="0 0 24 24"
+//                           >
+//                             <path
+//                               strokeLinecap="round"
+//                               strokeLinejoin="round"
+//                               strokeWidth={2}
+//                               d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+//                             />
+//                           </svg>
+//                         </div>
+//                         <span>{t("Wishlist")}</span>
+//                       </Link>
+
+//                       <Link
+//                         href={`${localePrefix}/cart`}
+//                         onClick={() => setUserMenuOpen(false)}
+//                         className="flex items-center gap-3 px-4 py-3 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
+//                       >
+//                         <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
+//                           <svg
+//                             className="w-4 h-4 text-slate-600"
+//                             fill="none"
+//                             stroke="currentColor"
+//                             viewBox="0 0 24 24"
+//                           >
+//                             <path
+//                               strokeLinecap="round"
+//                               strokeLinejoin="round"
+//                               strokeWidth={2}
+//                               d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
+//                             />
+//                           </svg>
+//                         </div>
+//                         <span>{t("Cart")}</span>
+//                         {cartCount > 0 && (
+//                           <span className="ml-auto bg-black text-white text-xs font-bold px-2 py-0.5 rounded-full">
+//                             {cartCount}
+//                           </span>
+//                         )}
+//                       </Link>
+
+//                       <button
+//                         onClick={handleLogout}
+//                         className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-600 hover:bg-red-50 transition-colors border-t border-slate-50 cursor-pointer"
+//                       >
+//                         <div className="w-8 h-8 rounded-full bg-red-50 flex items-center justify-center">
+//                           <IoIosLogOut className="text-lg text-red-500" />
+//                         </div>
+//                         <span>{t("Logout")}</span>
+//                       </button>
+//                     </div>
+//                   </>
+//                 )}
+//               </div>
+//             )}
+//           </div>
+
+//           {isAuthenticated && (
+//             <Link
+//               href={`${localePrefix}/dashboard/favorite`}
+//               className="hover:opacity-70 transition-opacity"
+//             >
+//               <img
+//                 src="/images/heart.svg"
+//                 alt="Wishlist"
+//                 width={20}
+//                 height={20}
+//               />
+//             </Link>
+//           )}
+
+//           {isAuthenticated && <NotificationsBell />}
+
+//           {isAuthenticated && (
+//             <div
+//               onMouseEnter={() => setCartOpen(true)}
+//               onMouseLeave={() => setCartOpen(false)}
+//               className="relative"
+//             >
+//               <img
+//                 src="/images/bag.svg"
+//                 alt="Cart"
+//                 width={20}
+//                 height={20}
+//                 className="cursor-pointer hover:opacity-70 transition-opacity"
+//               />
+//               {cartCount > 0 && (
+//                 <span className="absolute -top-2 -right-2 min-w-5 h-5 px-1 rounded-full bg-black text-white text-[10px] font-bold flex items-center justify-center">
+//                   {cartCount}
+//                 </span>
+//               )}
+//               <CartMenu isOpen={cartOpen} onClose={() => setCartOpen(false)} />
+//             </div>
+//           )}
+//         </div>
+//       </div>
+
+//       <CategoryDropdown
+//         hoveredCategory={hoveredCategory}
+//         activeGender={activeGender}
+//         locale={currentLocale}
+//         onMouseEnter={() => setHoveredCategory(hoveredCategory)}
+//         onMouseLeave={() => setHoveredCategory(null)}
+//       />
+//     </header>
+//   );
+// }
+
+// export default NavBar;
 "use client";
 import React, { Suspense, useState, useEffect } from "react";
 import Image from "next/image";
@@ -34,7 +508,7 @@ function NavBar() {
   const [cartOpen, setCartOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [currencyMenuOpen, setCurrencyMenuOpen] = useState(false); // ✅ State for currency dropdown
-  
+
   // State to hold fallback gender from localStorage when URL lacks gender (e.g. /product/99)
   const [savedGender, setSavedGender] = useState(null);
 
@@ -58,7 +532,7 @@ function NavBar() {
   const currencies = currenciesData?.currencies || [];
   const currentCurrency = currenciesData?.user_currency;
 
-const handleCurrencySelect = async (currencyId) => {
+  const handleCurrencySelect = async (currencyId) => {
     if (currencyId === currentCurrency?.id) {
       setCurrencyMenuOpen(false);
       return;
@@ -68,9 +542,9 @@ const handleCurrencySelect = async (currencyId) => {
       await changeCurrencyMutation.mutateAsync(currencyId);
       toast.success(tCurrencies("currency_changed_successfully!"));
       setCurrencyMenuOpen(false);
-      
+
       // ✅ Forces a full page reload so every page and component updates instantly with the new currency
-      window.location.reload(); 
+      window.location.reload();
     } catch (error) {
       toast.error(error?.message || tCurrencies("Failed_to_change_currency"));
     }
@@ -80,13 +554,12 @@ const handleCurrencySelect = async (currencyId) => {
     clear();
     setUserMenuOpen(false);
     // Navigate to home with active gender if available
-     const homePath = activeGender
+    const homePath = activeGender
       ? `${localePrefix}/${activeGender}`
       : `${localePrefix}/`;
-    router.push(homePath); 
-      window.location.href = homePath;
-
-   };
+    router.push(homePath);
+    window.location.href = homePath;
+  };
 
   const {
     data: gendersData,
@@ -116,7 +589,6 @@ const handleCurrencySelect = async (currencyId) => {
   }
 
   if (gendersError) {
-    console.error(gendersError);
   }
 
   // Determine active gender: Path -> LocalStorage -> Fallback to first nav item
@@ -138,7 +610,7 @@ const handleCurrencySelect = async (currencyId) => {
     setSavedGender(newGender);
 
     const pathWithoutLocale = pathname.replace(localePrefix, '');
-    
+
     const categoryMatch = pathWithoutLocale.match(/^\/([^/]+)\/category\/(.+)$/);
     if (categoryMatch) {
       const [, , categoryId] = categoryMatch;
@@ -158,7 +630,7 @@ const handleCurrencySelect = async (currencyId) => {
   };
 
   return (
-    <header className="sticky bg-white top-0 z-50 h-fit w-full bg-transparent transition-colors duration-150 hover:bg-white shadow-sm lg:block hidden">
+    <header className="sticky py-3 bg-white top-0 z-50 h-fit w-full bg-transparent transition-colors duration-150 hover:bg-white shadow-sm lg:block hidden">
       <div className="flex relative py-3 justify-between navbar-container mx-auto items-center">
         <Link
           className=" flex items-center"
@@ -166,7 +638,7 @@ const handleCurrencySelect = async (currencyId) => {
         >
           <div className="flex items-center absolute ">
             <div className={`${currentLocale === "ar" ? "rotate-180" : ""}  `}>
-              <Image
+              <img
                 src="/images/banner2.png"
                 alt="banner2"
                 width={20}
@@ -177,7 +649,7 @@ const handleCurrencySelect = async (currencyId) => {
             <div
               className={`-mx-5 ${currentLocale === "ar" ? "rotate-180" : ""} `}
             >
-              <Image
+              <img
                 src="/images/glass-banner2.png"
                 alt="glass banner2"
                 width={25}
@@ -186,12 +658,12 @@ const handleCurrencySelect = async (currencyId) => {
             </div>
           </div>
           <div className="w-56 mx-7">
-            <Image
+            <img
               src="/images/logo/velvet-logo-typo-big.svg"
               alt="Velvet Logo"
               width={500}
               height={500}
-              priority
+              // priority
             />
           </div>
         </Link>
@@ -231,233 +703,244 @@ const handleCurrencySelect = async (currencyId) => {
 
         {/* Right Section */}
         <div className="flex items-center gap-x-3">
-          <Suspense>
-            <LanguageSwitcher />
-          </Suspense>
 
-          {/* ✅ Currency Dropdown Switcher */}
-          <div className="relative">
-            <button
-              onClick={() => setCurrencyMenuOpen(!currencyMenuOpen)}
-              className="flex items-center gap-1 text-xs font-semibold px-2.5 py-1.5 rounded-md border border-gray-200 hover:bg-gray-50 transition-all cursor-pointer"
-            >
-              <span>{currentCurrency?.code || "USD"}</span>
-              <span className="text-gray-400">({currentCurrency?.symbol || "$"})</span>
-            </button>
+          {/* ===== Group 1: Language + Currency + Welcome/User ===== */}
+          <div className="flex items-center gap-x-3 mr-16">
+            <Suspense>
+              <LanguageSwitcher />
+            </Suspense>
 
-            {currencyMenuOpen && (
-              <>
-                <div
-                  className="fixed inset-0 z-10"
-                  onClick={() => setCurrencyMenuOpen(false)}
-                />
-                <div className="absolute right-0 top-full mt-2 w-36 bg-white border border-slate-100 shadow-xl rounded-xl py-2 z-20">
-                  <div className="px-3 py-1.5 text-[11px] font-bold text-gray-400 uppercase tracking-wider border-b border-gray-100">
-                    {tCurrencies("currency_selection")}
+            {/* ✅ Currency Dropdown Switcher */}
+            <div className="relative">
+              <button
+                onClick={() => setCurrencyMenuOpen(!currencyMenuOpen)}
+                className="flex items-center gap-1 text-xs font-semibold px-2.5 py-1.5 rounded-md border border-gray-200 hover:bg-gray-50 transition-all cursor-pointer"
+              >
+                <span>{currentCurrency?.code || "USD"}</span>
+                <span className="text-gray-400">({currentCurrency?.symbol || "$"})</span>
+              </button>
+
+              {currencyMenuOpen && (
+                <>
+                  <div
+                    className="fixed inset-0 z-10"
+                    onClick={() => setCurrencyMenuOpen(false)}
+                  />
+                  <div className="absolute right-0 top-full mt-2 w-36 bg-white border border-slate-100 shadow-xl rounded-xl py-2 z-20">
+                    <div className="px-3 py-1.5 text-[11px] font-bold text-gray-400 uppercase tracking-wider border-b border-gray-100">
+                      {tCurrencies("currency_selection")}
+                    </div>
+                    <div className="max-h-48 overflow-y-auto">
+                      {currencies.map((currency) => (
+                        <button
+                          key={currency.id}
+                          onClick={() => handleCurrencySelect(currency.id)}
+                          className={`w-full text-left px-3 py-2 text-xs flex items-center justify-between hover:bg-gray-50 transition-colors ${
+                            currentCurrency?.id === currency.id
+                              ? "font-bold bg-gray-50 text-black"
+                              : "text-gray-700"
+                          }`}
+                        >
+                          <span>{currency.code}</span>
+                          <span className="text-gray-500">{currency.symbol}</span>
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                  <div className="max-h-48 overflow-y-auto">
-                    {currencies.map((currency) => (
+                </>
+              )}
+            </div>
+
+            {/* User / Welcome / Login */}
+            <div className="relative">
+              {!isAuthenticated ? (
+                <Link href={`${localePrefix}/login`}>
+                  <button className="flex items-center bg-black cursor-pointer text-white px-5 py-2 text-sm font-bold hover:bg-gray-800 transition-all">
+                    {t("login")}
+                  </button>
+                </Link>
+              ) : (
+                <div className="relative flex items-center gap-3">
+                  <div className="flex items-center gap-3 pr-3 border-r border-gray-200">
+                    <div className="relative group">
                       <button
-                        key={currency.id}
-                        onClick={() => handleCurrencySelect(currency.id)}
-                        className={`w-full text-left px-3 py-2 text-xs flex items-center justify-between hover:bg-gray-50 transition-colors ${
-                          currentCurrency?.id === currency.id
-                            ? "font-bold bg-gray-50 text-black"
-                            : "text-gray-700"
-                        }`}
+                        onClick={() => setUserMenuOpen(!userMenuOpen)}
+                        className="flex items-center gap-3 hover:bg-gray-50 rounded-full pl-1 pr-3 py-1 transition-all duration-200 cursor-pointer"
                       >
-                        <span>{currency.code}</span>
-                        <span className="text-gray-500">{currency.symbol}</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </>
-            )}
-          </div>
-
-          {/* Search Icon */}
-          <Link
-            href={`${localePrefix}/${encodeURIComponent(activeGender || "")}/search`}
-            className="hover:opacity-70 transition-opacity"
-          >
-            <Image
-              src="/images/search.svg"
-              alt="Search"
-              width={28}
-              height={28}
-            />
-          </Link>
-
-          <div className="relative">
-            {!isAuthenticated ? (
-              <Link href={`${localePrefix}/login`}>
-                <button className="flex items-center bg-black cursor-pointer text-white px-5 py-2 text-sm font-bold hover:bg-gray-800 transition-all">
-                  {t("login")}
-                </button>
-              </Link>
-            ) : (
-              <div className="relative flex items-center gap-3">
-                <div className="flex items-center gap-3 pr-3 border-r border-gray-200">
-                  <div className="relative group">
-                    <button
-                      onClick={() => setUserMenuOpen(!userMenuOpen)}
-                      className="flex items-center gap-3 hover:bg-gray-50 rounded-full pl-1 pr-3 py-1 transition-all duration-200 cursor-pointer"
-                    >
-                      <div className="w-9 h-9 rounded-full bg-gradient-to-br from-gray-800 to-black flex items-center justify-center text-white font-bold text-sm ring-2 ring-offset-2 ring-gray-200 hover:ring-black transition-all duration-200">
-                        {getUserInitials()}
-                      </div>
-
-                      <div className="flex flex-col items-start">
-                        <span className="text-xs text-gray-500 font-medium">
-                          {t("welcome")}
-                        </span>
-                        <span className="text-sm font-semibold text-gray-900 leading-none">
-                          {user?.name || "User"}
-                        </span>
-                      </div>
-                    </button>
-                  </div>
-                </div>
-
-                {userMenuOpen && (
-                  <>
-                    <div
-                      className="fixed inset-0 z-10"
-                      onClick={() => setUserMenuOpen(false)}
-                    />
-                    <div className="absolute right-0 top-full mt-3 w-fit bg-white border border-slate-100 shadow-xl rounded-2xl py-2 z-20 overflow-hidden">
-                      <div className="px-4 py-4 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white">
-                        <div className="flex items-center gap-3">
-                          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-gray-800 to-black flex items-center justify-center text-white font-bold text-lg ring-2 ring-gray-200">
-                            {getUserInitials()}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-semibold text-gray-900 truncate">
-                              {user?.name}
-                            </p>
-                            <p className="text-xs text-gray-500 truncate">
-                              {user?.email}
-                            </p>
-                          </div>
+                        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-gray-800 to-black flex items-center justify-center text-white font-bold text-sm ring-2 ring-offset-2 ring-gray-200 hover:ring-black transition-all duration-200">
+                          {getUserInitials()}
                         </div>
-                      </div>
 
-                      <Link
-                        href={`${localePrefix}/dashboard/profile`}
-                        onClick={() => setUserMenuOpen(false)}
-                        className="flex items-center gap-3 px-4 py-3 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
-                      >
-                        <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
-                          <IoIosSettings className="text-lg text-slate-600" />
-                        </div>
-                        <span>{t("Dashboard")}</span>
-                      </Link>
-
-                      <Link
-                        href={`${localePrefix}/dashboard/favorite`}
-                        onClick={() => setUserMenuOpen(false)}
-                        className="flex items-center gap-3 px-4 py-3 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
-                      >
-                        <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
-                          <svg
-                            className="w-4 h-4 text-slate-600"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-                            />
-                          </svg>
-                        </div>
-                        <span>{t("Wishlist")}</span>
-                      </Link>
-
-                      <Link
-                        href={`${localePrefix}/cart`}
-                        onClick={() => setUserMenuOpen(false)}
-                        className="flex items-center gap-3 px-4 py-3 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
-                      >
-                        <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
-                          <svg
-                            className="w-4 h-4 text-slate-600"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
-                            />
-                          </svg>
-                        </div>
-                        <span>{t("Cart")}</span>
-                        {cartCount > 0 && (
-                          <span className="ml-auto bg-black text-white text-xs font-bold px-2 py-0.5 rounded-full">
-                            {cartCount}
+                        <div className="flex flex-col items-start">
+                          <span className="text-xs text-gray-500 font-medium">
+                            {t("welcome")}
                           </span>
-                        )}
-                      </Link>
-
-                      <button
-                        onClick={handleLogout}
-                        className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-600 hover:bg-red-50 transition-colors border-t border-slate-50 cursor-pointer"
-                      >
-                        <div className="w-8 h-8 rounded-full bg-red-50 flex items-center justify-center">
-                          <IoIosLogOut className="text-lg text-red-500" />
+                          <span className="text-sm font-semibold text-gray-900 leading-none">
+                            {user?.name || "User"}
+                          </span>
                         </div>
-                        <span>{t("Logout")}</span>
                       </button>
                     </div>
-                  </>
+                  </div>
+
+                  {userMenuOpen && (
+                    <>
+                      <div
+                        className="fixed inset-0 z-10"
+                        onClick={() => setUserMenuOpen(false)}
+                      />
+                      <div className="absolute right-0 top-full mt-3 w-fit bg-white border border-slate-100 shadow-xl rounded-2xl py-2 z-20 overflow-hidden">
+                        <div className="px-4 py-4 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white">
+                          <div className="flex items-center gap-3">
+                            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-gray-800 to-black flex items-center justify-center text-white font-bold text-lg ring-2 ring-gray-200">
+                              {getUserInitials()}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-semibold text-gray-900 truncate">
+                                {user?.name}
+                              </p>
+                              <p className="text-xs text-gray-500 truncate">
+                                {user?.email}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+
+                        <Link
+                          href={`${localePrefix}/dashboard/profile`}
+                          onClick={() => setUserMenuOpen(false)}
+                          className="flex items-center gap-3 px-4 py-3 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
+                        >
+                          <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
+                            <IoIosSettings className="text-lg text-slate-600" />
+                          </div>
+                          <span>{t("Dashboard")}</span>
+                        </Link>
+
+                        <Link
+                          href={`${localePrefix}/dashboard/favorite`}
+                          onClick={() => setUserMenuOpen(false)}
+                          className="flex items-center gap-3 px-4 py-3 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
+                        >
+                          <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
+                            <svg
+                              className="w-4 h-4 text-slate-600"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+                              />
+                            </svg>
+                          </div>
+                          <span>{t("Wishlist")}</span>
+                        </Link>
+
+                        <Link
+                          href={`${localePrefix}/cart`}
+                          onClick={() => setUserMenuOpen(false)}
+                          className="flex items-center gap-3 px-4 py-3 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
+                        >
+                          <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
+                            <svg
+                              className="w-4 h-4 text-slate-600"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
+                              />
+                            </svg>
+                          </div>
+                          <span>{t("Cart")}</span>
+                          {cartCount > 0 && (
+                            <span className="ml-auto bg-black text-white text-xs font-bold px-2 py-0.5 rounded-full">
+                              {cartCount}
+                            </span>
+                          )}
+                        </Link>
+
+                        <button
+                          onClick={handleLogout}
+                          className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-600 hover:bg-red-50 transition-colors border-t border-slate-50 cursor-pointer"
+                        >
+                          <div className="w-8 h-8 rounded-full bg-red-50 flex items-center justify-center">
+                            <IoIosLogOut className="text-lg text-red-500" />
+                          </div>
+                          <span>{t("Logout")}</span>
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+          {/* ===== End Group 1 ===== */}
+
+          {/* ===== Group 2: Icons (Search + Heart + Notifications + Cart) ===== */}
+          <div className="flex items-center gap-x-3">
+            {/* Search Icon */}
+            <Link
+              href={`${localePrefix}/${encodeURIComponent(activeGender || "")}/search`}
+              className="hover:opacity-70 transition-opacity"
+            >
+              <img
+                src="/images/search.svg"
+                alt="Search"
+                width={28}
+                height={28}
+              />
+            </Link>
+
+            {isAuthenticated && (
+              <Link
+                href={`${localePrefix}/dashboard/favorite`}
+                className="hover:opacity-70 transition-opacity"
+              >
+                <img
+                  src="/images/heart.svg"
+                  alt="Wishlist"
+                  width={20}
+                  height={20}
+                />
+              </Link>
+            )}
+
+            {isAuthenticated && <NotificationsBell />}
+
+            {isAuthenticated && (
+              <div
+                onMouseEnter={() => setCartOpen(true)}
+                onMouseLeave={() => setCartOpen(false)}
+                className="relative"
+              >
+                <img
+                  src="/images/bag.svg"
+                  alt="Cart"
+                  width={20}
+                  height={20}
+                  className="cursor-pointer hover:opacity-70 transition-opacity"
+                />
+                {cartCount > 0 && (
+                  <span className="absolute -top-2 -right-2 min-w-5 h-5 px-1 rounded-full bg-black text-white text-[10px] font-bold flex items-center justify-center">
+                    {cartCount}
+                  </span>
                 )}
+                <CartMenu isOpen={cartOpen} onClose={() => setCartOpen(false)} />
               </div>
             )}
           </div>
+          {/* ===== End Group 2 ===== */}
 
-          {isAuthenticated && (
-            <Link
-              href={`${localePrefix}/dashboard/favorite`}
-              className="hover:opacity-70 transition-opacity"
-            >
-              <Image
-                src="/images/heart.svg"
-                alt="Wishlist"
-                width={20}
-                height={20}
-              />
-            </Link>
-          )}
-
-          {isAuthenticated && <NotificationsBell />}
-
-          {isAuthenticated && (
-            <div
-              onMouseEnter={() => setCartOpen(true)}
-              onMouseLeave={() => setCartOpen(false)}
-              className="relative"
-            >
-              <Image
-                src="/images/bag.svg"
-                alt="Cart"
-                width={20}
-                height={20}
-                className="cursor-pointer hover:opacity-70 transition-opacity"
-              />
-              {cartCount > 0 && (
-                <span className="absolute -top-2 -right-2 min-w-5 h-5 px-1 rounded-full bg-black text-white text-[10px] font-bold flex items-center justify-center">
-                  {cartCount}
-                </span>
-              )}
-              <CartMenu isOpen={cartOpen} onClose={() => setCartOpen(false)} />
-            </div>
-          )}
         </div>
       </div>
 

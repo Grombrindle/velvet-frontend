@@ -2,7 +2,6 @@ import React, { Suspense } from "react";
 import CategoryCard from "../ui/CategoryCard";
 
 function CategoriesGrid({ data }) {
-  console.log("CategoriesGrid", data);
   
   if (!data || data.length === 0) return null;
 

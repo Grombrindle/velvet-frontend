@@ -24,7 +24,6 @@ export default function NotificationsBell({ variant = "desktop" }) {
   const { data } = useNotifications(1, 20, { enabled: open || isAuthenticated });
 
   const items = data?.data || [];
-  console.log("items",items)
   const unreadCount = items.filter((n) => !n.isRead).length;
 
   const handleClick = async () => {

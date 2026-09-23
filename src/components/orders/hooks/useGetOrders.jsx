@@ -65,7 +65,6 @@ export const useCancelOrder = () => {
       queryClient.invalidateQueries({ queryKey: ["order", variables.orderId] });
     },
     onError: (error) => {
-      console.error("Order cancellation failed:", error);
     },
   });
 };
