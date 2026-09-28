@@ -69,7 +69,7 @@ const CartMenu = ({ isOpen, onClose }) => {
                           <div className="font-semibold text-base mb-1">
                             {item.name}
                             {isBundle && (
-                              <span className="ml-2 text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded font-semibold">
+                              <span className="ml-2 text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 font-semibold">
                                 {t("bundle")}
                               </span>
                             )}
@@ -125,7 +125,7 @@ const CartMenu = ({ isOpen, onClose }) => {
               <span className="font-bold text-lg">{totalFormatted}</span>
             </div>
             <button
-              className="w-full bg-black text-white py-3 font-bold text-base rounded mb-2 transition hover:bg-gray-800 disabled:opacity-50"
+              className="w-full bg-black text-white py-3 font-bold text-base mb-2 transition hover:bg-gray-800 disabled:opacity-50"
               onClick={() => {
                 if (items.length === 0) return;
                 onClose();

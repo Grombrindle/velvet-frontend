@@ -16,7 +16,7 @@ function StoreSelector({ stores, selectedStore, onSelect }) {
       {stores.map((store) => (
         <label
           key={store.id}
-          className={`flex items-center gap-3 p-3 border rounded-lg cursor-pointer transition ${
+          className={`flex items-center gap-3 p-3 border cursor-pointer transition ${
             selectedStore?.id === store.id
               ? "border-black bg-gray-50"
               : "border-gray-200 hover:border-gray-300"

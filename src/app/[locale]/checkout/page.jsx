@@ -302,7 +302,7 @@ function CheckoutPage() {
                   </div>
 
                   <button
-                    className="w-full bg-black text-white py-3 rounded font-bold text-lg mt-6 hover:bg-gray-900 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full bg-black text-white py-3 font-bold text-lg mt-6 hover:bg-gray-900 transition disabled:opacity-50 disabled:cursor-not-allowed"
                     onClick={handlePlaceOrder}
                     disabled={checkoutMutation.isPending || !isPaymentFieldsValid()}
                   >

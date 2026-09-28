@@ -16,12 +16,12 @@ function PaymentSection({
   }
 
   return (
-    <div className="space-y-4">
-      <div className="space-y-2">
+    <div className="space-y-3">
+      <div className="space-y-1.5">
         {paymentMethods.map((method) => (
           <label
             key={method.id}
-            className={`flex items-center gap-3 p-3 border rounded-lg cursor-pointer transition ${
+            className={`flex items-center gap-2 px-2.5 py-1.5 border cursor-pointer transition ${
               selectedPaymentMethod?.id === method.id
                 ? "border-black bg-gray-50"
                 : "border-gray-200 hover:border-gray-300"
@@ -32,12 +32,14 @@ function PaymentSection({
               name="paymentMethod"
               checked={selectedPaymentMethod?.id === method.id}
               onChange={() => onSelect(method)}
-              className="accent-black"
+              className="accent-black w-3.5 h-3.5"
             />
-            <div>
-              <p className="font-medium text-sm">{method.name}</p>
+            <div className="leading-tight">
+              <p className="font-medium text-xs">{method.name}</p>
               {method.type && (
-                <p className="text-xs text-gray-500 capitalize">{method.type}</p>
+                <p className="text-[10px] text-gray-500 capitalize">
+                  {method.type}
+                </p>
               )}
             </div>
           </label>

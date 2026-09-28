@@ -81,7 +81,7 @@ export default function SplashScreen() {
             className="flex flex-col items-center"
           >
             <img
-              src="/images/logo/velvet-logo-typo-big.svg"
+              src="/images/logo/logo-velvet-edit.png"
               alt="Velvet Full Logo"
               width={250}
               height={100}

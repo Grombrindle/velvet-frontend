@@ -173,7 +173,7 @@ function ProductCard({ item, isMini }) {
 
             {/* Bundle Tag */}
             {isBundle && (
-              <div className="absolute top-2 left-2 z-10 bg-blue-600 text-white text-[10px] font-bold px-2 py-1 rounded shadow">
+              <div className="absolute top-2 left-2 z-10 bg-blue-600 text-white text-[10px] font-bold px-2 py-1 shadow">
                 {t("bundle")}
               </div>
             )}
@@ -255,7 +255,7 @@ function ProductCard({ item, isMini }) {
 
               {/* Discount Badge matching your screenshot layout */}
               {discountLabel && (
-                <span className="bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded">
+                <span className="bg-red-500 text-white text-xs font-bold px-2 py-0.5">
                   {discountLabel.replace("OFF", t("off"))}
                 </span>
               )}

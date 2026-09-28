@@ -67,13 +67,13 @@ const LogoutPopup = ({ onClose }) => {
         <div className="flex gap-4 justify-end">
           <button
             onClick={handleCancel}
-            className="px-6 py-2 cursor-pointer border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors font-medium"
+            className="px-6 py-2 cursor-pointer border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors font-medium"
           >
             {t("Cancel")}
           </button>
           <button
             onClick={handleLogout}
-            className="px-6 py-2 cursor-pointer bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium"
+            className="px-6 py-2 cursor-pointer bg-red-600 text-white hover:bg-red-700 transition-colors font-medium"
           >
             {t("Yes, Logout")}
           </button>

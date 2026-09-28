@@ -18,7 +18,7 @@ const TextLink = ({ children, href }) => (
 );
 
 const SectionTitle = ({ children }) => (
-  <h1 className="text-[#000000] font-bold text-[0.9rem]">{children}</h1>
+  <h1 className="text-[#000000] font-bold text-[0.9rem] mb-2">{children}</h1>
 );
 
 const CategoryItem = ({ children, href }) => (
@@ -30,18 +30,6 @@ const CategoryItem = ({ children, href }) => (
   </Link>
 );
 
-const SocialMediaIcon = ({ icon, alt, href }) => (
-  <Link href={href || "#"} target="_blank" rel="noopener noreferrer">
-    <Image
-      src={icon}
-      alt={alt}
-      width={34}
-      height={34}
-      className="cursor-pointer hover:opacity-70 transition-opacity"
-    />
-  </Link>
-);
-
 const AppStoreIcon = ({ src, alt, href }) => (
   <Link href={href || "#"} target="_blank" rel="noopener noreferrer">
     <img
@@ -49,10 +37,27 @@ const AppStoreIcon = ({ src, alt, href }) => (
       alt={alt}
       width={80}
       height={80}
-
       className="cursor-pointer hover:opacity-70 transition-opacity"
     />
   </Link>
+);
+
+const ContactItem = ({ icon, label, href }) => (
+  <div className="flex items-center gap-2 mb-2">
+    <span className="text-[#000000] text-[0.8rem]">{icon}</span>
+    {href ? (
+      <a
+        href={href}
+        className="text-[#000000] font-[400] text-[0.8rem] hover:underline"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        {label}
+      </a>
+    ) : (
+      <span className="text-[#000000] font-[400] text-[0.8rem]">{label}</span>
+    )}
+  </div>
 );
 
 function Footer() {
@@ -77,6 +82,19 @@ function Footer() {
   });
 
   const genders = gendersData?.result || [];
+
+  // Fetch contact data
+  const {
+    data: contactData,
+    isLoading: contactLoading,
+    error: contactError,
+  } = useQuery({
+    queryKey: ["contact"],
+    queryFn: () => apiGet("/contact"),
+    staleTime: 10 * 60 * 3600 * 24,
+  });
+
+  const contact = contactData?.result || {};
 
   // Fetch categories for each gender
   const { data: categoriesData, isLoading: categoriesLoading } = useQuery({
@@ -147,15 +165,14 @@ function Footer() {
 
   const isLoading = gendersLoading || categoriesLoading;
 
-  // Define footer links with locale prefix
   const footerLinks = [
-    { 
-      label: locale === "ar" ? "الأسئلة الشائعة" : "FAQ", 
-      href: `/${locale}/dashboard/faq` 
+    {
+      label: locale === "ar" ? "الأسئلة الشائعة" : "FAQ",
+      href: `/${locale}/dashboard/faq`,
     },
-    { 
-      label: locale === "ar" ? "سياسة الخصوصية" : "Privacy Policy", 
-      href: `/${locale}/dashboard/privacy-policy` 
+    {
+      label: locale === "ar" ? "سياسة الخصوصية" : "Privacy Policy",
+      href: `/${locale}/dashboard/privacy-policy`,
     },
   ];
 
@@ -185,124 +202,179 @@ function Footer() {
           </div>
         </div>
 
-        {/* Main Content */}
-        <div className="container1 mx-auto">
-          <div className="grid lg:grid-cols-12 lg:gap-y-0 gap-y-[2rem] grid-cols-1 gap-x-[1rem] mt-[1rem]">
-            {/* Left Section - Genders */}
-            <div className="lg:col-span-6 col-span-1">
-              <div className="grid grid-cols-2 gap-4">
-                {isLoading ? (
-                  <>
-                    <div>
-                      <div className="h-5 w-20 bg-gray-200 rounded animate-pulse mb-2"></div>
-                      <div className="h-4 w-16 bg-gray-200 rounded animate-pulse mb-1"></div>
-                      <div className="h-4 w-16 bg-gray-200 rounded animate-pulse mb-1"></div>
-                      <div className="h-4 w-16 bg-gray-200 rounded animate-pulse"></div>
-                    </div>
-                    <div>
-                      <div className="h-5 w-20 bg-gray-200 rounded animate-pulse mb-2"></div>
-                      <div className="h-4 w-16 bg-gray-200 rounded animate-pulse mb-1"></div>
-                      <div className="h-4 w-16 bg-gray-200 rounded animate-pulse mb-1"></div>
-                      <div className="h-4 w-16 bg-gray-200 rounded animate-pulse"></div>
-                    </div>
-                    <div>
-                      <div className="h-5 w-20 bg-gray-200 rounded animate-pulse mb-2"></div>
-                      <div className="h-4 w-16 bg-gray-200 rounded animate-pulse mb-1"></div>
-                      <div className="h-4 w-16 bg-gray-200 rounded animate-pulse mb-1"></div>
-                      <div className="h-4 w-16 bg-gray-200 rounded animate-pulse"></div>
-                    </div>
-                  </>
-                ) : (
-                  genders.slice(0, 3).map((gender) => (
-                    <div key={gender.id}>
-                      <SectionTitle>{getGenderName(gender)}</SectionTitle>
-                      {categoriesData?.[gender.name.en]
-                        ?.slice(0, 6)
-                        .map((category) => (
-                          <TextLink
-                            key={`${gender.id}-${category.id}`}
-                            href={`/${locale}/${gender.name.en}/category/${category.id}`}
-                          >
-                            {category.name}
-                          </TextLink>
-                        ))}
-                    </div>
-                  ))
-                )}
-                {gendersError && (
-                  <div className="text-red-500 text-sm col-span-3">
-                    {locale === "ar"
-                      ? "حدث خطأ في تحميل البيانات"
-                      : "Error loading data"}
+        {/* Main Content Container - Using 6 Columns */}
+        <div className="container1 mx-auto max-w-[1300px] px-6">
+          <div className="grid grid-cols-1 lg:grid-cols-6 gap-6 mt-[2rem]">
+            
+            {/* Column 1 - Gender 1 (e.g., Woman) */}
+            <div className="w-full">
+              {isLoading ? (
+                <div>
+                  <div className="h-5 w-20 bg-gray-200 rounded animate-pulse mb-2"></div>
+                  <div className="h-4 w-16 bg-gray-200 rounded animate-pulse mb-1"></div>
+                  <div className="h-4 w-16 bg-gray-200 rounded animate-pulse mb-1"></div>
+                  <div className="h-4 w-16 bg-gray-200 rounded animate-pulse"></div>
+                </div>
+              ) : (
+                genders.slice(0, 1).map((gender) => (
+                  <div key={gender.id}>
+                    <SectionTitle>{getGenderName(gender)}</SectionTitle>
+                    {categoriesData?.[gender.name.en]
+                      ?.slice(0, 6)
+                      .map((category) => (
+                        <TextLink
+                          key={`${gender.id}-${category.id}`}
+                          href={`/${locale}/${gender.name.en}/category/${category.id}`}
+                        >
+                          {category.name}
+                        </TextLink>
+                      ))}
                   </div>
-                )}
-              </div>
+                ))
+              )}
             </div>
 
-            {/* Middle Section - All Categories & FAQ/Privacy */}
-            <div className="lg:col-span-6 col-span-1">
-              <div className="grid lg:grid-cols-3 grid-cols-2 gap-4">
-                {/* Categories Column 1 - First Half */}
+            {/* Column 2 - Gender 2 (e.g., Kids) */}
+            <div className="w-full">
+              {isLoading ? (
                 <div>
-                  <SectionTitle>
-                    {locale === "ar" ? "جميع الفئات" : "All Categories"}
-                  </SectionTitle>
-                  {isLoading
-                    ? Array(8)
-                        .fill(0)
-                        .map((_, i) => (
-                          <div
-                            key={i}
-                            className="h-4 w-20 bg-gray-200 rounded animate-pulse mb-2"
-                          ></div>
-                        ))
-                    : firstHalfCategories.map((category) => (
-                        <CategoryItem
-                          key={category.uniqueKey}
-                          href={`/${locale}/${category.gender}/category/${category.id}`}
+                  <div className="h-5 w-20 bg-gray-200 rounded animate-pulse mb-2"></div>
+                  <div className="h-4 w-16 bg-gray-200 rounded animate-pulse mb-1"></div>
+                  <div className="h-4 w-16 bg-gray-200 rounded animate-pulse mb-1"></div>
+                  <div className="h-4 w-16 bg-gray-200 rounded animate-pulse"></div>
+                </div>
+              ) : (
+                genders.slice(1, 2).map((gender) => (
+                  <div key={gender.id}>
+                    <SectionTitle>{getGenderName(gender)}</SectionTitle>
+                    {categoriesData?.[gender.name.en]
+                      ?.slice(0, 6)
+                      .map((category) => (
+                        <TextLink
+                          key={`${gender.id}-${category.id}`}
+                          href={`/${locale}/${gender.name.en}/category/${category.id}`}
                         >
                           {category.name}
-                        </CategoryItem>
+                        </TextLink>
                       ))}
-                </div>
+                  </div>
+                ))
+              )}
+            </div>
 
-                {/* Categories Column 2 - Second Half */}
-                <div>
-                  {isLoading
-                    ? Array(8)
-                        .fill(0)
-                        .map((_, i) => (
-                          <div
-                            key={i}
-                            className="h-4 w-20 bg-gray-200 rounded animate-pulse mb-2"
-                          ></div>
-                        ))
-                    : secondHalfCategories.map((category) => (
-                        <CategoryItem
-                          key={category.uniqueKey}
-                          href={`/${locale}/${category.gender}/category/${category.id}`}
-                        >
-                          {category.name}
-                        </CategoryItem>
-                      ))}
-                </div>
-
-                {/* Column 3 - FAQ & Privacy Policy */}
-                <div>
-                  <SectionTitle>
-                    {locale === "ar" ? "معلومات" : "Information"}
-                  </SectionTitle>
-                  {footerLinks.map((link, index) => (
-                    <TextLink key={index} href={link.href}>
-                      {link.label}
-                    </TextLink>
+            {/* Column 3 - All Categories Part 1 */}
+            <div className="w-full">
+              <SectionTitle>
+                {locale === "ar" ? "جميع الفئات" : "All Categories"}
+              </SectionTitle>
+              {isLoading
+                ? Array(8)
+                    .fill(0)
+                    .map((_, i) => (
+                      <div
+                        key={i}
+                        className="h-4 w-20 bg-gray-200 rounded animate-pulse mb-2"
+                      ></div>
+                    ))
+                : firstHalfCategories.map((category) => (
+                    <CategoryItem
+                      key={category.uniqueKey}
+                      href={`/${locale}/${category.gender}/category/${category.id}`}
+                    >
+                      {category.name}
+                    </CategoryItem>
                   ))}
-                </div>
-              </div>
             </div>
-          </div>
 
-          {/* Social Media Icons - Moved below */}
+            {/* Column 4 - All Categories Part 2 */}
+            <div className="w-full">
+              <div className="invisible hidden lg:block">
+                <SectionTitle>&nbsp;</SectionTitle>
+              </div>
+              {isLoading
+                ? Array(8)
+                    .fill(0)
+                    .map((_, i) => (
+                      <div
+                        key={i}
+                        className="h-4 w-20 bg-gray-200 rounded animate-pulse mb-2"
+                      ></div>
+                    ))
+                : secondHalfCategories.map((category) => (
+                    <CategoryItem
+                      key={category.uniqueKey}
+                      href={`/${locale}/${category.gender}/category/${category.id}`}
+                    >
+                      {category.name}
+                    </CategoryItem>
+                  ))}
+            </div>
+
+            {/* Column 5 - Information & FAQ */}
+            <div className="w-full">
+              <SectionTitle>
+                {locale === "ar" ? "معلومات" : "Information"}
+              </SectionTitle>
+              {footerLinks.map((link, index) => (
+                <TextLink key={index} href={link.href}>
+                  {link.label}
+                </TextLink>
+              ))}
+            </div>
+
+            {/* Column 6 - Contact Us */}
+            <div className="w-full">
+              <SectionTitle>
+                {locale === "ar" ? "تواصل معنا" : "Contact Us"}
+              </SectionTitle>
+
+              {contactLoading ? (
+                <div className="space-y-2">
+                  <div className="h-4 w-32 bg-gray-200 rounded animate-pulse"></div>
+                  <div className="h-4 w-40 bg-gray-200 rounded animate-pulse"></div>
+                  <div className="h-4 w-36 bg-gray-200 rounded animate-pulse"></div>
+                  <div className="h-4 w-44 bg-gray-200 rounded animate-pulse"></div>
+                </div>
+              ) : contactError ? (
+                <div className="text-red-500 text-sm">
+                  {locale === "ar"
+                    ? "حدث خطأ في تحميل بيانات التواصل"
+                    : "Error loading contact data"}
+                </div>
+              ) : (
+                <div className="space-y-1">
+                  {contact.address && (
+                    <ContactItem icon="📍" label={contact.address} />
+                  )}
+                  {contact.call_center && (
+                    <ContactItem icon="📞" label={contact.call_center} />
+                  )}
+                  {contact.phone && (
+                    <ContactItem
+                      icon="☎️"
+                      label={contact.phone}
+                      href={`tel:${contact.phone}`}
+                    />
+                  )}
+                  {contact.whats_app && (
+                    <ContactItem
+                      icon="💬"
+                      label={contact.whats_app}
+                      href={`https://wa.me/${contact.whats_app.replace(/[^0-9]/g, "")}`}
+                    />
+                  )}
+                  {contact.email && (
+                    <ContactItem
+                      icon="✉️"
+                      label={contact.email}
+                      href={`mailto:${contact.email}`}
+                    />
+                  )}
+                </div>
+              )}
+            </div>
+
+          </div>
         </div>
       </div>
 

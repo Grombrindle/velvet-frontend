@@ -1,4 +1,3 @@
-// // app/[locale]/layout.jsx
 
 // import { notFound } from "next/navigation";
 // import { getMessages, setRequestLocale } from "next-intl/server";
@@ -178,7 +177,7 @@ import { notFound } from "next/navigation";
 import { getMessages, setRequestLocale } from "next-intl/server";
 import { hasLocale, NextIntlClientProvider } from "next-intl";
 import { routing } from "@/i18n/routing";
-import { Geist } from "next/font/google";
+import { Geist, Roboto } from "next/font/google";   // 👈 added Roboto
 import localFont from "next/font/local";
 import "../globals.css";
 
@@ -195,6 +194,16 @@ import { Toaster } from "react-hot-toast";
 import CookieConsent from "@/components/CookieConsent";
 
 // --- Fonts Setup ---
+
+// 👇 Roboto (Google font, self-hosted by next/font)
+const roboto = Roboto({
+  subsets: ["latin"],
+  weight: ["100", "300", "400", "500", "700", "900"],
+  style: ["normal", "italic"],
+  variable: "--font-roboto",
+  display: "swap",
+});
+
 const lufga = localFont({
   src: [
     {
@@ -252,23 +261,6 @@ const ping = localFont({
   variable: "--font-ping-ar",
 });
 
-// خط Shamel منفصل — يُستخدم كـ fallback للعربي والإنجليزي معاً
-const shamel = localFont({
-  src: [
-    {
-      path: "../../../public/fonts/shamel/FF Shamel Family Sans One Book.ttf",
-      weight: "400",
-      style: "normal",
-    },
-    {
-      path: "../../../public/fonts/shamel/FF Shamel Family Sans One Bold.ttf",
-      weight: "700",
-      style: "normal",
-    },
-  ],
-  variable: "--font-shamel",
-});
-
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 
 export const metadata = {
@@ -288,7 +280,7 @@ export default async function RootLayout({ children, params }) {
     notFound();
   }
 
-  const fontClass = locale === "ar" ? ping.className : shamel.className;
+  const fontClass = locale === "ar" ? ping.className : roboto.className;
   const messages = await getMessages();
 
   // suppressHydrationWarning on <html>: the inline splash script below adds
@@ -323,8 +315,10 @@ export default async function RootLayout({ children, params }) {
         />
       </head>
       <body
-        className={`${fontClass} ${lufga.variable} ${ping.variable} ${shamel.variable} ${geistSans.variable} antialiased`}
+        className={`${fontClass} ${lufga.variable} ${ping.variable} ${geistSans.variable} ${roboto.variable} antialiased`}
       >
+        {/*                                        👆 added roboto.variable */}
+
         <SplashScreen />
 
         <ReactQueryProvider>

@@ -42,7 +42,7 @@ const FaqGrid = ({ initialCategory = null }) => {
             <div
               key={item.id}
               onClick={() => setCategory(item)}
-              className={`w-full h-[7.6rem] bg-white flex flex-col rounded-lg justify-center items-center cursor-pointer transition-all
+              className={`w-full h-[7.6rem] bg-white flex flex-col justify-center items-center cursor-pointer transition-all
                 ${isActive ? "border-2 border-black shadow-md" : "border-0 hover:bg-gray-50"}`}
             >
               <div className="flex flex-col space-y-2 justify-center items-center">

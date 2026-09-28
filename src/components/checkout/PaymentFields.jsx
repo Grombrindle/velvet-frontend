@@ -146,7 +146,7 @@ function PaymentFields({ paymentMethod, fields, onChange }) {
             </div>
           ) : (
             <>
-              <label className={`flex flex-col items-center justify-center gap-1 p-4 border-2 border-dashed rounded-lg cursor-pointer hover:border-gray-400 bg-gray-50 ${
+              <label className={`flex flex-col items-center justify-center gap-1 p-4 border-2 border-dashed cursor-pointer hover:border-gray-400 bg-gray-50 ${
                 fields.transfer_receipt !== undefined ? 'border-red-500' : 'border-gray-300'
               }`}>
                 <input

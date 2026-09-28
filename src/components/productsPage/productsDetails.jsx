@@ -148,7 +148,7 @@ const ProductsDetails = ({ productData: initialProductData }) => {
   const getSizeBtnClass = (size) => {
     const isSelected = selectedSize?.id === size.id;
     let cls =
-      "w-full h-[3.8rem] border flex justify-center items-center transition-all duration-200";
+      "w-full h-[3rem] border flex justify-center items-center transition-all duration-200";
     cls += isSelected
       ? " border-black bg-black text-white"
       : " border-[#D4D4D4] hover:border-gray-400";
@@ -185,7 +185,7 @@ const ProductsDetails = ({ productData: initialProductData }) => {
 
   const getChildSizeBtnClass = (size, currentSel) => {
     const isSelected = currentSel === size.id;
-    let cls = "px-3 py-1.5 border text-sm rounded";
+    let cls = "px-3 py-1.5 border text-sm";
     if (isSelected) {
       cls += " bg-black text-white border-black";
     } else if (size.in_stock) {
@@ -555,13 +555,10 @@ const ProductsDetails = ({ productData: initialProductData }) => {
 
             {/* Size Selection */}
             <div>
-              <h1 className="font-bold text-[#000000] text-[0.9rem]">
-                {t("size")}
-              </h1>
               <Line mt="mt-2" />
 
               {availableSizes.length > 0 ? (
-                <div className="grid grid-cols-5 gap-x-[0.9rem] gap-y-[1.2rem] mt-3">
+                <div className="grid grid-cols-6 gap-x-[0.9rem] gap-y-[1.2rem] mt-3">
                   {availableSizes.map((size) => (
                     <button
                       key={size.id}

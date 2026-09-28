@@ -120,7 +120,7 @@ export default function MobileFilterSidebar({
 
           <button
             onClick={onApplyFilters}
-            className="w-full rounded-2xl bg-black px-4 py-3.5 text-sm font-semibold text-white hover:bg-gray-800 transition"
+            className="w-full bg-black px-4 py-3.5 text-sm font-semibold text-white hover:bg-gray-800 transition"
           >
             {t("applyFilters") || "Apply Filters"}
           </button>

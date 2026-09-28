@@ -16,7 +16,7 @@ const NavbarDashboard = () => {
       <Link href="/">
         <div className="lg:w-56 w-30 lg:mx-0 mx-6">
           <Image
-            src="/images/logo/velvet-logo-typo-big.svg"
+            src="/images/logo/logo-velvet-edit.png"
             alt="Velvet Logo"
             width={500}
             height={500}

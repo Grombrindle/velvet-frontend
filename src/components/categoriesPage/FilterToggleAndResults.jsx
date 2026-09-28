@@ -15,7 +15,7 @@ function FilterToggleAndResults({ totalProducts, sortBy, onSortChange }) {
     <div className="container1 mb-5 mx-auto flex justify-between text-sm items-center max-w-1/4 relative">
       <button
         onClick={toggleFilter}
-        className={`flex items-center transition-all duration-200 py-1 rounded ${
+        className={`flex items-center transition-all duration-200 py-1 ${
           isFilterOpen ? "bg-black text-white px-5 " : "text-black"
         } gap-2 cursor-pointer`}
       >

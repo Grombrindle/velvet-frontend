@@ -53,8 +53,8 @@ export default function LanguageSwitcher() {
         <Image
           src="/images/lang_icon.svg"
           alt="English"
-          width={20}
-          height={20}
+          width={15}
+          height={15}
         />
         <span className="flex items-center justify-center rounded-full mt-1 font-bold text-slate-700 transition duration-200">
           {labels[locale].code}
@@ -74,7 +74,7 @@ export default function LanguageSwitcher() {
       </div>
 
       <div
-        className={`absolute right-1/2 translate-x-1/2 z-50 mt-2 w-max origin-top-right overflow-hidden rounded-3xl bg-white  ring-1 ring-slate-200 transition-all duration-200 ${
+        className={`absolute right-1/2 translate-x-1/2 z-50 mt-2 w-max origin-top-right overflow-hidden  bg-white  ring-1 ring-slate-200 transition-all duration-200 ${
           open
             ? "opacity-100 scale-100 pointer-events-auto"
             : "opacity-0 scale-95 pointer-events-none"

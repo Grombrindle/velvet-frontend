@@ -44,14 +44,14 @@ function CartSummary({ totalCount, totalFormatted, onCheckout }) {
         <div className="text-sm mb-1">{t("promotionCode")}</div>
         <div className="md:flex gap-2">
           <input
-            className="border rounded px-2 py-1 flex-1"
+            className="border px-2 py-1 flex-1"
             type="text"
             value={promo}
             onChange={(e) => setPromo(e.target.value)}
             placeholder=""
           />
           <button
-            className="bg-black text-white px-6 py-1 rounded font-bold text-sm disabled:opacity-50 md:mt-0 mt-[1rem]"
+            className="bg-black text-white px-6 py-1 font-bold text-sm disabled:opacity-50 md:mt-0 mt-[1rem]"
             onClick={handleApply}
             disabled={isApplyingPromo || !promo.trim()}
           >
@@ -64,7 +64,7 @@ function CartSummary({ totalCount, totalFormatted, onCheckout }) {
         <span>{totalFormatted}</span>
       </div>
       <button
-        className="w-full bg-black text-white py-3 rounded font-bold text-lg tracking-wide hover:bg-gray-900 transition"
+        className="w-full bg-black text-white py-3 font-bold text-lg tracking-wide hover:bg-gray-900 transition"
         onClick={onCheckout}
       >
         {t("checkout")}

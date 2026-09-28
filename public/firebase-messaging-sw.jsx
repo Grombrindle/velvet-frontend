@@ -54,7 +54,7 @@ async function handlePush(event) {
         }
         const title = data.title || "Velvet";
         const body = data.body || "";
-        const icon = data.image || "/images/logo/velvet-logo-typo-big.svg";
+        const icon = data.image || "/images/logo/logo-velvet-edit.png";
         const tag = data.type || "velvet-notification";
 
         let payloadObj = {};
@@ -68,7 +68,7 @@ async function handlePush(event) {
             self.registration.showNotification(title, {
                 body,
                 icon,
-                badge: "/images/logo/velvet-logo-typo-big.svg",
+                badge: "/images/logo/logo-velvet-edit.png",
                 tag,
                 data: {
                     ...payloadObj,

@@ -26,7 +26,7 @@ function BundleCartItem({ item, onRemove, onQuantityChange, disabled = false, re
               <span className="text-base sm:text-lg md:text-[20px] font-bold leading-tight">
                 {item.bundleName || item.name}
               </span>
-              <span className="text-[10px] sm:text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded font-semibold whitespace-nowrap">
+              <span className="text-[10px] sm:text-xs bg-blue-100 text-blue-700 px-2 py-0.5 font-semibold whitespace-nowrap">
                 {t("bundle")}
               </span>
             </div>

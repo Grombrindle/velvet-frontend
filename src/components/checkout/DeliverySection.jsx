@@ -28,7 +28,7 @@ function DeliverySection({
         {deliveryMethods.map((method) => (
           <label
             key={method.id}
-            className={`flex items-center gap-3 p-3 border rounded-lg cursor-pointer transition ${
+            className={`flex items-center gap-3 p-3 border  cursor-pointer transition ${
               selectedDeliveryMethod?.id === method.id
                 ? "border-black bg-gray-50"
                 : "border-gray-200 hover:border-gray-300"

@@ -152,12 +152,12 @@ function NavbarMobile() {
           href={`${localePrefix}/${activeGender}`}
           onClick={handleNavigation}
         >
-          <div className="w-36">
+          <div className="w-[8rem]">
             <Image
-              src="/images/logo/velvet-logo-typo-big.svg"
+              src="/images/logo/logo-velvet-edit.png"
               alt="Velvet Logo"
-              width={150}
-              height={40}
+              width={100}
+              height={20}
               className="w-full h-auto"
             />
           </div>
