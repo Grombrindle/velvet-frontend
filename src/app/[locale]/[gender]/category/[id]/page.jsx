@@ -1,6 +1,7 @@
 import React from "react";
 import CategoryContent from "@/components/categoriesPage/CategoryContent";
 import { apiGet } from "@/lib/api";
+import { languageAlternates } from "@/lib/seo";
 import ScrollToTop from "@/components/scrollToTop/ScrollToTop";
 import { getTranslations } from 'next-intl/server';
 
@@ -20,18 +21,25 @@ export async function generateMetadata({ params }) {
     // Metadata fetch failed — return fallback title
   }
 
-  if (!category) return { title: "Category | Velvet" };
+  if (!category) return { title: "Category" };
+
+  const path = `/${gender}/category/${id}`;
 
   return {
-    title: `${category.name} | Velvet`,
+    title: category.name,
     description:
       category.description ||
       `Shop the latest ${category.name} collection at Velvet.`,
+    alternates: {
+      canonical: `/${locale}${path}`,
+      languages: languageAlternates(path),
+    },
     openGraph: {
       title: `${category.name} - Velvet Online Store`,
       description:
         category.description ||
         `Shop the latest ${category.name} collection at Velvet.`,
+      url: `/${locale}${path}`,
       images: [category.image || "/images/default-og.jpg"],
       type: "website",
     },

@@ -64,25 +64,26 @@ async function handlePush(event) {
             payloadObj = {};
         }
 
-        event.waitUntil(
-            self.registration.showNotification(title, {
-                body,
-                icon,
-                badge: "/images/logo/logo-velvet-edit.png",
-                tag,
-                data: {
-                    ...payloadObj,
-                    url: payloadObj.order_id ?
-                        `/${self.__locale || "en"}/dashboard/orders/${payloadObj.order_id}` : `/${self.__locale || "en"}`,
-                },
-            })
-        );
+        // The "push" listener already wraps handlePush() in event.waitUntil(),
+        // so await the notification here instead of nesting a second
+        // waitUntil() (which can fire after the event has finished dispatching).
+        await self.registration.showNotification(title, {
+            body,
+            icon,
+            badge: "/images/logo/logo-velvet-edit.png",
+            tag,
+            data: {
+                ...payloadObj,
+                url: payloadObj.order_id ?
+                    `/${self.__locale || "en"}/dashboard/orders/${payloadObj.order_id}` : `/${self.__locale || "en"}`,
+            },
+        });
     } catch (e) {}
 }
 
 self.addEventListener("notificationclick", (event) => {
     event.notification.close();
-    const url = event.notification.data ?.url || "/";
+    const url = event.notification.data?.url || "/";
     event.waitUntil(
         self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((clients) => {
             for (const client of clients) {

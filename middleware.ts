@@ -32,6 +32,8 @@ export const config = {
   // assets, so unprefixed URLs (/login, /cart, /woman, the root /) are
   // redirected to their locale version instead of 404ing.
   matcher: [
-    "/((?!api|_next/static|_next/image|assets|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|webp|gif|css|js|woff2?|ico)$).*)",
+    // `txt|xml` keeps /robots.txt and /sitemap.xml (Next.js metadata routes)
+    // from being treated as un-prefixed pages and redirected to /en/...
+    "/((?!api|_next/static|_next/image|assets|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|webp|gif|css|js|woff2?|ico|txt|xml)$).*)",
   ],
 };
