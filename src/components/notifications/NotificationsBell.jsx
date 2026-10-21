@@ -23,7 +23,16 @@ export default function NotificationsBell({ variant = "desktop" }) {
   const { requestFcmPermission } = useNotificationsFcm();
   const { data } = useNotifications(1, 20, { enabled: open || isAuthenticated });
 
-  const items = data?.data || [];
+  // Backend shape: { success, result: { data: [...], pagination: {...} } }
+  // `result` is an object, not an array — unwrap it before filtering.
+  const list = data?.result ?? data;
+  const items = Array.isArray(list)
+    ? list
+    : Array.isArray(list?.data)
+      ? list.data
+      : Array.isArray(list?.notifications)
+        ? list.notifications
+        : [];
   const unreadCount = items.filter((n) => !n.isRead).length;
 
   const handleClick = async () => {

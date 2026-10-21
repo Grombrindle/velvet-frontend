@@ -59,8 +59,17 @@ export default function NotificationsDropdown({ open, onClose }) {
   if (!open) return null;
 
   // Try multiple ways to access the data
-  const items = data?.result || data?.data || data?.notifications || [];
-  const pagination = data?.pagination || null;
+  // Backend shape: { success, result: { data: [...], pagination: {...} } }
+  const list = data?.result ?? data;
+  const items = Array.isArray(list)
+    ? list
+    : Array.isArray(list?.data)
+      ? list.data
+      : Array.isArray(list?.notifications)
+        ? list.notifications
+        : [];
+  const pagination =
+    (!Array.isArray(list) && list?.pagination) || data?.pagination || null;
   const unreadCount = items.filter((n) => !n.isRead).length;
 
 
