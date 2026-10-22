@@ -48,9 +48,46 @@ export default function NotificationsDropdown({ open, onClose }) {
   const updatePrefs = useUpdateNotificationPreferences();
   const markRead = useMarkNotificationsRead();
 
-  const { permission, requestFcmPermission, sendTest } = useNotificationsFcm();
+  const { permission, deviceToken, requestFcmPermission, sendTest } = useNotificationsFcm();
   const [busy, setBusy] = useState(false);
-  const [feedback, setFeedback] = useState(null); // { key, ok }
+  const [feedback, setFeedback] = useState(null); // { key, ok, detail }
+  const [env, setEnv] = useState(null);
+
+  // Fresh, at-a-glance state for support: what the browser and worker report
+  // right now (the React `permission` state can be stale after the user
+  // changes the site permission in browser settings).
+  useEffect(() => {
+    if (!open || typeof window === "undefined") return;
+    let cancelled = false;
+    const read = async () => {
+      let sw = "none";
+      try {
+        const reg = await navigator.serviceWorker.getRegistration("/");
+        sw = !reg
+          ? "none"
+          : reg.active
+            ? "active"
+            : reg.installing
+              ? "installing"
+              : reg.waiting
+                ? "waiting"
+                : "idle";
+      } catch (e) {
+        sw = "error";
+      }
+      if (!cancelled) {
+        setEnv({
+          permission:
+            typeof Notification !== "undefined" ? Notification.permission : "unavailable",
+          sw,
+        });
+      }
+    };
+    read();
+    return () => {
+      cancelled = true;
+    };
+  }, [open, feedback]);
 
   const permissionKey =
     permission === "granted"
@@ -298,6 +335,14 @@ export default function NotificationsDropdown({ open, onClose }) {
               {t("test_in_5s")}
             </button>
           </div>
+
+          {env && (
+            <p className="text-[10px] text-slate-400 font-mono">
+              {`browser: ${env.permission} · worker: ${env.sw} · token: ${
+                deviceToken ? "yes" : "no"
+              }`}
+            </p>
+          )}
 
           {feedback && (
             <div>

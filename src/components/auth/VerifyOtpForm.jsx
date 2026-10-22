@@ -6,7 +6,7 @@ import { z } from "zod";
 import { useMutation } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import { useTranslations } from "next-intl";
-import { apiPost } from "@/lib/api";
+import { apiGet, apiPost } from "@/lib/api";
 import { motion } from "framer-motion";
 
 const labelStyles = "block text-sm font-semibold text-slate-700 mb-1";
@@ -63,15 +63,37 @@ export default function VerifyOtpForm({ email, onSuccess, onResendOtp, onBackToL
 
   const verifyOtpMutation = useMutation({
     mutationFn: (payload) => apiPost("/auth/verify-otp", payload),
-    onSuccess(data) {
-      if (data?.success) {
-        toast.success(t("otp_verified_success"));
-        // Pass the whole result so callers get token + user (register flow
-        // logs the user straight in; reset flow only needs the token).
-        onSuccess(data?.result || {});
-      } else {
+    async onSuccess(data) {
+      if (!data?.success) {
         toast.error(data?.message || t("invalid_otp_error"));
+        return;
       }
+
+      const result = data?.result || {};
+      let user = result.user;
+
+      // The backend only returns a token from verify-otp. The register and
+      // "activate account" flows need { token, user } to sign the user in, so
+      // fetch the account with that token before handing control back.
+      if (result.token && !user) {
+        try {
+          const me = await apiGet("/auth/me", {
+            headers: {
+              Accept: "application/json",
+              Authorization: `Bearer ${result.token}`,
+            },
+          });
+          user = me?.result || null;
+        } catch (e) {
+          user = null;
+        }
+      }
+
+      toast.success(t("otp_verified_success"));
+
+      // Pass the whole result so callers get token + user (register flow
+      // logs the user straight in; reset flow only needs the token).
+      onSuccess({ ...result, user });
     },
     onError: (error) => {
       toast.error(error?.message || t("generic_error"));
