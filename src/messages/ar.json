@@ -117,7 +117,22 @@
         "permission_granted": "تم تفعيل الإشعارات",
         "permission_denied": "الإشعارات محظورة في متصفحك",
         "push_verified": "تم إرسال إشعار تجريبي — تحقق من جهازك",
-        "push_verify_failed": "فشل تسليم الإشعار — راجع سجلات الخادم"
+        "push_verify_failed": "فشل تسليم الإشعار — راجع سجلات الخادم",
+        "permission_label": "إذن المتصفح",
+        "permission_state_default": "لم يُطلب",
+        "permission_state_granted": "مسموح",
+        "permission_state_denied": "محظور",
+        "permission_unsupported": "هذا المتصفح أو الجلسة الخاصة لا يدعم إشعارات الدفع",
+        "permission_no_user": "يرجى تسجيل الدخول مجدداً",
+        "no_token": "تم منح الإذن لكن لم يتم إنشاء رمز للجهاز",
+        "enable_now": "السماح",
+        "test_notification": "إرسال إشعار تجريبي",
+        "test_in_5s": "تجربة بعد ٥ ثوانٍ",
+        "test_sending": "جارٍ الإرسال…",
+        "test_scheduled": "سيُرسل بعد ٥ ثوانٍ — بدّل التبويب الآن لرؤيته",
+        "test_sent": "تم الإرسال — تحقق من جهازك",
+        "test_failed": "تعذّر على الخادم إرسال الإشعار (ربما رمز الجهاز غير مسجّل)",
+        "test_error": "تعذّر إرسال الإشعار التجريبي"
     },
     "order": {
         "order_no": "رقم الطلب",
@@ -182,7 +197,6 @@
         "status_delivered": "تم التوصيل",
         "status_refunded": "مسترد",
         "status_failed": "فشل"
-
     },
     "favorite": {
         "No_favorites_yet": "لا توجد لديك عناصر مفضلة حتى الآن",
@@ -282,7 +296,6 @@
     "faq": {
         "Loading_faq": "تحميل الأسئلة الشائعة..",
         "Loading_questions": "تحميل الأسئلة..."
-
     },
     "navbar": {
         "login": "تسجيل الدخول",
@@ -389,17 +402,13 @@
         "phone_number": "رقم الهاتف",
         "birth_date": "تاريخ الميلاد",
         "gender": "الجنس",
-
         "create_account": "انشئ حساب",
         "fill_in_details": "املأ التفاصيل الخاصة بك لإنشاء حسابك.",
-
         "register_account": " تسجيل",
         "setting_things_up": "جاري إعداد الأمور...",
-        "register_success": "تم إنشاء الحساب — أنت مسجل دخول الآن!",
-
+        "register_success": "تم تفعيل الحساب — أنت مسجل دخول الآن!",
         "have_account": " لديك حساب؟",
         "login_here": "سجل دخول هنا",
-
         "required_name": "الأسم مطلوب",
         "required_surname": "الأسم الأخير مطلوب",
         "invalid_email": "البريد الالكتروني غير صالح",
@@ -408,7 +417,6 @@
         "passwords_must_match": "كلمات السر يجب ان تتطابق",
         "required_phone": "رقم الهاتف مطلوب",
         "invalid_date": "تاريخ الميلاد غير صالح",
-
         "email_required": "البريد الإلكتروني مطلوب",
         "forgot_password_title": "نسيت كلمة المرور",
         "forgot_password_subtitle": "أدخل بريدك الإلكتروني لتلقي رمز إعادة تعيين كلمة المرور",
@@ -420,7 +428,6 @@
         "otp_sent_success": "تم إرسال رمز التحقق إلى بريدك الإلكتروني بنجاح!",
         "failed_send_otp": "فشل إرسال رمز التحقق. يرجى المحاولة مرة أخرى.",
         "generic_error": "حدث خطأ ما. يرجى المحاولة لاحقاً.",
-
         "verify_otp_title": "التحقق من الرمز",
         "verify_otp_subtitle": "أدخل الرمز المكون من 6 أرقام المرسل إلى بريدك الإلكتروني",
         "otp_label": "رمز التحقق",
@@ -432,9 +439,7 @@
         "resend_otp": "إعادة إرسال الرمز",
         "otp_verified_success": "تم التحقق من الرمز بنجاح!",
         "invalid_otp_error": "رمز التحقق غير صالح. يرجى المحاولة مرة أخرى.",
-        "register_success": "تم تفعيل الحساب — أنت مسجل دخول الآن!",
         "verify_email_required": "يرجى تأكيد بريدك الإلكتروني أولاً — تحقق من صندوق الوارد للرمز",
-
         "reset_password_title": "إعادة تعيين كلمة المرور",
         "reset_password_subtitle": "أدخل كلمة المرور الجديدة أدناه لاستعادة إمكانية الوصول إلى حسابك",
         "new_password_label": "كلمة المرور الجديدة",
@@ -476,7 +481,6 @@
         "select_size_for": "الرجاء اختيار مقاس {name}",
         "item_number": "عنصر {number}",
         "you_save": "توفر {amount}",
-
         "product_detail": "تفاصيل المنتج",
         "delivery_options": "خيارات التوصيل",
         "payment_methods": "طرق الدفع",
@@ -552,5 +556,4 @@
         "no_product": "لا توجد منتجات متاحة",
         "product_not_found": "لا يمكننا العثور على أي منتجات في هذه الفئة في الوقت الحالي. يُرجى العودة لاحقاً أو استكشاف فئات أخرى."
     }
-
 }

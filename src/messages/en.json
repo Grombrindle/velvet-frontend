@@ -117,7 +117,22 @@
         "permission_granted": "Notifications enabled",
         "permission_denied": "Notifications are blocked in your browser",
         "push_verified": "Test push sent — check your device",
-        "push_verify_failed": "Push delivery failed — see server logs"
+        "push_verify_failed": "Push delivery failed — see server logs",
+        "permission_label": "Browser permission",
+        "permission_state_default": "not asked",
+        "permission_state_granted": "granted",
+        "permission_state_denied": "blocked",
+        "permission_unsupported": "This browser or private session doesn't support push notifications",
+        "permission_no_user": "Please log in again",
+        "no_token": "Permission granted, but no device token was created",
+        "enable_now": "Allow",
+        "test_notification": "Send test notification",
+        "test_in_5s": "Test in 5s",
+        "test_sending": "Sending…",
+        "test_scheduled": "Will send in 5 seconds — switch tabs now to see it",
+        "test_sent": "Sent — check your device",
+        "test_failed": "Server could not send the push (device token missing?)",
+        "test_error": "Could not send the test notification"
     },
     "order": {
         "order_no": "Order No",
@@ -182,7 +197,6 @@
         "status_delivered": "Delivered",
         "status_refunded": "Refunded",
         "status_failed": "Failed"
-
     },
     "favorite": {
         "No_favorites_yet": "No favorites yet",
@@ -282,7 +296,6 @@
     "faq": {
         "Loading_faq": "Loading faq...",
         "Loading_questions": "Loading questions..."
-
     },
     "navbar": {
         "welcome": "Welcome",
@@ -383,23 +396,18 @@
         "enter_credentials": "Enter your credentials below",
         "no_account": "Don't have an account?",
         "register_here": "Register here",
-
         "first_name": "First Name",
         "surname": "Surname",
         "phone_number": "Phone Number",
         "birth_date": "Date of Birth",
         "gender": "Gender",
-
         "create_account": "Create Account",
         "fill_in_details": "Fill in your details to get started",
-
         "register_account": "Register account",
         "setting_things_up": "Setting things up...",
-        "register_success": "Account created — you're logged in!",
-
+        "register_success": "Account activated — you're logged in!",
         "have_account": " Do you have an account?",
         "login_here": "Login here",
-
         "required_name": "Name is required",
         "required_surname": "Surname is required",
         "invalid_email": "Invalid email address",
@@ -408,7 +416,6 @@
         "passwords_must_match": "Passwords must match",
         "required_phone": "Phone number is required",
         "invalid_date": "Invalid date of birth",
-
         "email_required": "Email is required",
         "forgot_password_title": "Forgot Password",
         "forgot_password_subtitle": "Enter your email to receive a password reset code",
@@ -420,7 +427,6 @@
         "otp_sent_success": "Verification code sent to your email successfully!",
         "failed_send_otp": "Failed to send verification code. Please try again.",
         "generic_error": "Something went wrong. Please try again later.",
-
         "verify_otp_title": "Verify Verification Code",
         "verify_otp_subtitle": "Enter the 6-digit code sent to your email address",
         "otp_label": "Verification Code",
@@ -432,9 +438,7 @@
         "resend_otp": "Resend code",
         "otp_verified_success": "Verification code verified successfully!",
         "invalid_otp_error": "Invalid verification code. Please try again.",
-        "register_success": "Account activated — you're logged in!",
         "verify_email_required": "Please verify your email first — check your inbox for the code",
-
         "reset_password_title": "Reset Password",
         "reset_password_subtitle": "Enter your new password below to reset your account access",
         "new_password_label": "New Password",
@@ -448,7 +452,6 @@
         "reset_password_success": "Password has been successfully reset!",
         "failed_reset_password": "Failed to reset password. Please try again."
     },
-
     "categoriesPage": {
         "show_filters": "Show Filter",
         "sort": "Sort",
@@ -477,7 +480,6 @@
         "select_size_for": "Please select a size for {name}",
         "item_number": "Item {number}",
         "you_save": "You save {amount}",
-
         "product_detail": "Product Detail",
         "delivery_options": "Delivery Options",
         "payment_methods": "Payment Methods",

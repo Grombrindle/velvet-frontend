@@ -10,6 +10,7 @@ import {
   useMarkNotificationsRead,
 } from "@/lib/hooks/useNotifications";
 import { useHydrated } from "@/lib/hooks/useHydration";
+import { useNotificationsFcm } from "./NotificationsProvider";
 import Loader from "../ui/loader";
 
 // Simple relative-time formatter (no dep): "now", "5m", "2h", "3d"
@@ -46,6 +47,79 @@ export default function NotificationsDropdown({ open, onClose }) {
   } = useNotificationPreferences();
   const updatePrefs = useUpdateNotificationPreferences();
   const markRead = useMarkNotificationsRead();
+
+  const { permission, requestFcmPermission, sendTest } = useNotificationsFcm();
+  const [busy, setBusy] = useState(false);
+  const [feedback, setFeedback] = useState(null); // { key, ok }
+
+  const permissionKey =
+    permission === "granted"
+      ? "permission_state_granted"
+      : permission === "denied"
+        ? "permission_state_denied"
+        : "permission_state_default";
+
+  const describe = (result) => {
+    switch (result) {
+      case "granted":
+        return { key: "permission_granted", ok: true };
+      case "denied":
+        return { key: "permission_denied", ok: false };
+      case "unsupported":
+        return { key: "permission_unsupported", ok: false };
+      case "no-user":
+        return { key: "permission_no_user", ok: false };
+      case "no-token":
+        return { key: "no_token", ok: false };
+      default:
+        return { key: "test_error", ok: false };
+    }
+  };
+
+  const enable = async () => {
+    const result = await requestFcmPermission();
+    setFeedback(describe(result));
+    return result;
+  };
+
+  const sendNow = async () => {
+    setBusy(true);
+    try {
+      if (permission !== "granted") {
+        const result = await requestFcmPermission();
+        if (result !== "granted") {
+          setFeedback(describe(result));
+          return;
+        }
+      }
+      setFeedback({ key: "test_sending", ok: true });
+      const result = await sendTest();
+      setFeedback(
+        result === "sent"
+          ? { key: "test_sent", ok: true }
+          : result === "failed"
+            ? { key: "test_failed", ok: false }
+            : { key: "test_error", ok: false }
+      );
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const sendIn5s = async () => {
+    if (permission !== "granted") {
+      const result = await requestFcmPermission();
+      if (result !== "granted") {
+        setFeedback(describe(result));
+        return;
+      }
+    }
+    setFeedback({ key: "test_scheduled", ok: true });
+    // Gives you time to switch tabs so the system notification is visible.
+    setTimeout(() => {
+      sendNow();
+    }, 5000);
+  };
 
  
   // Close on Escape
@@ -154,6 +228,57 @@ export default function NotificationsDropdown({ open, onClose }) {
 
       {/* Footer: load more + settings */}
       <div className="px-4 py-3 border-t border-gray-100 space-y-2">
+        {/* Device permission + on-demand test push */}
+        <div className="space-y-2 pb-2 border-b border-gray-100">
+          <div className="flex items-center justify-between gap-2 text-[11px] text-slate-500">
+            <span>
+              {t("permission_label")}:{" "}
+              <b
+                className={
+                  permission === "granted" ? "text-green-600" : "text-slate-700"
+                }
+              >
+                {t(permissionKey)}
+              </b>
+            </span>
+            {permission !== "granted" && (
+              <button
+                onClick={enable}
+                className="underline hover:text-black whitespace-nowrap"
+              >
+                {t("enable_now")}
+              </button>
+            )}
+          </div>
+
+          <div className="flex gap-2">
+            <button
+              onClick={sendNow}
+              disabled={busy}
+              className="flex-1 text-xs font-semibold bg-black text-white rounded-lg py-2 disabled:opacity-50 hover:bg-slate-800 transition-colors"
+            >
+              {busy ? t("test_sending") : t("test_notification")}
+            </button>
+            <button
+              onClick={sendIn5s}
+              disabled={busy}
+              className="text-xs font-semibold border border-slate-300 rounded-lg px-3 py-2 disabled:opacity-50 hover:bg-slate-50 transition-colors"
+            >
+              {t("test_in_5s")}
+            </button>
+          </div>
+
+          {feedback && (
+            <p
+              className={`text-[11px] ${
+                feedback.ok ? "text-green-600" : "text-red-500"
+              }`}
+            >
+              {t(feedback.key)}
+            </p>
+          )}
+        </div>
+
         {pagination && page < pagination.last_page && (
           <button
             onClick={() => setPage((p) => p + 1)}

@@ -23,8 +23,19 @@ const getVerifiedStorageKey = (userId) => `velvet_push_verified_${userId}`;
 
 // FCM tokens shouldn't be requested until the service worker is active,
 // otherwise getToken can fail with a "registration did not exist" error.
+// The timeout prevents the UI from hanging forever if the worker never
+// activates (e.g. the browser blocked it).
+function withTimeout(promise, ms, label) {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) =>
+      setTimeout(() => reject(new Error(`${label} timed out after ${ms}ms`)), ms)
+    ),
+  ]);
+}
+
 async function requestDeviceToken(messaging) {
-  await navigator.serviceWorker.ready;
+  await withTimeout(navigator.serviceWorker.ready, 10000, "service worker activation");
   return getToken(messaging, {
     vapidKey: process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY,
   });
@@ -32,7 +43,9 @@ async function requestDeviceToken(messaging) {
 
 const NotificationsContext = createContext({
   permission: "default",
+  deviceToken: null,
   requestFcmPermission: async () => "unsupported",
+  sendTest: async () => "error",
 });
 
 export function useNotificationsFcm() {
@@ -59,6 +72,7 @@ export function NotificationsProvider({ children }) {
       ? Notification.permission
       : "default"
   );
+  const [deviceToken, setDeviceToken] = useState(null);
   const didInit = useRef(false);
   const lastUserId = useRef(null);
 
@@ -159,6 +173,7 @@ export function NotificationsProvider({ children }) {
         const currentToken = await requestDeviceToken(messaging);
         if (currentToken && !cancelled && currentToken !== storedToken) {
           await registerDeviceToken(currentToken);
+          setDeviceToken(currentToken);
           localStorage.setItem(getTokenStorageKey(userId), currentToken);
           queryClient.invalidateQueries({ queryKey: ["notifications", "list"] });
           verifyPushOnce(userId);
@@ -174,6 +189,7 @@ export function NotificationsProvider({ children }) {
             const fresh = await requestDeviceToken(messaging);
             if (fresh && !cancelled) {
               await registerDeviceToken(fresh);
+              setDeviceToken(fresh);
               localStorage.setItem(getTokenStorageKey(userId), fresh);
               queryClient.invalidateQueries({ queryKey: ["notifications", "list"] });
             }
@@ -191,29 +207,50 @@ export function NotificationsProvider({ children }) {
 
   const requestFcmPermission = async () => {
     try {
-      const messaging = await getFirebaseMessaging();
-      if (!messaging) return "unsupported";
-      if (!userId) return "denied";
+      if (typeof window === "undefined" || typeof Notification === "undefined") {
+        return "unsupported";
+      }
 
+      // Ask the browser FIRST, directly from the click gesture. Doing any
+      // async Firebase work before this can make the prompt never appear.
       const perm = await Notification.requestPermission();
       setPermission(perm);
       if (perm !== "granted") return perm;
 
+      if (!userId) return "no-user";
+
+      const messaging = await getFirebaseMessaging();
+      if (!messaging) return "unsupported";
+
       const currentToken = await requestDeviceToken(messaging);
-      if (currentToken) {
-        await registerDeviceToken(currentToken);
-        localStorage.setItem(getTokenStorageKey(userId), currentToken);
-        queryClient.invalidateQueries({ queryKey: ["notifications", "list"] });
-        verifyPushOnce(userId);
-      }
+      if (!currentToken) return "no-token";
+
+      await registerDeviceToken(currentToken);
+      setDeviceToken(currentToken);
+      localStorage.setItem(getTokenStorageKey(userId), currentToken);
+      queryClient.invalidateQueries({ queryKey: ["notifications", "list"] });
+      verifyPushOnce(userId);
       return "granted";
     } catch (e) {
-      return "denied";
+      return "error";
+    }
+  };
+
+  // Calls the backend's existing POST /notifications/test-sound endpoint.
+  const sendTest = async () => {
+    try {
+      const res = await sendTestNotification();
+      const sent = res?.result?.notification_sent ?? res?.notification_sent;
+      return sent ? "sent" : "failed";
+    } catch (e) {
+      return "error";
     }
   };
 
   return (
-    <NotificationsContext.Provider value={{ permission, requestFcmPermission }}>
+    <NotificationsContext.Provider
+      value={{ permission, deviceToken, requestFcmPermission, sendTest }}
+    >
       {children}
     </NotificationsContext.Provider>
   );
