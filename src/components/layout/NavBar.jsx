@@ -31,12 +31,10 @@ function NavBar() {
   const [hoveredCategory, setHoveredCategory] = useState(null);
   const [cartOpen, setCartOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
-  const [currencyMenuOpen, setCurrencyMenuOpen] = useState(false); // ✅ State for currency dropdown
+  const [currencyMenuOpen, setCurrencyMenuOpen] = useState(false);
 
-  // State to hold fallback gender from localStorage when URL lacks gender (e.g. /product/99)
   const [savedGender, setSavedGender] = useState(null);
 
-  // Load saved gender from localStorage on initial client load
   useEffect(() => {
     const lastGender = localStorage.getItem("activeGender");
     if (lastGender) {
@@ -50,7 +48,6 @@ function NavBar() {
   const { data: cart } = useCart({ enabled: isAuthenticated });
   const cartCount = cart?.totalCount || 0;
 
-  // ✅ Currency hooks
   const { data: currenciesData } = useCurrencies();
   const changeCurrencyMutation = useChangeCurrency();
   const currencies = currenciesData?.currencies || [];
@@ -66,8 +63,6 @@ function NavBar() {
       await changeCurrencyMutation.mutateAsync(currencyId);
       toast.success(tCurrencies("currency_changed_successfully!"));
       setCurrencyMenuOpen(false);
-
-      // ✅ Forces a full page reload so every page and component updates instantly with the new currency
       window.location.reload();
     } catch (error) {
       toast.error(error?.message || tCurrencies("Failed_to_change_currency"));
@@ -77,7 +72,6 @@ function NavBar() {
   const handleLogout = () => {
     clear();
     setUserMenuOpen(false);
-    // Navigate to home with active gender if available
     const homePath = activeGender
       ? `${localePrefix}/${activeGender}`
       : `${localePrefix}/`;
@@ -92,7 +86,7 @@ function NavBar() {
   } = useQuery({
     queryKey: ["genders-web"],
     queryFn: () => apiGet("/web/genders"),
-    staleTime: 10 * 60 * 3600 * 24, // 24 hours
+    staleTime: 10 * 60 * 3600 * 24,
   });
 
   const navItems = React.useMemo(
@@ -100,7 +94,6 @@ function NavBar() {
     [gendersData],
   );
 
-  // Save gender to localStorage whenever path changes to a valid gender page
   useEffect(() => {
     if (currentGenderFromPath) {
       localStorage.setItem("activeGender", currentGenderFromPath);
@@ -115,10 +108,8 @@ function NavBar() {
   if (gendersError) {
   }
 
-  // Determine active gender: Path -> LocalStorage -> Fallback to first nav item
   const activeGender = currentGenderFromPath || savedGender || navItems[0]?.name.en;
 
-  // Get user initials
   const getUserInitials = () => {
     if (!user?.name) return "U";
     const names = user.name.split(" ");
@@ -128,7 +119,6 @@ function NavBar() {
     return user.name.charAt(0).toUpperCase();
   };
 
-  // Helper function to navigate with gender change while staying on current page
   const handleGenderNavigation = (newGender) => {
     localStorage.setItem("activeGender", newGender);
     setSavedGender(newGender);
@@ -154,66 +144,69 @@ function NavBar() {
   };
 
   return (
-    <header className="sticky py-3 bg-white top-0 z-50 h-fit w-full bg-transparent transition-colors duration-150 hover:bg-white lg:block hidden shadow-lg">
-      <div className="flex relative py-3 justify-between navbar-container mx-auto items-center">
-        <Link
-          className=" flex items-center"
-          href={`${localePrefix}/${activeGender || ""}`}
-        >
-          <div className="w-56">
-            <img
-              src="/images/logo/logo-velvet-edit.png"
-              alt="Velvet Logo"
-              width={500}
-              height={500}
-              // priority
-            />
-          </div>
-        </Link>
-
-        {!gendersLoading && (
-          <div className="flex gap-x-3">
-            {navItems.map((item) => (
-              <div
-                key={item.id}
-                className="relative"
-                onMouseEnter={() => setHoveredCategory(item.name.en)}
-                onMouseLeave={() => setHoveredCategory(null)}
-              >
-                <button
-                  onClick={() => handleGenderNavigation(item.name.en)}
-                  className={`text-sm w-full px-8 cursor-pointer py-1 ${
-                    activeGender?.toLowerCase() === item.name.en.toLowerCase()
-                      ? "font-bold bg-black text-white"
-                      : "font-light text-[#000000]"
-                  }`}
+    <header className="sticky py-2 bg-white top-0 z-50 h-fit w-full bg-transparent transition-colors duration-150 hover:bg-white lg:block hidden shadow-lg">
+      {/* UPDATED CONTAINER: Added relative positioning and grid layout for centering */}
+      <div className="grid grid-cols-3 items-center navbar-container mx-auto w-full px-4 relative">
+        
+        {/* ===== LEFT SIDE: Gender Navigation (Moved from center) ===== */}
+        <div className="flex justify-start gap-x-3">
+          {!gendersLoading && (
+            <div className="flex gap-x-3">
+              {navItems.map((item) => (
+                <div
+                  key={item.id}
+                  className="relative"
+                  onMouseEnter={() => setHoveredCategory(item.name.en)}
+                  onMouseLeave={() => setHoveredCategory(null)}
                 >
-                  {currentLocale === "ar" ? item.name.ar : item.name.en}
-                </button>
-              </div>
-            ))}
-          </div>
-        )}
+                  <button
+                    onClick={() => handleGenderNavigation(item.name.en)}
+                    className={`text-sm w-full px-6 cursor-pointer py-1 ${
+                      activeGender?.toLowerCase() === item.name.en.toLowerCase()
+                        ? "font-bold bg-black text-white"
+                        : "font-light text-[#000000]"
+                    }`}
+                  >
+                    {currentLocale === "ar" ? item.name.ar : item.name.en}
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
 
-        {gendersLoading && (
-          <div className="flex gap-x-5">
-            <span className="bg-gray-300 w-20 h-4 rounded-lg animate-pulse"></span>
-            <span className="bg-gray-300 w-20 h-4 rounded-lg animate-pulse"></span>
-            <span className="bg-gray-300 w-20 h-4 rounded-lg animate-pulse"></span>
-            <span className="bg-gray-300 w-20 h-4 rounded-lg animate-pulse"></span>
-          </div>
-        )}
+          {gendersLoading && (
+            <div className="flex gap-x-5">
+              <span className="bg-gray-300 w-20 h-4 rounded-lg animate-pulse"></span>
+              <span className="bg-gray-300 w-20 h-4 rounded-lg animate-pulse"></span>
+            </div>
+          )}
+        </div>
 
-        {/* Right Section */}
-        <div className="flex items-center gap-x-3">
+        {/* ===== CENTER: Logo (Moved to center) ===== */}
+        <div className="flex justify-center">
+          <Link
+            className="flex items-center"
+            href={`${localePrefix}/${activeGender || ""}`}
+          >
+            <div className="w-56">
+              <img
+                src="/images/logo/logo-velvet-edit.png"
+                alt="Velvet Logo"
+                width={500}
+                height={500}
+              />
+            </div>
+          </Link>
+        </div>
 
-          {/* ===== Group 1: Language + Currency + Welcome/User ===== */}
-          <div className="flex items-center gap-x-3 mr-16">
+        {/* ===== RIGHT SIDE: Language, Currency, User, Icons ===== */}
+        <div className="flex items-center justify-end gap-x-3">
+          
+          <div className="flex items-center gap-x-3 mr-4">
             <Suspense>
               <LanguageSwitcher />
             </Suspense>
 
-            {/* ✅ Currency Dropdown Switcher */}
             <div className="relative">
               <button
                 onClick={() => setCurrencyMenuOpen(!currencyMenuOpen)}
@@ -254,7 +247,6 @@ function NavBar() {
               )}
             </div>
 
-            {/* User / Welcome / Login */}
             <div className="relative">
               {!isAuthenticated ? (
                 <Link href={`${localePrefix}/login`}>
@@ -387,11 +379,8 @@ function NavBar() {
               )}
             </div>
           </div>
-          {/* ===== End Group 1 ===== */}
 
-          {/* ===== Group 2: Icons (Search + Heart + Notifications + Cart) ===== */}
           <div className="flex items-center gap-x-3">
-            {/* Search Icon */}
             <Link
               href={`${localePrefix}/${encodeURIComponent(activeGender || "")}/search`}
               className="hover:opacity-70 transition-opacity"
@@ -442,7 +431,6 @@ function NavBar() {
               </div>
             )}
           </div>
-          {/* ===== End Group 2 ===== */}
 
         </div>
       </div>

@@ -1,4 +1,5 @@
 "use client";
+
 import React, { useEffect, useMemo, useState, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -17,7 +18,6 @@ const errorStyles = "text-red-500 text-xs mt-1 font-medium";
 export default function VerifyOtpForm({ email, onSuccess, onResendOtp, onBackToLogin }) {
   const t = useTranslations("auth");
   const [countdown, setCountdown] = useState(120);
-  // Derived: the resend button unlocks when the countdown reaches 0
   const isResendDisabled = countdown > 0;
 
   const startCountdown = useCallback(() => {
@@ -64,39 +64,48 @@ export default function VerifyOtpForm({ email, onSuccess, onResendOtp, onBackToL
   const verifyOtpMutation = useMutation({
     mutationFn: (payload) => apiPost("/auth/verify-otp", payload),
     async onSuccess(data) {
-      if (!data?.success) {
-        toast.error(data?.message || t("invalid_otp_error"));
+      // 1. Handle HTTP 200 responses that carry an explicit failure payload
+      if (data?.success === false || data?.error || data?.status === false) {
+        toast.error(data?.message || data?.error || t("invalid_otp_error"));
         return;
       }
 
-      const result = data?.result || {};
+      // 2. Resolve the payload across the response shapes we've seen
+      // ({ success, result }, { data }, or the object itself).
+      const result = data?.result || data?.data || data || {};
       let user = result.user;
+      const token = result.token || result.access_token;
 
-      // The backend only returns a token from verify-otp. The register and
-      // "activate account" flows need { token, user } to sign the user in, so
-      // fetch the account with that token before handing control back.
-      if (result.token && !user) {
+      // 3. verify-otp only returns a token. The register/activate flows need
+      // { token, user } to sign the user in, so fetch the account with that
+      // token before handing control back (the reset flow only needs the token).
+      if (token && !user) {
         try {
           const me = await apiGet("/auth/me", {
             headers: {
               Accept: "application/json",
-              Authorization: `Bearer ${result.token}`,
+              Authorization: `Bearer ${token}`,
             },
           });
-          user = me?.result || null;
+          user = me?.result || me?.data || null;
         } catch (e) {
           user = null;
         }
       }
 
       toast.success(t("otp_verified_success"));
-
-      // Pass the whole result so callers get token + user (register flow
-      // logs the user straight in; reset flow only needs the token).
-      onSuccess({ ...result, user });
+      onSuccess({ ...result, token, user });
     },
     onError: (error) => {
-      toast.error(error?.message || t("generic_error"));
+      // 4. Handle HTTP 400, 422, 500 status code errors
+      const responseData = error?.response?.data || error;
+      const errorMsg =
+        responseData?.message ||
+        responseData?.error ||
+        error?.message ||
+        t("invalid_otp_error");
+
+      toast.error(errorMsg);
     },
   });
 
@@ -174,7 +183,6 @@ export default function VerifyOtpForm({ email, onSuccess, onResendOtp, onBackToL
         </button>
 
         <div className="flex flex-col items-center gap-3 pt-2">
-          {/* Timer Display */}
           <div className="flex items-center justify-center gap-3">
             <motion.div 
               className="relative flex items-center justify-center"
@@ -228,7 +236,6 @@ export default function VerifyOtpForm({ email, onSuccess, onResendOtp, onBackToL
             </button>
           </div>
 
-          {/* Progress Bar */}
           {countdown > 0 && (
             <div className="w-48 h-1 bg-slate-200 rounded-full overflow-hidden">
               <motion.div 
@@ -242,7 +249,6 @@ export default function VerifyOtpForm({ email, onSuccess, onResendOtp, onBackToL
             </div>
           )}
 
-          {/* Only show "Back to Login" if the prop is provided */}
           {onBackToLogin && (
             <button
               type="button"

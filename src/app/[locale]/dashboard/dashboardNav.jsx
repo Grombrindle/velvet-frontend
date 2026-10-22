@@ -14,7 +14,7 @@ export default function DashboardNav() {
   const localePrefix = getLocalePrefix(pathname);
   const currentLocale = useLocale();
   const isRTL = currentLocale === "ar";
-  
+
   // Get authentication state
   const { isAuthenticated } = useAuthStore();
 
@@ -53,6 +53,13 @@ export default function DashboardNav() {
       requiresAuth: true,
     },
     {
+      id: 5,
+      image: "/images/imprint.svg",
+      desc: t("imprint"),
+      path: `${localePrefix}/dashboard/imprint`,
+      requiresAuth: false,
+    },
+    {
       id: 6,
       image: "/images/email-dash.svg",
       desc: t("faq"),
@@ -84,7 +91,7 @@ export default function DashboardNav() {
   ];
 
   // Filter items based on authentication
-  const items = allItems.filter(item => {
+  const items = allItems.filter((item) => {
     // If item requires auth and user is not authenticated, hide it
     if (item.requiresAuth && !isAuthenticated) {
       return false;
@@ -106,7 +113,9 @@ export default function DashboardNav() {
   return (
     <>
       {/* Mobile menu button */}
-      <div className={`lg:hidden fixed top-4 ${isRTL ? 'right-0 pr-2' : 'left-0 pl-2'} z-50 flex items-center gap-4 h-14`}>
+      <div
+        className={`lg:hidden fixed top-4 ${isRTL ? "right-0 pr-2" : "left-0 pl-2"} z-50 flex items-center gap-4 h-14`}
+      >
         <button onClick={() => setIsOpen(true)}>
           <div className="space-y-1">
             <span className="block w-6 h-0.5 bg-black"></span>
@@ -126,10 +135,14 @@ export default function DashboardNav() {
 
       {/* Mobile sidebar */}
       <aside
-        className={`fixed top-0 ${isRTL ? 'right-0' : 'left-0'} h-full w-72 bg-white z-50 transform transition-transform duration-300 lg:hidden ${
-          isOpen 
-            ? isRTL ? "translate-x-0" : "translate-x-0"
-            : isRTL ? "translate-x-full" : "-translate-x-full"
+        className={`fixed top-0 ${isRTL ? "right-0" : "left-0"} h-full w-72 bg-white z-50 transform transition-transform duration-300 lg:hidden ${
+          isOpen
+            ? isRTL
+              ? "translate-x-0"
+              : "translate-x-0"
+            : isRTL
+              ? "translate-x-full"
+              : "-translate-x-full"
         }`}
       >
         <div className="flex justify-between items-center p-4 border-b">
@@ -194,7 +207,9 @@ export default function DashboardNav() {
       </aside>
 
       {/* Desktop sidebar */}
-      <aside className={`hidden lg:block w-68 ${isRTL ? 'border-l' : 'border-r'} border-slate-200`}>
+      <aside
+        className={`hidden lg:block w-68 ${isRTL ? "border-l" : "border-r"} border-slate-200`}
+      >
         <div className="overflow-y-auto h-full pb-20">
           {items.map((item) => {
             const isActive = pathname === item.path;
