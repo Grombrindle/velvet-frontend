@@ -123,6 +123,7 @@
         "permission_state_granted": "مسموح",
         "permission_state_denied": "محظور",
         "permission_unsupported": "هذا المتصفح أو الجلسة الخاصة لا يدعم إشعارات الدفع",
+        "permission_dismissed": "تم إغلاق نافذة الإذن — اضغط مرة أخرى واختر السماح",
         "permission_no_user": "يرجى تسجيل الدخول مجدداً",
         "no_token": "تم منح الإذن لكن لم يتم إنشاء رمز للجهاز",
         "enable_now": "السماح",

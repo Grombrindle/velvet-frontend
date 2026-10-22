@@ -3,7 +3,11 @@
 import { createContext, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { useAuthStore } from "@/lib/store";
-import { getFirebaseMessaging } from "@/lib/firebase";
+import {
+  getFirebaseMessaging,
+  getFirebaseFailureReason,
+  getPushSupportReport,
+} from "@/lib/firebase";
 import { getToken, onMessage, onUnregistered } from "firebase/messaging";
 import { registerDeviceToken, sendTestNotification } from "@/lib/notifications";
 import { useQueryClient } from "@tanstack/react-query";
@@ -35,9 +39,16 @@ function withTimeout(promise, ms, label) {
 }
 
 async function requestDeviceToken(messaging) {
-  await withTimeout(navigator.serviceWorker.ready, 10000, "service worker activation");
+  const registration = await withTimeout(
+    navigator.serviceWorker.ready,
+    15000,
+    "service worker activation"
+  );
   return getToken(messaging, {
     vapidKey: process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY,
+    // Passing the registration explicitly avoids getToken picking up a stale
+    // or out-of-scope worker (e.g. the old firebase-messaging-sw.jsx).
+    serviceWorkerRegistration: registration,
   });
 }
 
@@ -156,7 +167,6 @@ export function NotificationsProvider({ children }) {
   // When the user becomes authenticated, register the FCM token.
   useEffect(() => {
     if (!_hasHydrated || !isAuthenticated || !userId) return;
-    const storedToken = localStorage.getItem(getTokenStorageKey(userId));
 
     let cancelled = false;
     let unsubUnregistered = null;
@@ -168,10 +178,10 @@ export function NotificationsProvider({ children }) {
         if (Notification.permission !== "granted") return;
 
         // Firebase 12 has no onTokenRefresh: getToken() transparently returns
-        // a rotated token, so on every login we compare it to what the backend
-        // has and re-register when it changed.
+        // a rotated token. Re-register on every login so the backend always
+        // holds a current token (it may have been cleared server-side).
         const currentToken = await requestDeviceToken(messaging);
-        if (currentToken && !cancelled && currentToken !== storedToken) {
+        if (currentToken && !cancelled) {
           await registerDeviceToken(currentToken);
           setDeviceToken(currentToken);
           localStorage.setItem(getTokenStorageKey(userId), currentToken);
@@ -197,6 +207,7 @@ export function NotificationsProvider({ children }) {
           }
         });
       } catch (e) {
+        console.warn("[velvet-fcm] automatic token registration failed", e);
       }
     })();
     return () => {
@@ -208,21 +219,38 @@ export function NotificationsProvider({ children }) {
   const requestFcmPermission = async () => {
     try {
       if (typeof window === "undefined" || typeof Notification === "undefined") {
-        return "unsupported";
+        return "unsupported:the Notification API is not available in this browser";
       }
 
       // Ask the browser FIRST, directly from the click gesture. Doing any
       // async Firebase work before this can make the prompt never appear.
       const perm = await Notification.requestPermission();
       setPermission(perm);
+      console.info("[velvet-fcm] permission:", perm);
+      if (perm === "default") return "dismissed";
       if (perm !== "granted") return perm;
 
       if (!userId) return "no-user";
 
       const messaging = await getFirebaseMessaging();
-      if (!messaging) return "unsupported";
+      if (!messaging) {
+        const reason = getFirebaseFailureReason() || "unknown reason";
+        console.warn("[velvet-fcm] messaging unavailable", {
+          reason,
+          checks: getPushSupportReport(),
+        });
+        return `unsupported:${reason}`;
+      }
 
-      const currentToken = await requestDeviceToken(messaging);
+      let currentToken;
+      try {
+        currentToken = await requestDeviceToken(messaging);
+      } catch (e) {
+        const reason = `${e?.code || e?.name || "error"}: ${e?.message || e}`;
+        console.error("[velvet-fcm] getToken failed", e);
+        return `token-error:${reason}`;
+      }
+      console.info("[velvet-fcm] device token:", currentToken ? "acquired" : "empty");
       if (!currentToken) return "no-token";
 
       await registerDeviceToken(currentToken);
@@ -232,7 +260,8 @@ export function NotificationsProvider({ children }) {
       verifyPushOnce(userId);
       return "granted";
     } catch (e) {
-      return "error";
+      console.error("[velvet-fcm] permission request failed", e);
+      return `error:${e?.code || e?.name || "error"}: ${e?.message || e}`;
     }
   };
 
@@ -243,7 +272,8 @@ export function NotificationsProvider({ children }) {
       const sent = res?.result?.notification_sent ?? res?.notification_sent;
       return sent ? "sent" : "failed";
     } catch (e) {
-      return "error";
+      console.error("[velvet-fcm] test notification failed", e);
+      return `error:${e?.code || e?.name || "error"}: ${e?.message || e}`;
     }
   };
 

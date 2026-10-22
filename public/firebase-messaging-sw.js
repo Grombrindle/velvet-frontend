@@ -1,41 +1,26 @@
-/* global importScripts, firebase */
-importScripts("https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js");
-importScripts("https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging-compat.js");
+/* Velvet Firebase Cloud Messaging service worker.
+ *
+ * FCM only needs a service worker that handles "push" events. The Firebase
+ * SDK is intentionally NOT imported here: loading it lazily inside the push
+ * handler registers push/notificationclick listeners too late (Chrome logs
+ * "Event handler ... must be added on the initial evaluation of worker
+ * script") and adds a network round-trip before the notification is shown.
+ */
 
-// Firebase config is served from /api/firebase-config (the service worker
-// can't read build-time env vars, and this keeps .env.local the single source).
 self.addEventListener("install", () => self.skipWaiting());
-
-let initialized = false;
-
-async function initFirebase() {
-    if (initialized) return;
-    try {
-        const res = await fetch("/api/firebase-config");
-        const { firebaseConfig, vapidKey } = await res.json();
-        if (!firebaseConfig || !firebaseConfig.messagingSenderId) return;
-
-        firebase.initializeApp(firebaseConfig);
-        const messaging = firebase.messaging();
-        initialized = true;
-        self.__vapidKey = vapidKey;
-    } catch (e) {}
-}
 
 self.addEventListener("activate", (event) => {
     event.waitUntil(self.clients.claim());
 });
 
 self.addEventListener("message", (event) => {
-    // Wake-up from the page (registration + getToken flow).
-    initFirebase();
     const data = event.data;
     if (!data) return;
     if (data.type === "SKIP_WAITING") {
         self.skipWaiting();
     } else if (data.type === "SET_LOCALE") {
-        // The page pushes the active locale here so click-through URLs open in the
-        // right language (e.g. /ar/dashboard/... vs /en/...).
+        // The page pushes the active locale here so click-through URLs open in
+        // the right language (e.g. /ar/dashboard/... vs /en/...).
         self.__locale = data.locale === "ar" ? "ar" : "en";
     }
 });
@@ -45,40 +30,46 @@ self.addEventListener("push", (event) => {
 });
 
 async function handlePush(event) {
-    await initFirebase();
     try {
-        let data = {};
+        let payload = {};
         if (event.data) {
-            const payload = event.data.json();
-            data = payload.data || payload;
+            try {
+                payload = event.data.json();
+            } catch (e) {
+                payload = { notification: { body: event.data.text() } };
+            }
         }
-        const title = data.title || "Velvet";
-        const body = data.body || "";
-        const icon = data.image || "/images/logo/logo-velvet-edit.png";
+
+        // FCM HTTP v1 puts custom keys in `data`; `notification` is present
+        // for notification messages.
+        const data = payload.data || {};
+        const notification = payload.notification || {};
+        const title = data.title || notification.title || "Velvet";
+        const body = data.body || notification.body || "";
+        const icon = data.image || notification.icon || "/images/logo/logo-velvet-edit.png";
         const tag = data.type || "velvet-notification";
 
-        let payloadObj = {};
+        let extra = {};
         try {
-            payloadObj = data.payload ? JSON.parse(data.payload) : {};
+            extra = data.payload ? JSON.parse(data.payload) : {};
         } catch (e) {
-            payloadObj = {};
+            extra = {};
         }
 
-        // The "push" listener already wraps handlePush() in event.waitUntil(),
-        // so await the notification here instead of nesting a second
-        // waitUntil() (which can fire after the event has finished dispatching).
+        const url = extra.order_id
+            ? `/${self.__locale || "en"}/dashboard/orders/${extra.order_id}`
+            : `/${self.__locale || "en"}`;
+
         await self.registration.showNotification(title, {
             body,
             icon,
             badge: "/images/logo/logo-velvet-edit.png",
             tag,
-            data: {
-                ...payloadObj,
-                url: payloadObj.order_id ?
-                    `/${self.__locale || "en"}/dashboard/orders/${payloadObj.order_id}` : `/${self.__locale || "en"}`,
-            },
+            data: { ...extra, url },
         });
-    } catch (e) {}
+    } catch (e) {
+        console.error("[velvet-sw] push handling failed", e);
+    }
 }
 
 self.addEventListener("notificationclick", (event) => {

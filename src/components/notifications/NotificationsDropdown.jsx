@@ -60,20 +60,39 @@ export default function NotificationsDropdown({ open, onClose }) {
         : "permission_state_default";
 
   const describe = (result) => {
-    switch (result) {
-      case "granted":
-        return { key: "permission_granted", ok: true };
-      case "denied":
-        return { key: "permission_denied", ok: false };
-      case "unsupported":
-        return { key: "permission_unsupported", ok: false };
-      case "no-user":
-        return { key: "permission_no_user", ok: false };
-      case "no-token":
-        return { key: "no_token", ok: false };
-      default:
-        return { key: "test_error", ok: false };
+    if (typeof result !== "string") return { key: "test_error", ok: false };
+    if (result === "granted") return { key: "permission_granted", ok: true };
+    if (result === "denied") return { key: "permission_denied", ok: false };
+    if (result === "dismissed") return { key: "permission_dismissed", ok: false };
+    if (result === "no-user") return { key: "permission_no_user", ok: false };
+    if (result === "no-token") return { key: "no_token", ok: false };
+    if (result.startsWith("unsupported")) {
+      return {
+        key: "permission_unsupported",
+        ok: false,
+        detail: result.replace(/^unsupported:?/, ""),
+      };
     }
+    if (result.startsWith("token-error")) {
+      return {
+        key: "no_token",
+        ok: false,
+        detail: result.replace(/^token-error:?/, ""),
+      };
+    }
+    if (result.startsWith("error")) {
+      return {
+        key: "test_error",
+        ok: false,
+        detail: result.replace(/^error:?/, ""),
+      };
+    }
+    return { key: "test_error", ok: false };
+  };
+
+  const sendErrorFeedback = (result) => {
+    const msg = typeof result === "string" ? result.replace(/^error:?/, "") : "";
+    setFeedback({ key: "test_error", ok: false, detail: msg });
   };
 
   const enable = async () => {
@@ -94,13 +113,13 @@ export default function NotificationsDropdown({ open, onClose }) {
       }
       setFeedback({ key: "test_sending", ok: true });
       const result = await sendTest();
-      setFeedback(
-        result === "sent"
-          ? { key: "test_sent", ok: true }
-          : result === "failed"
-            ? { key: "test_failed", ok: false }
-            : { key: "test_error", ok: false }
-      );
+      if (result === "sent") {
+        setFeedback({ key: "test_sent", ok: true });
+      } else if (result === "failed") {
+        setFeedback({ key: "test_failed", ok: false });
+      } else {
+        sendErrorFeedback(result);
+      }
     } finally {
       setBusy(false);
     }
@@ -116,8 +135,20 @@ export default function NotificationsDropdown({ open, onClose }) {
     }
     setFeedback({ key: "test_scheduled", ok: true });
     // Gives you time to switch tabs so the system notification is visible.
-    setTimeout(() => {
-      sendNow();
+    setTimeout(async () => {
+      setBusy(true);
+      try {
+        const result = await sendTest();
+        if (result === "sent") {
+          setFeedback({ key: "test_sent", ok: true });
+        } else if (result === "failed") {
+          setFeedback({ key: "test_failed", ok: false });
+        } else {
+          sendErrorFeedback(result);
+        }
+      } finally {
+        setBusy(false);
+      }
     }, 5000);
   };
 
@@ -269,13 +300,20 @@ export default function NotificationsDropdown({ open, onClose }) {
           </div>
 
           {feedback && (
-            <p
-              className={`text-[11px] ${
-                feedback.ok ? "text-green-600" : "text-red-500"
-              }`}
-            >
-              {t(feedback.key)}
-            </p>
+            <div>
+              <p
+                className={`text-[11px] ${
+                  feedback.ok ? "text-green-600" : "text-red-500"
+                }`}
+              >
+                {t(feedback.key)}
+              </p>
+              {feedback.detail && (
+                <p className="mt-1 text-[10px] leading-snug text-slate-500 font-mono break-words">
+                  {feedback.detail}
+                </p>
+              )}
+            </div>
           )}
         </div>
 

@@ -123,6 +123,7 @@
         "permission_state_granted": "granted",
         "permission_state_denied": "blocked",
         "permission_unsupported": "This browser or private session doesn't support push notifications",
+        "permission_dismissed": "The permission prompt was dismissed — click again and choose Allow",
         "permission_no_user": "Please log in again",
         "no_token": "Permission granted, but no device token was created",
         "enable_now": "Allow",
