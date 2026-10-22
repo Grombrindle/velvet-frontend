@@ -56,9 +56,12 @@ const NotificationsContext = createContext({
   permission: "default",
   deviceToken: null,
   userId: null,
+  isAuthenticated: false,
   lastResult: null,
-  requestFcmPermission: async () => "unsupported",
-  sendTest: async () => "error",
+  requestFcmPermission: async () =>
+    "error:NotificationsProvider is not mounted above this component",
+  sendTest: async () =>
+    "error:NotificationsProvider is not mounted above this component",
 });
 
 export function useNotificationsFcm() {
@@ -134,6 +137,40 @@ export function NotificationsProvider({ children }) {
       .catch(() => {});
   }, [locale]);
 
+  // Keep the React `permission` state in sync with the browser. The user can
+  // grant notifications from the address-bar controls (site settings) without
+  // ever going through our button, and Chrome/Firefox can change the state at
+  // any time — without this listener the UI keeps reporting the value it read
+  // on mount ("default") even though the browser already says "granted".
+  useEffect(() => {
+    if (typeof window === "undefined" || !("permissions" in navigator)) return;
+    let status = null;
+    let cancelled = false;
+
+    const sync = () => {
+      if (!status) return;
+      // The Permissions API uses "prompt" where Notification uses "default".
+      const next = status.state === "prompt" ? "default" : status.state;
+      console.info("[velvet-fcm] permission changed:", next);
+      setPermission(next);
+    };
+
+    navigator.permissions
+      .query({ name: "notifications" })
+      .then((s) => {
+        if (cancelled) return;
+        status = s;
+        sync();
+        s.onchange = sync;
+      })
+      .catch((e) => console.warn("[velvet-fcm] permissions.query failed", e));
+
+    return () => {
+      cancelled = true;
+      if (status) status.onchange = null;
+    };
+  }, []);
+
   // On logout / user switch: drop that user's stored token (and any stale
   // legacy key) so the next login on this browser registers a fresh one.
   useEffect(() => {
@@ -167,18 +204,28 @@ export function NotificationsProvider({ children }) {
     return () => unsub?.();
   }, [queryClient]);
 
-  // When the user becomes authenticated, register the FCM token.
+  // When the user becomes authenticated (or the browser permission becomes
+  // "granted" later, e.g. via the address-bar controls), register the FCM token.
   useEffect(() => {
-    if (!_hasHydrated || !isAuthenticated || !userId) return;
+    if (!_hasHydrated || !isAuthenticated || !userId) {
+      if (_hasHydrated && isAuthenticated && !userId) {
+        console.warn(
+          "[velvet-fcm] authenticated but the stored user has no id; sign out and sign in again"
+        );
+      }
+      return;
+    }
 
     let cancelled = false;
     let unsubUnregistered = null;
     (async () => {
       try {
+        // If permission isn't granted yet, defer to the bell click.
+        if (typeof Notification === "undefined") return;
+        if (Notification.permission !== "granted") return;
+
         const messaging = await getFirebaseMessaging();
         if (!messaging || cancelled) return;
-        // If permission isn't granted yet, defer to the bell click.
-        if (Notification.permission !== "granted") return;
 
         // Firebase 12 has no onTokenRefresh: getToken() transparently returns
         // a rotated token. Re-register on every login so the backend always
@@ -217,7 +264,7 @@ export function NotificationsProvider({ children }) {
       cancelled = true;
       unsubUnregistered?.();
     };
-  }, [_hasHydrated, isAuthenticated, userId, queryClient, verifyPushOnce]);
+  }, [_hasHydrated, isAuthenticated, userId, permission, queryClient, verifyPushOnce]);
 
   const requestFcmPermissionNow = async () => {
     try {
@@ -227,7 +274,12 @@ export function NotificationsProvider({ children }) {
 
       // Ask the browser FIRST, directly from the click gesture. Doing any
       // async Firebase work before this can make the prompt never appear.
-      const perm = await Notification.requestPermission();
+      // If it is already granted (e.g. the user allowed it from the address
+      // bar) there is nothing to prompt: just continue to token registration.
+      const alreadyGranted = Notification.permission === "granted";
+      const perm = alreadyGranted
+        ? "granted"
+        : await Notification.requestPermission();
       setPermission(perm);
       console.info("[velvet-fcm] permission:", perm);
       if (perm === "default") return "dismissed";
@@ -296,7 +348,15 @@ export function NotificationsProvider({ children }) {
 
   return (
     <NotificationsContext.Provider
-      value={{ permission, deviceToken, userId, lastResult, requestFcmPermission, sendTest }}
+      value={{
+        permission,
+        deviceToken,
+        userId,
+        isAuthenticated,
+        lastResult,
+        requestFcmPermission,
+        sendTest,
+      }}
     >
       {children}
     </NotificationsContext.Provider>

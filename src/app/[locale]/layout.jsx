@@ -353,26 +353,33 @@ export default async function RootLayout({ children, params }) {
           <NextIntlClientProvider locale={locale} messages={messages}>
             <LocaleQueryInvalidator />
 
-            <Suspense fallback={<div className="h-20 w-full" />}>
-              <NavBar />
-            </Suspense>
-
-            <div className="lg:hidden block">
-              <Suspense fallback={<div className="h-16 w-full" />}>
-                <NavbarMobile />
-              </Suspense>
-            </div>
-
-            <Toaster
-              position="top-center"
-              toastOptions={{
-                style: { marginTop: "5rem" },
-                duration: 3000,
-              }}
-            />
-
-            {/* FCM root provider — registers the SW + token, listens for messages */}
+            {/*
+              FCM root provider — registers the SW + token, listens for
+              messages. It MUST wrap the navbars too: the bell and its
+              dropdown live in NavBar/NavbarMobile and read the permission,
+              token and test helpers from this context. Mounting the provider
+              only around <main> made the bell fall back to the context
+              defaults ("unsupported" on every test, "guest", no token).
+            */}
             <NotificationsProvider>
+              <Suspense fallback={<div className="h-20 w-full" />}>
+                <NavBar />
+              </Suspense>
+
+              <div className="lg:hidden block">
+                <Suspense fallback={<div className="h-16 w-full" />}>
+                  <NavbarMobile />
+                </Suspense>
+              </div>
+
+              <Toaster
+                position="top-center"
+                toastOptions={{
+                  style: { marginTop: "5rem" },
+                  duration: 3000,
+                }}
+              />
+
               <main>{children}</main>
               <AuthModals />
               <Footer />

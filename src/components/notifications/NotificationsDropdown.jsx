@@ -53,6 +53,7 @@ export default function NotificationsDropdown({ open, onClose }) {
     permission,
     deviceToken,
     userId,
+    isAuthenticated,
     lastResult,
     requestFcmPermission,
     sendTest,
@@ -96,7 +97,7 @@ export default function NotificationsDropdown({ open, onClose }) {
     return () => {
       cancelled = true;
     };
-  }, [open, feedback]);
+  }, [open, feedback, permission]);
 
   const copyDiagnostics = async () => {
     const support = await getFirebaseSupportStatus();
@@ -121,7 +122,8 @@ export default function NotificationsDropdown({ open, onClose }) {
       `time: ${new Date().toISOString()}`,
       `url: ${window.location.href}`,
       `ua: ${navigator.userAgent}`,
-      `user: ${userId ?? "guest"}`,
+      `authenticated: ${isAuthenticated}`,
+      `user id: ${userId === undefined ? "missing (stale provider bundle)" : (userId ?? "none")}`,
       `permission (live): ${
         typeof Notification !== "undefined" ? Notification.permission : "unavailable"
       }`,
@@ -190,6 +192,26 @@ export default function NotificationsDropdown({ open, onClose }) {
     setFeedback({ key: "test_error", ok: false, detail: msg });
   };
 
+  // Read the browser value directly: React state can lag behind a permission
+  // that was granted from the address-bar controls.
+  const livePermission = () =>
+    typeof Notification !== "undefined" ? Notification.permission : "default";
+
+  const ensureReady = async () => {
+    if (!isAuthenticated) {
+      setFeedback({ key: "permission_no_user", ok: false });
+      return false;
+    }
+    if (livePermission() !== "granted") {
+      const result = await requestFcmPermission();
+      if (result !== "granted") {
+        setFeedback(describe(result));
+        return false;
+      }
+    }
+    return true;
+  };
+
   const enable = async () => {
     const result = await requestFcmPermission();
     setFeedback(describe(result));
@@ -199,13 +221,7 @@ export default function NotificationsDropdown({ open, onClose }) {
   const sendNow = async () => {
     setBusy(true);
     try {
-      if (permission !== "granted") {
-        const result = await requestFcmPermission();
-        if (result !== "granted") {
-          setFeedback(describe(result));
-          return;
-        }
-      }
+      if (!(await ensureReady())) return;
       setFeedback({ key: "test_sending", ok: true });
       const result = await sendTest();
       if (result === "sent") {
@@ -221,13 +237,7 @@ export default function NotificationsDropdown({ open, onClose }) {
   };
 
   const sendIn5s = async () => {
-    if (permission !== "granted") {
-      const result = await requestFcmPermission();
-      if (result !== "granted") {
-        setFeedback(describe(result));
-        return;
-      }
-    }
+    if (!(await ensureReady())) return;
     setFeedback({ key: "test_scheduled", ok: true });
     // Gives you time to switch tabs so the system notification is visible.
     setTimeout(async () => {
