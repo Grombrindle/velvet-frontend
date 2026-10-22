@@ -70,6 +70,15 @@ function Footer() {
     return null;
   }
 
+  // Fetch app links data
+  const { data: appLinksData } = useQuery({
+    queryKey: ["app-links"],
+    queryFn: () => apiGet("/app-links"),
+    staleTime: 10 * 60 * 3600 * 24,
+  });
+
+  const appLinks = appLinksData?.result || {};
+
   // Fetch genders data
   const {
     data: gendersData,
@@ -150,12 +159,12 @@ function Footer() {
     {
       src: "/images/app-store.png",
       alt: "app-store",
-      href: "https://apps.apple.com/app/velvet",
+      href: appLinks.ios_url || "https://apps.apple.com/app/velvet",
     },
     {
       src: "/images/google-play.png",
       alt: "google-play",
-      href: "https://play.google.com/store/apps/details?id=com.velvet",
+      href: appLinks.google_play_url,
     },
   ];
 
@@ -173,6 +182,10 @@ function Footer() {
     {
       label: locale === "ar" ? "سياسة الخصوصية" : "Privacy Policy",
       href: `/${locale}/dashboard/privacy-policy`,
+    },
+    {
+      label: locale === "ar" ? "بيانات الناشر" : "Imprint",
+      href: `/${locale}/dashboard/imprint`,
     },
   ];
 
@@ -205,7 +218,6 @@ function Footer() {
         {/* Main Content Container - Using 6 Columns */}
         <div className="container1 mx-auto max-w-[1300px] px-6">
           <div className="grid grid-cols-1 lg:grid-cols-6 gap-6 mt-[2rem]">
-            
             {/* Column 1 - Gender 1 (e.g., Woman) */}
             <div className="w-full">
               {isLoading ? (
@@ -373,7 +385,6 @@ function Footer() {
                 </div>
               )}
             </div>
-
           </div>
         </div>
       </div>

@@ -221,7 +221,7 @@ function ProductCard({ item, isMini }) {
               <div
                 className={`${isMini ? "px-4 text-xs" : "px-10 text-sm"} absolute flex flex-col gap-y-3 items-center justify-center translate-y-full group-hover:translate-y-0 transition-all duration-200 bg-white/50 backdrop-blur-xs w-full h-20 bottom-0 z-10`}
               >
-                <h6 className="text-sm">Size</h6>
+                {/* <h6 className="text-sm">Size</h6> */}
                 <div
                   onClick={(e) => e.stopPropagation()}
                   className="flex items-center justify-around w-full font-medium"

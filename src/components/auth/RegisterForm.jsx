@@ -38,11 +38,9 @@ const getRegisterSchema = (t) =>
       }
     });
 
-// Helper function to pull messages out of Laravel/Express 422 error structures
 const getErrorMessage = (error, fallbackMessage = "An error occurred") => {
   const responseData = error?.response?.data || error;
 
-  // Handles: { error: { email: ["The email has already been taken."] } }
   if (responseData?.error && typeof responseData.error === "object") {
     const firstKey = Object.keys(responseData.error)[0];
     if (firstKey && Array.isArray(responseData.error[firstKey])) {
@@ -50,12 +48,7 @@ const getErrorMessage = (error, fallbackMessage = "An error occurred") => {
     }
   }
 
-  // Handles: { message: "Validation failed" }
-  return (
-    responseData?.message ||
-    error?.message ||
-    fallbackMessage
-  );
+  return responseData?.message || error?.message || fallbackMessage;
 };
 
 const labelStyles = "block text-sm font-semibold text-slate-700 mb-1";
@@ -80,12 +73,11 @@ export default function RegisterForm() {
     resolver: zodResolver(getRegisterSchema(t)),
   });
 
-  // Resend / Trigger OTP Mutation
   const sendOtpMutation = useMutation({
     mutationFn: (email) => apiPost("/auth/forgot-password", { email }),
     onSuccess() {
       toast.success(t("otp_sent_success") || "OTP code sent to your email!");
-      setStep("otp"); // Strictly move to OTP step here only after success
+      setStep("otp");
     },
     onError(error) {
       const errMsg = getErrorMessage(error, t("generic_error"));
@@ -93,25 +85,20 @@ export default function RegisterForm() {
     },
   });
 
-  // Main Registration Mutation
   const registerMutation = useMutation({
     mutationFn: (payload) => apiPost("/auth/register", payload),
     onSuccess(data, variables) {
-      // Defensive check: If your API returns HTTP 200/201 but success flag is false
       if (data && data.success === false) {
         const errMsg = getErrorMessage(data, "Registration failed.");
         toast.error(errMsg);
-        return; // STOP execution — do not go to OTP step
+        return;
       }
 
       const userEmail = variables.email;
       setRegisteredEmail(userEmail);
-
-      // Trigger OTP request only after successful registration
       sendOtpMutation.mutate(userEmail);
     },
     onError(error) {
-      // Triggers when API returns HTTP 422, 400, 500, etc.
       const errMsg = getErrorMessage(
         error,
         "Registration failed. Please check your details."
@@ -122,16 +109,26 @@ export default function RegisterForm() {
 
   const onSubmit = (values) => registerMutation.mutate(values);
 
-  // Account is created but NOT yet active: the email OTP activates it, and
-  // verify-otp returns a real login token (token + user) so the user enters
-  // the site immediately.
   const handleOtpSuccess = (result) => {
-    if (!result?.token || !result?.user) {
-      toast.error(t("generic_error"));
+    // 1. If payload contains an error flag, stop and show error
+    if (result?.success === false || result?.error) {
+      toast.error(getErrorMessage(result, t("invalid_otp_error")));
       return;
     }
-    setAuth({ token: result.token, user: result.user });
-    toast.success(t("register_success"));
+
+    // 2. Safely extract token and user
+    const token = result?.token || result?.access_token || result?.data?.token;
+    const user = result?.user || result?.data?.user;
+
+    // 3. Verify token presence
+    if (!token) {
+      toast.error(getErrorMessage(result, t("invalid_otp_error")));
+      return;
+    }
+
+    // 4. Set authentication, toast success, and navigate
+    setAuth({ token, user: user || {} });
+    toast.success(t("otp_verified_success") || t("register_success"));
     router.push(`/${locale}`);
   };
 
