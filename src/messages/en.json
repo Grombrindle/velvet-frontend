@@ -133,7 +133,9 @@
         "test_scheduled": "Will send in 5 seconds — switch tabs now to see it",
         "test_sent": "Sent — check your device",
         "test_failed": "Server could not send the push (device token missing?)",
-        "test_error": "Could not send the test notification"
+        "test_error": "Could not send the test notification",
+        "copy_diagnostics": "Copy diagnostics",
+        "diagnostics_copied": "Copied"
     },
     "order": {
         "order_no": "Order No",

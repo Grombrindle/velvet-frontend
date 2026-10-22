@@ -55,6 +55,8 @@ async function requestDeviceToken(messaging) {
 const NotificationsContext = createContext({
   permission: "default",
   deviceToken: null,
+  userId: null,
+  lastResult: null,
   requestFcmPermission: async () => "unsupported",
   sendTest: async () => "error",
 });
@@ -84,6 +86,7 @@ export function NotificationsProvider({ children }) {
       : "default"
   );
   const [deviceToken, setDeviceToken] = useState(null);
+  const [lastResult, setLastResult] = useState(null);
   const didInit = useRef(false);
   const lastUserId = useRef(null);
 
@@ -216,7 +219,7 @@ export function NotificationsProvider({ children }) {
     };
   }, [_hasHydrated, isAuthenticated, userId, queryClient, verifyPushOnce]);
 
-  const requestFcmPermission = async () => {
+  const requestFcmPermissionNow = async () => {
     try {
       if (typeof window === "undefined" || typeof Notification === "undefined") {
         return "unsupported:the Notification API is not available in this browser";
@@ -266,7 +269,7 @@ export function NotificationsProvider({ children }) {
   };
 
   // Calls the backend's existing POST /notifications/test-sound endpoint.
-  const sendTest = async () => {
+  const sendTestNow = async () => {
     try {
       const res = await sendTestNotification();
       const sent = res?.result?.notification_sent ?? res?.notification_sent;
@@ -277,9 +280,23 @@ export function NotificationsProvider({ children }) {
     }
   };
 
+  // Keep the last raw result so the in-app diagnostics can show exactly what
+  // happened (including the browser/Firebase reason).
+  const requestFcmPermission = async () => {
+    const result = await requestFcmPermissionNow();
+    setLastResult(result);
+    return result;
+  };
+
+  const sendTest = async () => {
+    const result = await sendTestNow();
+    setLastResult(result);
+    return result;
+  };
+
   return (
     <NotificationsContext.Provider
-      value={{ permission, deviceToken, requestFcmPermission, sendTest }}
+      value={{ permission, deviceToken, userId, lastResult, requestFcmPermission, sendTest }}
     >
       {children}
     </NotificationsContext.Provider>

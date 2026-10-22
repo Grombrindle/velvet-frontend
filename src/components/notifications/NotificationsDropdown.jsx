@@ -11,6 +11,7 @@ import {
 } from "@/lib/hooks/useNotifications";
 import { useHydrated } from "@/lib/hooks/useHydration";
 import { useNotificationsFcm } from "./NotificationsProvider";
+import { getFirebaseSupportStatus } from "@/lib/firebase";
 import Loader from "../ui/loader";
 
 // Simple relative-time formatter (no dep): "now", "5m", "2h", "3d"
@@ -48,10 +49,18 @@ export default function NotificationsDropdown({ open, onClose }) {
   const updatePrefs = useUpdateNotificationPreferences();
   const markRead = useMarkNotificationsRead();
 
-  const { permission, deviceToken, requestFcmPermission, sendTest } = useNotificationsFcm();
+  const {
+    permission,
+    deviceToken,
+    userId,
+    lastResult,
+    requestFcmPermission,
+    sendTest,
+  } = useNotificationsFcm();
   const [busy, setBusy] = useState(false);
   const [feedback, setFeedback] = useState(null); // { key, ok, detail }
   const [env, setEnv] = useState(null);
+  const [copied, setCopied] = useState(false);
 
   // Fresh, at-a-glance state for support: what the browser and worker report
   // right now (the React `permission` state can be stale after the user
@@ -88,6 +97,55 @@ export default function NotificationsDropdown({ open, onClose }) {
       cancelled = true;
     };
   }, [open, feedback]);
+
+  const copyDiagnostics = async () => {
+    const support = await getFirebaseSupportStatus();
+    let sw = "none";
+    try {
+      const reg = await navigator.serviceWorker.getRegistration("/");
+      sw = !reg
+        ? "none"
+        : reg.active
+          ? "active"
+          : reg.installing
+            ? "installing"
+            : reg.waiting
+              ? "waiting"
+              : "idle";
+    } catch (e) {
+      sw = "error";
+    }
+
+    const text = [
+      "Velvet notifications diagnostics",
+      `time: ${new Date().toISOString()}`,
+      `url: ${window.location.href}`,
+      `ua: ${navigator.userAgent}`,
+      `user: ${userId ?? "guest"}`,
+      `permission (live): ${
+        typeof Notification !== "undefined" ? Notification.permission : "unavailable"
+      }`,
+      `permission (state): ${permission}`,
+      `last result: ${lastResult ?? "-"}`,
+      `device token (this session): ${deviceToken ? "yes" : "no"}`,
+      `service worker: ${sw}`,
+      `secure context: ${window.isSecureContext}`,
+      `push manager: ${"PushManager" in window}`,
+      `firebase.isSupported: ${support.firebaseIsSupported}`,
+      `firebase error: ${support.firebaseError ?? "-"}`,
+      `indexedDB write test: ${support.indexedDBWrite}`,
+      `failed checks: ${support.report.failed.join(", ") || "none"}`,
+      `firebase failure: ${support.failure ?? "-"}`,
+    ].join("\n");
+
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 5000);
+    } catch (e) {
+      window.prompt("Copy diagnostics", text);
+    }
+  };
 
   const permissionKey =
     permission === "granted"
@@ -337,11 +395,20 @@ export default function NotificationsDropdown({ open, onClose }) {
           </div>
 
           {env && (
-            <p className="text-[10px] text-slate-400 font-mono">
-              {`browser: ${env.permission} · worker: ${env.sw} · token: ${
-                deviceToken ? "yes" : "no"
-              }`}
-            </p>
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-[10px] text-slate-400 font-mono truncate">
+                {`browser: ${env.permission} · worker: ${env.sw} · token: ${
+                  deviceToken ? "yes" : "no"
+                }`}
+              </p>
+              <button
+                type="button"
+                onClick={copyDiagnostics}
+                className="text-[10px] text-slate-500 underline hover:text-slate-800 whitespace-nowrap"
+              >
+                {copied ? t("diagnostics_copied") : t("copy_diagnostics")}
+              </button>
+            </div>
           )}
 
           {feedback && (
@@ -354,7 +421,7 @@ export default function NotificationsDropdown({ open, onClose }) {
                 {t(feedback.key)}
               </p>
               {feedback.detail && (
-                <p className="mt-1 text-[10px] leading-snug text-slate-500 font-mono break-words">
+                <p className="mt-1 text-[10px] leading-snug text-red-500 font-mono break-words">
                   {feedback.detail}
                 </p>
               )}
