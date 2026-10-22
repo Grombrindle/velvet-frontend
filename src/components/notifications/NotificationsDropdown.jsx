@@ -9,9 +9,7 @@ import {
   useUpdateNotificationPreferences,
   useMarkNotificationsRead,
 } from "@/lib/hooks/useNotifications";
-import { useHydrated } from "@/lib/hooks/useHydration";
 import { useNotificationsFcm } from "./NotificationsProvider";
-import { getFirebaseSupportStatus } from "@/lib/firebase";
 import Loader from "../ui/loader";
 
 // Simple relative-time formatter (no dep): "now", "5m", "2h", "3d"
@@ -38,7 +36,6 @@ export default function NotificationsDropdown({ open, onClose }) {
   const t = useTranslations("notifications");
   const locale = useLocale();
   const router = useRouter();
-  const hydrated = useHydrated();
 
   const [page, setPage] = useState(1);
   const { data, isLoading, error } = useNotifications(page, 20);
@@ -49,105 +46,7 @@ export default function NotificationsDropdown({ open, onClose }) {
   const updatePrefs = useUpdateNotificationPreferences();
   const markRead = useMarkNotificationsRead();
 
-  const {
-    permission,
-    deviceToken,
-    userId,
-    isAuthenticated,
-    lastResult,
-    requestFcmPermission,
-    sendTest,
-  } = useNotificationsFcm();
-  const [busy, setBusy] = useState(false);
-  const [feedback, setFeedback] = useState(null); // { key, ok, detail }
-  const [env, setEnv] = useState(null);
-  const [copied, setCopied] = useState(false);
-
-  // Fresh, at-a-glance state for support: what the browser and worker report
-  // right now (the React `permission` state can be stale after the user
-  // changes the site permission in browser settings).
-  useEffect(() => {
-    if (!open || typeof window === "undefined") return;
-    let cancelled = false;
-    const read = async () => {
-      let sw = "none";
-      try {
-        const reg = await navigator.serviceWorker.getRegistration("/");
-        sw = !reg
-          ? "none"
-          : reg.active
-            ? "active"
-            : reg.installing
-              ? "installing"
-              : reg.waiting
-                ? "waiting"
-                : "idle";
-      } catch (e) {
-        sw = "error";
-      }
-      if (!cancelled) {
-        setEnv({
-          permission:
-            typeof Notification !== "undefined" ? Notification.permission : "unavailable",
-          sw,
-        });
-      }
-    };
-    read();
-    return () => {
-      cancelled = true;
-    };
-  }, [open, feedback, permission]);
-
-  const copyDiagnostics = async () => {
-    const support = await getFirebaseSupportStatus();
-    let sw = "none";
-    try {
-      const reg = await navigator.serviceWorker.getRegistration("/");
-      sw = !reg
-        ? "none"
-        : reg.active
-          ? "active"
-          : reg.installing
-            ? "installing"
-            : reg.waiting
-              ? "waiting"
-              : "idle";
-    } catch (e) {
-      sw = "error";
-    }
-
-    const text = [
-      "Velvet notifications diagnostics",
-      `time: ${new Date().toISOString()}`,
-      `url: ${window.location.href}`,
-      `ua: ${navigator.userAgent}`,
-      `authenticated: ${isAuthenticated}`,
-      `user id: ${userId === undefined ? "missing (stale provider bundle)" : (userId ?? "none")}`,
-      `permission (live): ${
-        typeof Notification !== "undefined" ? Notification.permission : "unavailable"
-      }`,
-      `permission (state): ${permission}`,
-      `last result: ${lastResult ?? "-"}`,
-      `device token (this session): ${deviceToken ? "yes" : "no"}`,
-      `service worker: ${sw}`,
-      `secure context: ${window.isSecureContext}`,
-      `push manager: ${"PushManager" in window}`,
-      `firebase.isSupported: ${support.firebaseIsSupported}`,
-      `firebase error: ${support.firebaseError ?? "-"}`,
-      `indexedDB write test: ${support.indexedDBWrite}`,
-      `failed checks: ${support.report.failed.join(", ") || "none"}`,
-      `firebase failure: ${support.failure ?? "-"}`,
-    ].join("\n");
-
-    try {
-      await navigator.clipboard.writeText(text);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 5000);
-    } catch (e) {
-      window.prompt("Copy diagnostics", text);
-    }
-  };
+  const { permission, requestFcmPermission } = useNotificationsFcm();
 
   const permissionKey =
     permission === "granted"
@@ -156,108 +55,6 @@ export default function NotificationsDropdown({ open, onClose }) {
         ? "permission_state_denied"
         : "permission_state_default";
 
-  const describe = (result) => {
-    if (typeof result !== "string") return { key: "test_error", ok: false };
-    if (result === "granted") return { key: "permission_granted", ok: true };
-    if (result === "denied") return { key: "permission_denied", ok: false };
-    if (result === "dismissed") return { key: "permission_dismissed", ok: false };
-    if (result === "no-user") return { key: "permission_no_user", ok: false };
-    if (result === "no-token") return { key: "no_token", ok: false };
-    if (result.startsWith("unsupported")) {
-      return {
-        key: "permission_unsupported",
-        ok: false,
-        detail: result.replace(/^unsupported:?/, ""),
-      };
-    }
-    if (result.startsWith("token-error")) {
-      return {
-        key: "no_token",
-        ok: false,
-        detail: result.replace(/^token-error:?/, ""),
-      };
-    }
-    if (result.startsWith("error")) {
-      return {
-        key: "test_error",
-        ok: false,
-        detail: result.replace(/^error:?/, ""),
-      };
-    }
-    return { key: "test_error", ok: false };
-  };
-
-  const sendErrorFeedback = (result) => {
-    const msg = typeof result === "string" ? result.replace(/^error:?/, "") : "";
-    setFeedback({ key: "test_error", ok: false, detail: msg });
-  };
-
-  // Read the browser value directly: React state can lag behind a permission
-  // that was granted from the address-bar controls.
-  const livePermission = () =>
-    typeof Notification !== "undefined" ? Notification.permission : "default";
-
-  const ensureReady = async () => {
-    if (!isAuthenticated) {
-      setFeedback({ key: "permission_no_user", ok: false });
-      return false;
-    }
-    if (livePermission() !== "granted") {
-      const result = await requestFcmPermission();
-      if (result !== "granted") {
-        setFeedback(describe(result));
-        return false;
-      }
-    }
-    return true;
-  };
-
-  const enable = async () => {
-    const result = await requestFcmPermission();
-    setFeedback(describe(result));
-    return result;
-  };
-
-  const sendNow = async () => {
-    setBusy(true);
-    try {
-      if (!(await ensureReady())) return;
-      setFeedback({ key: "test_sending", ok: true });
-      const result = await sendTest();
-      if (result === "sent") {
-        setFeedback({ key: "test_sent", ok: true });
-      } else if (result === "failed") {
-        setFeedback({ key: "test_failed", ok: false });
-      } else {
-        sendErrorFeedback(result);
-      }
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const sendIn5s = async () => {
-    if (!(await ensureReady())) return;
-    setFeedback({ key: "test_scheduled", ok: true });
-    // Gives you time to switch tabs so the system notification is visible.
-    setTimeout(async () => {
-      setBusy(true);
-      try {
-        const result = await sendTest();
-        if (result === "sent") {
-          setFeedback({ key: "test_sent", ok: true });
-        } else if (result === "failed") {
-          setFeedback({ key: "test_failed", ok: false });
-        } else {
-          sendErrorFeedback(result);
-        }
-      } finally {
-        setBusy(false);
-      }
-    }, 5000);
-  };
-
- 
   // Close on Escape
   useEffect(() => {
     if (!open) return;
@@ -364,80 +161,23 @@ export default function NotificationsDropdown({ open, onClose }) {
 
       {/* Footer: load more + settings */}
       <div className="px-4 py-3 border-t border-gray-100 space-y-2">
-        {/* Device permission + on-demand test push */}
-        <div className="space-y-2 pb-2 border-b border-gray-100">
-          <div className="flex items-center justify-between gap-2 text-[11px] text-slate-500">
+        {/* Only shown while the browser has not granted notifications. */}
+        {permission !== "granted" && (
+          <div className="flex items-center justify-between gap-2 pb-2 border-b border-gray-100 text-[11px] text-slate-500">
             <span>
               {t("permission_label")}:{" "}
-              <b
-                className={
-                  permission === "granted" ? "text-green-600" : "text-slate-700"
-                }
-              >
+              <b className={permission === "denied" ? "text-red-500" : "text-slate-700"}>
                 {t(permissionKey)}
               </b>
             </span>
-            {permission !== "granted" && (
-              <button
-                onClick={enable}
-                className="underline hover:text-black whitespace-nowrap"
-              >
-                {t("enable_now")}
-              </button>
-            )}
-          </div>
-
-          <div className="flex gap-2">
             <button
-              onClick={sendNow}
-              disabled={busy}
-              className="flex-1 text-xs font-semibold bg-black text-white rounded-lg py-2 disabled:opacity-50 hover:bg-slate-800 transition-colors"
+              onClick={requestFcmPermission}
+              className="underline hover:text-black whitespace-nowrap"
             >
-              {busy ? t("test_sending") : t("test_notification")}
-            </button>
-            <button
-              onClick={sendIn5s}
-              disabled={busy}
-              className="text-xs font-semibold border border-slate-300 rounded-lg px-3 py-2 disabled:opacity-50 hover:bg-slate-50 transition-colors"
-            >
-              {t("test_in_5s")}
+              {t("enable_now")}
             </button>
           </div>
-
-          {env && (
-            <div className="flex items-center justify-between gap-2">
-              <p className="text-[10px] text-slate-400 font-mono truncate">
-                {`browser: ${env.permission} · worker: ${env.sw} · token: ${
-                  deviceToken ? "yes" : "no"
-                }`}
-              </p>
-              <button
-                type="button"
-                onClick={copyDiagnostics}
-                className="text-[10px] text-slate-500 underline hover:text-slate-800 whitespace-nowrap"
-              >
-                {copied ? t("diagnostics_copied") : t("copy_diagnostics")}
-              </button>
-            </div>
-          )}
-
-          {feedback && (
-            <div>
-              <p
-                className={`text-[11px] ${
-                  feedback.ok ? "text-green-600" : "text-red-500"
-                }`}
-              >
-                {t(feedback.key)}
-              </p>
-              {feedback.detail && (
-                <p className="mt-1 text-[10px] leading-snug text-red-500 font-mono break-words">
-                  {feedback.detail}
-                </p>
-              )}
-            </div>
-          )}
-        </div>
+        )}
 
         {pagination && page < pagination.last_page && (
           <button

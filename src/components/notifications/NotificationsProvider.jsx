@@ -1,7 +1,7 @@
 "use client";
 
-import { createContext, useContext, useEffect, useMemo, useRef, useState } from "react";
-import { useLocale, useTranslations } from "next-intl";
+import { createContext, useContext, useEffect, useRef, useState } from "react";
+import { useLocale } from "next-intl";
 import { useAuthStore } from "@/lib/store";
 import {
   getFirebaseMessaging,
@@ -9,7 +9,7 @@ import {
   getPushSupportReport,
 } from "@/lib/firebase";
 import { getToken, onMessage, onUnregistered } from "firebase/messaging";
-import { registerDeviceToken, sendTestNotification } from "@/lib/notifications";
+import { registerDeviceToken } from "@/lib/notifications";
 import { useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 
@@ -20,10 +20,6 @@ const LEGACY_TOKEN_STORAGE_KEY = "velvet_fcm_token";
 // Keyed per user so a second login on the same browser re-registers its own
 // token instead of reusing (or skipping) the previous user's.
 const getTokenStorageKey = (userId) => `velvet_fcm_token_${userId}`;
-
-// One-time self-test flag per user+browser so we verify the push loop works
-// without spamming a "Sound Test Notification" on every reload.
-const getVerifiedStorageKey = (userId) => `velvet_push_verified_${userId}`;
 
 // FCM tokens shouldn't be requested until the service worker is active,
 // otherwise getToken can fail with a "registration did not exist" error.
@@ -54,13 +50,7 @@ async function requestDeviceToken(messaging) {
 
 const NotificationsContext = createContext({
   permission: "default",
-  deviceToken: null,
-  userId: null,
-  isAuthenticated: false,
-  lastResult: null,
   requestFcmPermission: async () =>
-    "error:NotificationsProvider is not mounted above this component",
-  sendTest: async () =>
     "error:NotificationsProvider is not mounted above this component",
 });
 
@@ -80,7 +70,6 @@ export function useNotificationsFcm() {
 export function NotificationsProvider({ children }) {
   const queryClient = useQueryClient();
   const locale = useLocale();
-  const t = useTranslations("notifications");
   const { isAuthenticated, _hasHydrated, user } = useAuthStore();
   const userId = user?.id ?? null;
   const [permission, setPermission] = useState(
@@ -88,32 +77,8 @@ export function NotificationsProvider({ children }) {
       ? Notification.permission
       : "default"
   );
-  const [deviceToken, setDeviceToken] = useState(null);
-  const [lastResult, setLastResult] = useState(null);
   const didInit = useRef(false);
   const lastUserId = useRef(null);
-
-  // Self-test: right after a successful token registration (once per user +
-  // browser) ask the backend to push a real notification to this device. This
-  // proves the whole FCM loop works without needing a Postman/curl token.
-  const verifyPushOnce = useMemo(
-    () => async (uid) => {
-      const key = getVerifiedStorageKey(uid);
-      if (localStorage.getItem(key)) return;
-      try {
-        const res = await sendTestNotification();
-        localStorage.setItem(key, "1");
-        if (res?.result?.notification_sent) {
-          toast(t("push_verified"), { icon: "🔔", duration: 5000 });
-        } else {
-          toast.error(t("push_verify_failed"), { duration: 6000 });
-        }
-      } catch (e) {
-        localStorage.removeItem(key); // allow a retry next time
-      }
-    },
-    [t]
-  );
 
   // Register the service worker once (idempotent).
   useEffect(() => {
@@ -233,10 +198,8 @@ export function NotificationsProvider({ children }) {
         const currentToken = await requestDeviceToken(messaging);
         if (currentToken && !cancelled) {
           await registerDeviceToken(currentToken);
-          setDeviceToken(currentToken);
           localStorage.setItem(getTokenStorageKey(userId), currentToken);
           queryClient.invalidateQueries({ queryKey: ["notifications", "list"] });
-          verifyPushOnce(userId);
         }
 
         // If FCM invalidates/unregisters the token (e.g. server-side cleanup),
@@ -244,12 +207,10 @@ export function NotificationsProvider({ children }) {
         unsubUnregistered = onUnregistered(messaging, async () => {
           if (cancelled || !userId) return;
           localStorage.removeItem(getTokenStorageKey(userId));
-          localStorage.removeItem(getVerifiedStorageKey(userId));
           try {
             const fresh = await requestDeviceToken(messaging);
             if (fresh && !cancelled) {
               await registerDeviceToken(fresh);
-              setDeviceToken(fresh);
               localStorage.setItem(getTokenStorageKey(userId), fresh);
               queryClient.invalidateQueries({ queryKey: ["notifications", "list"] });
             }
@@ -264,9 +225,9 @@ export function NotificationsProvider({ children }) {
       cancelled = true;
       unsubUnregistered?.();
     };
-  }, [_hasHydrated, isAuthenticated, userId, permission, queryClient, verifyPushOnce]);
+  }, [_hasHydrated, isAuthenticated, userId, permission, queryClient]);
 
-  const requestFcmPermissionNow = async () => {
+  const requestFcmPermission = async () => {
     try {
       if (typeof window === "undefined" || typeof Notification === "undefined") {
         return "unsupported:the Notification API is not available in this browser";
@@ -309,10 +270,8 @@ export function NotificationsProvider({ children }) {
       if (!currentToken) return "no-token";
 
       await registerDeviceToken(currentToken);
-      setDeviceToken(currentToken);
       localStorage.setItem(getTokenStorageKey(userId), currentToken);
       queryClient.invalidateQueries({ queryKey: ["notifications", "list"] });
-      verifyPushOnce(userId);
       return "granted";
     } catch (e) {
       console.error("[velvet-fcm] permission request failed", e);
@@ -320,44 +279,8 @@ export function NotificationsProvider({ children }) {
     }
   };
 
-  // Calls the backend's existing POST /notifications/test-sound endpoint.
-  const sendTestNow = async () => {
-    try {
-      const res = await sendTestNotification();
-      const sent = res?.result?.notification_sent ?? res?.notification_sent;
-      return sent ? "sent" : "failed";
-    } catch (e) {
-      console.error("[velvet-fcm] test notification failed", e);
-      return `error:${e?.code || e?.name || "error"}: ${e?.message || e}`;
-    }
-  };
-
-  // Keep the last raw result so the in-app diagnostics can show exactly what
-  // happened (including the browser/Firebase reason).
-  const requestFcmPermission = async () => {
-    const result = await requestFcmPermissionNow();
-    setLastResult(result);
-    return result;
-  };
-
-  const sendTest = async () => {
-    const result = await sendTestNow();
-    setLastResult(result);
-    return result;
-  };
-
   return (
-    <NotificationsContext.Provider
-      value={{
-        permission,
-        deviceToken,
-        userId,
-        isAuthenticated,
-        lastResult,
-        requestFcmPermission,
-        sendTest,
-      }}
-    >
+    <NotificationsContext.Provider value={{ permission, requestFcmPermission }}>
       {children}
     </NotificationsContext.Provider>
   );

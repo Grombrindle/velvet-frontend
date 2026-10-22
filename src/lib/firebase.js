@@ -22,54 +22,6 @@ export function getFirebaseFailureReason() {
     return lastFailure;
 }
 
-// Async capability snapshot used by the in-app diagnostics: Firebase's own
-// isSupported() plus the IndexedDB write test it performs internally.
-export async function getFirebaseSupportStatus() {
-    let firebaseIsSupported = null;
-    let firebaseError = null;
-    try {
-        firebaseIsSupported = await isSupported();
-    } catch (e) {
-        firebaseError = `${e?.name || "error"}: ${e?.message || e}`;
-    }
-
-    let indexedDBWrite = "unavailable";
-    if (typeof indexedDB !== "undefined") {
-        indexedDBWrite = await new Promise((resolve) => {
-            let settled = false;
-            const done = (v) => {
-                if (!settled) {
-                    settled = true;
-                    resolve(v);
-                }
-            };
-            try {
-                const req = indexedDB.open("velvet-support-check");
-                req.onsuccess = () => {
-                    try {
-                        req.result.close();
-                        indexedDB.deleteDatabase("velvet-support-check");
-                    } catch (e) {}
-                    done("ok");
-                };
-                req.onerror = () => done(`error: ${req.error?.message || "unknown"}`);
-                req.onblocked = () => done("blocked");
-                setTimeout(() => done("timeout"), 3000);
-            } catch (e) {
-                done(`exception: ${e?.message || e}`);
-            }
-        });
-    }
-
-    return {
-        firebaseIsSupported,
-        firebaseError,
-        indexedDBWrite,
-        report: getPushSupportReport(),
-        failure: lastFailure,
-    };
-}
-
 // Mirrors the checks Firebase's isSupported() performs, so we can report
 // exactly which browser capability is missing instead of guessing.
 export function getPushSupportReport() {
